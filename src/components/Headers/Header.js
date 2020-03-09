@@ -16,6 +16,7 @@
 
 */
 import React from "react";
+import HeaderCard from "./HeaderCard";
 
 // reactstrap components
 import { Card, CardBody, CardTitle, Container, Row, Col } from "reactstrap";
