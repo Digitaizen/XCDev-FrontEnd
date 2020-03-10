@@ -21,45 +21,52 @@ import HeaderCard from "./HeaderCard";
 // reactstrap components
 import { Container, Row } from "reactstrap";
 
-const args = [{
-  title: "Traffic",
-  titleValue: "350,897",
-  iconColor: "danger",
-  icon: "chart-bar",
-  arrowColor: "success",
-  arrow: "up",
-  percent: "3.48%",
-  since: "Since last month"
-},{
-  title: "New users",
-  titleValue: "2,356",
-  iconColor: "warning",
-  icon: "chart-pie",
-  arrowColor: "danger",
-  arrow: "down",
-  percent: "3.48%",
-  since: "Since last week"
-},{
-  title: "Sales",
-  titleValue: "924",
-  iconColor: "yellow",
-  icon: "users",
-  arrowColor: "warning",
-  arrow: "down",
-  percent: "1.10%",
-  since: "Since yesterday"
-},{
-  title: "Performance",
-  titleValue: "49,65",
-  iconColor: "info",
-  icon: "percent",
-  arrowColor: "success",
-  arrow: "up",
-  percent: "12%",
-  since: "Since last month"
-}
-]
-
+const args = [
+  {
+    id: "1",
+    title: "Traffic",
+    titleValue: "350,897",
+    iconColor: "danger",
+    icon: "chart-bar",
+    arrowColor: "success",
+    arrow: "up",
+    percent: "3.48%",
+    since: "Since last month"
+  },
+  {
+    id: "2",
+    title: "New users",
+    titleValue: "2,356",
+    iconColor: "warning",
+    icon: "chart-pie",
+    arrowColor: "danger",
+    arrow: "down",
+    percent: "3.48%",
+    since: "Since last week"
+  },
+  {
+    id: "3",
+    title: "Sales",
+    titleValue: "924",
+    iconColor: "yellow",
+    icon: "users",
+    arrowColor: "warning",
+    arrow: "down",
+    percent: "1.10%",
+    since: "Since yesterday"
+  },
+  {
+    id: "4",
+    title: "Performance",
+    titleValue: "49,65",
+    iconColor: "info",
+    icon: "percent",
+    arrowColor: "success",
+    arrow: "up",
+    percent: "12%",
+    since: "Since last month"
+  }
+];
 
 class Header extends React.Component {
   render() {
@@ -72,7 +79,8 @@ class Header extends React.Component {
               <Row>
                 {args.map(arg => {
                   return (
-                    <HeaderCard 
+                    <HeaderCard
+                      key={arg.id}
                       title={arg.title}
                       titleValue={arg.titleValue}
                       iconColor={arg.iconColor}
@@ -82,9 +90,8 @@ class Header extends React.Component {
                       percent={arg.percent}
                       since={arg.since}
                     />
-                  )
-                })
-                }
+                  );
+                })}
               </Row>
             </div>
           </Container>
