@@ -22,6 +22,7 @@ import Register from "views/examples/Register.js";
 import Login from "views/examples/Login.js";
 import Tables from "views/examples/Tables.js";
 import Icons from "views/examples/Icons.js";
+import LabInventory from "views/examples/LabInventory";
 
 var routes = [
   {
@@ -36,14 +37,16 @@ var routes = [
     name: "Icons",
     icon: "ni ni-planet text-blue",
     component: Icons,
-    layout: "/admin"
+    layout: "/admin",
+    invisible: true
   },
   {
     path: "/maps",
     name: "Maps",
     icon: "ni ni-pin-3 text-orange",
     component: Maps,
-    layout: "/admin"
+    layout: "/admin",
+    invisible: true
   },
   {
     path: "/user-profile",
@@ -72,6 +75,13 @@ var routes = [
     icon: "ni ni-circle-08 text-pink",
     component: Register,
     layout: "/auth"
+  },
+  {
+    path: "/labinventory",
+    name: "Lab Inventory",
+    icon: "ni ni-circle-08 text-pink",
+    component: LabInventory,
+    layout: "/admin"
   }
 ];
 export default routes;
