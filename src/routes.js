@@ -60,7 +60,8 @@ var routes = [
     name: "Tables",
     icon: "ni ni-bullet-list-67 text-red",
     component: Tables,
-    layout: "/admin"
+    layout: "/admin",
+    invisible: true
   },
   {
     path: "/login",
@@ -79,7 +80,7 @@ var routes = [
   {
     path: "/labinventory",
     name: "Lab Inventory",
-    icon: "ni ni-circle-08 text-pink",
+    icon: "ni ni-bullet-list-67 text-red",
     component: LabInventory,
     layout: "/admin"
   }
