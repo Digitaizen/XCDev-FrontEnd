@@ -24,9 +24,9 @@ import { Container, Row } from "reactstrap";
 const args = [
   {
     id: "1",
-    title: "Traffic",
-    titleValue: "350,897",
-    iconColor: "danger",
+    title: "Total 13G Servers",
+    titleValue: "150",
+    iconColor: "info",
     icon: "chart-bar",
     arrowColor: "success",
     arrow: "up",
@@ -35,9 +35,9 @@ const args = [
   },
   {
     id: "2",
-    title: "New users",
-    titleValue: "2,356",
-    iconColor: "warning",
+    title: "Total 14G Servers",
+    titleValue: "80",
+    iconColor: "info",
     icon: "chart-pie",
     arrowColor: "danger",
     arrow: "down",
@@ -46,10 +46,10 @@ const args = [
   },
   {
     id: "3",
-    title: "Sales",
-    titleValue: "924",
+    title: "Avilable Servers",
+    titleValue: "34",
     iconColor: "yellow",
-    icon: "users",
+    icon: "server",
     arrowColor: "warning",
     arrow: "down",
     percent: "1.10%",
@@ -57,8 +57,8 @@ const args = [
   },
   {
     id: "4",
-    title: "Performance",
-    titleValue: "49,65",
+    title: "Total Usuage",
+    titleValue: "85",
     iconColor: "info",
     icon: "percent",
     arrowColor: "success",
@@ -85,10 +85,10 @@ class Header extends React.Component {
                       titleValue={arg.titleValue}
                       iconColor={arg.iconColor}
                       icon={arg.icon}
-                      arrowColor={arg.arrowColor}
-                      arrow={arg.arrow}
-                      percent={arg.percent}
-                      since={arg.since}
+                      // arrowColor={arg.arrowColor}
+                      // arrow={arg.arrow}
+                      // percent={arg.percent}
+                      // since={arg.since}
                     />
                   );
                 })}

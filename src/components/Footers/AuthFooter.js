@@ -30,13 +30,13 @@ class Login extends React.Component {
             <Row className="align-items-center justify-content-xl-between">
               <Col xl="6">
                 <div className="copyright text-center text-xl-left text-muted">
-                  © 2018{" "}
+                  © 2020{" "}
                   <a
                     className="font-weight-bold ml-1"
                     href="https://www.creative-tim.com?ref=adr-auth-footer"
                     target="_blank"
                   >
-                    Creative Tim
+                    DELL XC Engineering
                   </a>
                 </div>
               </Col>
@@ -47,7 +47,7 @@ class Login extends React.Component {
                       href="https://www.creative-tim.com?ref=adr-auth-footer"
                       target="_blank"
                     >
-                      Creative Tim
+                      DELL XC
                     </NavLink>
                   </NavItem>
                   <NavItem>
@@ -58,7 +58,7 @@ class Login extends React.Component {
                       About Us
                     </NavLink>
                   </NavItem>
-                  <NavItem>
+                  {/* <NavItem>
                     <NavLink
                       href="http://blog.creative-tim.com?ref=adr-auth-footer"
                       target="_blank"
@@ -73,7 +73,7 @@ class Login extends React.Component {
                     >
                       MIT License
                     </NavLink>
-                  </NavItem>
+                  </NavItem> */}
                 </Nav>
               </Col>
             </Row>
