@@ -1,20 +1,3 @@
-/*!
-
-=========================================================
-* Argon Dashboard React - v1.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/argon-dashboard-react
-* Copyright 2019 Creative Tim (https://www.creative-tim.com)
-* Licensed under MIT (https://github.com/creativetimofficial/argon-dashboard-react/blob/master/LICENSE.md)
-
-* Coded by Creative Tim
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
 import React from "react";
 
 // reactstrap components
@@ -39,7 +22,7 @@ import {
 } from "reactstrap";
 // core components
 import Header from "components/Headers/Header.js";
-import TableRow from '../TableRow/TableRow'
+import TableRow from "../TableRow/TableRow";
 
 class TableComponent extends React.Component {
   render() {
@@ -58,10 +41,10 @@ class TableComponent extends React.Component {
                 <Table className="align-items-center table-flush" responsive>
                   <thead className="thead-light">
                     <tr>
-                      {this.props.columnNames.map((column) => (
+                      {this.props.columnNames.map(column => (
                         <th scope="col" key={column.key}>
                           {column.name}
-                        </th>  
+                        </th>
                       ))}
 
                       {/* <th scope="col">Project</th>
@@ -73,7 +56,7 @@ class TableComponent extends React.Component {
                     </tr>
                   </thead>
                   <tbody>
-                   <TableRow {...this.props} />
+                    <TableRow {...this.props.systemInventory} />
                   </tbody>
                 </Table>
                 <CardFooter className="py-4">
