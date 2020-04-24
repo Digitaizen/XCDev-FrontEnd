@@ -1,5 +1,12 @@
 import React from "react";
 import { Media } from "reactstrap";
+import {
+  Button,
+  DropdownMenu,
+  DropdownItem,
+  UncontrolledDropdown,
+  DropdownToggle
+} from "reactstrap";
 
 const TableRow = ({
   serviceTag,
@@ -48,6 +55,33 @@ const TableRow = ({
       <td>{rackU}</td>
       <td>{currentStatus}</td>
       <td>{comment}</td>
+      <td>
+        <Button color="info" type="button">
+          Check-out
+        </Button>
+      </td>
+      <td>
+        <UncontrolledDropdown>
+          <DropdownToggle
+            className="btn-icon-only text-light"
+            href="#pablo"
+            role="button"
+            size="sm"
+            color=""
+            onClick={e => e.preventDefault()}
+          >
+            <i className="fas fa-ellipsis-v" />
+          </DropdownToggle>
+          <DropdownMenu className="dropdown-menu-arrow" right>
+            <DropdownItem href="#pablo" onClick={e => e.preventDefault()}>
+              Reset iDRAC
+            </DropdownItem>
+            <DropdownItem href="#pablo" onClick={e => e.preventDefault()}>
+              Restart Server
+            </DropdownItem>
+          </DropdownMenu>
+        </UncontrolledDropdown>
+      </td>
     </tr>
   );
 };
