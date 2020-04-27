@@ -1,21 +1,45 @@
-import React from "react";
-import { useTable } from "react-table";
+/*!
 
+=========================================================
+* Argon Dashboard React - v1.1.0
+=========================================================
+
+* Product Page: https://www.creative-tim.com/product/argon-dashboard-react
+* Copyright 2019 Creative Tim (https://www.creative-tim.com)
+* Licensed under MIT (https://github.com/creativetimofficial/argon-dashboard-react/blob/master/LICENSE.md)
+
+* Coded by Creative Tim
+
+=========================================================
+
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+*/
+import React, { useState } from "react";
+import { useTable, useRowSelect } from "react-table";
 // reactstrap components
 import {
+  Badge,
+  Button,
   Card,
   CardHeader,
   CardFooter,
+  DropdownMenu,
+  DropdownItem,
+  UncontrolledDropdown,
+  DropdownToggle,
+  Media,
   Pagination,
   PaginationItem,
   PaginationLink,
+  Progress,
   Table,
   Container,
-  Row
+  Row,
+  UncontrolledTooltip
 } from "reactstrap";
 // core components
 import Header from "components/Headers/Header.js";
-// import TableRow from "../TableRow/TableRow";
 
 const EditableCell = ({
   value: initialValue,
@@ -30,7 +54,7 @@ const EditableCell = ({
     setValue(e.target.value);
   };
 
-  // We'll only update the external data when the input is blurred
+  //   We'll only update the external data when the input is blurred
   const onBlur = () => {
     updateMyData(index, id, value);
   };
@@ -40,22 +64,86 @@ const EditableCell = ({
     setValue(initialValue);
   }, [initialValue]);
 
+  //removed onBlur={onBlur}
+
   return <input value={value} onChange={onChange} onBlur={onBlur} />;
 };
 
-function TableComponent({ columns, data, updateMyData }) {
+const IndeterminateCheckbox = React.forwardRef(
+  ({ indeterminate, ...rest }, ref) => {
+    const defaultRef = React.useRef();
+    const resolvedRef = ref || defaultRef;
+    const [value, setValue] = useState({ ...rest }.checked);
+    React.useEffect(() => {
+      resolvedRef.current.indeterminate = indeterminate;
+    }, [resolvedRef, indeterminate]);
+
+    const handleValue = () => {
+      if (value) setValue(false);
+      else setValue(true);
+    };
+    console.log(value);
+    return (
+      <>
+        <Button
+          type="checkbox"
+          ref={resolvedRef}
+          {...rest}
+          onClick={handleValue}
+          value={value}
+        >
+          {value ? "CheckedIn" : "Checkout"}
+        </Button>
+      </>
+    );
+  }
+);
+// Be sure to pass our updateMyData and the skipPageReset option
+function App({ columns, data, updateMyData }) {
+  // For this example, we're using pagination to illustrate how to stop
+  // the current page from resetting when our data changes
+  // Otherwise, nothing is different here.
   const {
+    rows,
     getTableProps,
     getTableBodyProps,
     headerGroups,
     prepareRow,
-    rows
-  } = useTable({
-    columns,
-    data,
-    updateMyData
-  });
-
+    page,
+    canPreviousPage,
+    canNextPage,
+    pageOptions,
+    pageCount,
+    gotoPage,
+    nextPage,
+    previousPage,
+    setPageSize,
+    selectedFlatRows,
+    state: { selectedRowIds },
+    state: { pageIndex, pageSize }
+  } = useTable(
+    {
+      columns,
+      data,
+      updateMyData
+    },
+    useRowSelect,
+    hooks => {
+      hooks.visibleColumns.push(columns => [
+        {
+          id: "selection",
+          Header: () => <div>CheckIn/Checkout</div>,
+          Cell: ({ row }) => (
+            <div>
+              <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
+            </div>
+          )
+        },
+        ...columns
+      ]);
+    }
+  );
+  console.log(rows);
   return (
     <>
       <Header />
@@ -68,21 +156,17 @@ function TableComponent({ columns, data, updateMyData }) {
               <CardHeader className="border-0">
                 <h3 className="mb-0">Card tables</h3>
               </CardHeader>
-              <Table bordered {...getTableProps()}>
+              {/* <Container fluid> */}
+              <Table bordered hover responsive fluid {...getTableProps()}>
                 <thead>
                   {headerGroups.map(headerGroup => (
-                    <tr
-                      {...headerGroup.getHeaderGroupProps()}
-                      key={headerGroup}
-                    >
-                      {headerGroup.headers.map(column => {
-                        const { render, getHeaderProps } = column;
-                        return (
-                          <th key={Headers} {...getHeaderProps()}>
-                            {render("Header")}
-                          </th>
-                        );
-                      })}
+                    <tr {...headerGroup.getHeaderGroupProps()}>
+                      {/* <th>CheckIn/Out</th> */}
+                      {headerGroup.headers.map(column => (
+                        <th {...column.getHeaderProps()}>
+                          {column.render("Header")}
+                        </th>
+                      ))}
                     </tr>
                   ))}
                 </thead>
@@ -90,10 +174,10 @@ function TableComponent({ columns, data, updateMyData }) {
                   {rows.map((row, i) => {
                     prepareRow(row);
                     return (
-                      <tr key={row} {...row.getRowProps()}>
+                      <tr {...row.getRowProps()}>
                         {row.cells.map(cell => {
                           return (
-                            <td key={cell} {...cell.getCellProps()}>
+                            <td {...cell.getCellProps()}>
                               {cell.render("Cell")}
                             </td>
                           );
@@ -102,209 +186,134 @@ function TableComponent({ columns, data, updateMyData }) {
                     );
                   })}
                 </tbody>
+                <CardFooter className="py-4">
+                  <nav aria-label="...">
+                    <Pagination
+                      className="pagination justify-content-end mb-0"
+                      listClassName="justify-content-end mb-0"
+                    >
+                      <PaginationItem className="disabled">
+                        <PaginationLink
+                          href="#pablo"
+                          onClick={e => e.preventDefault()}
+                          tabIndex="-1"
+                        >
+                          <i className="fas fa-angle-left" />
+                          <span className="sr-only">Previous</span>
+                        </PaginationLink>
+                      </PaginationItem>
+                      <PaginationItem className="active">
+                        <PaginationLink
+                          href="#pablo"
+                          onClick={e => e.preventDefault()}
+                        >
+                          1
+                        </PaginationLink>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#pablo"
+                          onClick={e => e.preventDefault()}
+                        >
+                          2 <span className="sr-only">(current)</span>
+                        </PaginationLink>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#pablo"
+                          onClick={e => e.preventDefault()}
+                        >
+                          3
+                        </PaginationLink>
+                      </PaginationItem>
+                      <PaginationItem>
+                        <PaginationLink
+                          href="#pablo"
+                          onClick={e => e.preventDefault()}
+                        >
+                          <i className="fas fa-angle-right" />
+                          <span className="sr-only">Next</span>
+                        </PaginationLink>
+                      </PaginationItem>
+                    </Pagination>
+                  </nav>
+                </CardFooter>
               </Table>
-              <CardFooter className="py-4">
-                <nav aria-label="...">
-                  <Pagination
-                    className="pagination justify-content-end mb-0"
-                    listClassName="justify-content-end mb-0"
-                  >
-                    <PaginationItem className="disabled">
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={e => e.preventDefault()}
-                        tabIndex="-1"
-                      >
-                        <i className="fas fa-angle-left" />
-                        <span className="sr-only">Previous</span>
-                      </PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem className="active">
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={e => e.preventDefault()}
-                      >
-                        1
-                      </PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={e => e.preventDefault()}
-                      >
-                        2 <span className="sr-only">(current)</span>
-                      </PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={e => e.preventDefault()}
-                      >
-                        3
-                      </PaginationLink>
-                    </PaginationItem>
-                    <PaginationItem>
-                      <PaginationLink
-                        href="#pablo"
-                        onClick={e => e.preventDefault()}
-                      >
-                        <i className="fas fa-angle-right" />
-                        <span className="sr-only">Next</span>
-                      </PaginationLink>
-                    </PaginationItem>
-                  </Pagination>
-                </nav>
-              </CardFooter>
             </Card>
           </div>
         </Row>
+        {/* Dark table */}
       </Container>
     </>
   );
 }
 
-function InventoryTable(props) {
-  const [
-    {
-      serviceTag,
-      system,
-      cluster,
-      model,
-      idrac,
-      hv,
-      cvm,
-      building,
-      rack,
-      rackU,
-      currentStatus,
-      comment
-    }
-  ] = props.systemInventory;
-
+function Tables() {
   const columns = React.useMemo(
     () => [
       {
         Header: "Service Tag",
-        accessor: "serviceTag"
+        accessor: "name"
       },
       {
-        Header: "System",
-        accessor: "system"
+        Header: "IP Address",
+        accessor: "username"
       },
+
       {
-        Header: "Cluster",
-        accessor: "cluster"
+        Header: "Host Name",
+        accessor: "email"
       },
       {
         Header: "Model",
-        accessor: "model"
+        accessor: "website"
       },
       {
-        Header: "Idrac",
-        accessor: "idrac"
-      },
-      {
-        Header: "HV",
-        accessor: "hv"
-      },
-      {
-        Header: "CVM",
-        accessor: "cvm"
-      },
-      {
-        Header: "Bldg",
-        accessor: "building"
-      },
-      {
-        Header: "Rack",
-        accessor: "rack"
-      },
-      {
-        Header: "RackU",
-        accessor: "rackU"
-      },
-      {
-        Header: "CurrentStatus",
-        accessor: "currentStatus"
-      },
-      {
-        Header: "Comment",
-        accessor: "comment",
+        Header: "Comments",
         Cell: EditableCell
       }
     ],
     []
   );
 
-  const temp_data = React.useMemo(
-    () => [
-      {
-        serviceTag: serviceTag, //Fetch call to ur1
-        system: system,
-        cluster: cluster, //Fetch call from ur2
-        model: model,
-        idrac: idrac,
-        hv: hv,
-        cvm: cvm,
-        building: building,
-        rack: rack,
-        rackU: rackU,
-        currentStatus: currentStatus,
-        comment: comment
-      }
-    ],
-    [
-      building,
-      cluster,
-      comment,
-      currentStatus,
-      cvm,
-      hv,
-      idrac,
-      model,
-      rack,
-      rackU,
-      serviceTag,
-      system
-    ]
-  );
+  const [data, setData] = React.useState([]);
 
-  const [data, setData] = React.useState(temp_data);
-  // const [originalData] = React.useState(data);
-  // const [skipPageReset, setSkipPageReset] = React.useState(false);
-
-  // We need to keep the table from resetting the pageIndex when we
-  // Update data. So we can keep track of that flag with a ref.
-
-  // When our cell renderer calls updateMyData, we'll use
-  // the rowIndex, columnId and new value to update the
-  // original data
   const updateMyData = (rowIndex, columnId, value) => {
-    // We also turn on the flag to not reset the page
-    return console.log(rowIndex, columnId, value);
-
-    //   setSkipPageReset(true);
-    //   setData(old =>
-    //     old.map((row, index) => {
-    //       if (index === rowIndex) {
-    //         return {
-    //           ...old[rowIndex],
-    //           [columnId]: value
-    //         };
-    //       }
-    //       return row;
-    //     })
-    //   );
+    setData(old =>
+      old.map((row, index) => {
+        if (index === rowIndex) {
+          return {
+            ...old[rowIndex],
+            [columnId]: value
+          };
+        }
+        return row;
+      })
+    );
+    // console.log(rowIndex, columnId, value);
   };
 
+  React.useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then(res => res.json())
+      .then(res =>
+        setData(
+          res.map(item => {
+            return {
+              name: item.name,
+              username: item.username,
+              email: item.email,
+              website: item.website
+            };
+          })
+        )
+      );
+  }, []);
   return (
-    <TableComponent
-      columns={columns}
-      data={data}
-      updateMyData={updateMyData}
-      // skipPageReset={skipPageReset}
-    />
+    <React.Fragment>
+      <App columns={columns} data={data} updateMyData={updateMyData} />
+    </React.Fragment>
   );
 }
 
-export default InventoryTable;
+export default Tables;

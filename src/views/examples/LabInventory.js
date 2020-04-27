@@ -1,5 +1,5 @@
 import React from "react";
-import InventoryTable from "../../components/Table/Table";
+import Tables from "../../components/Table/Table";
 
 const systemInventory = [
   {
@@ -51,9 +51,8 @@ const columnNames = [
 
 const LabInventory = () => {
   return (
-    <InventoryTable
-      columnNames={columnNames}
-      systemInventory={systemInventory}
+    <Tables
+
     />
   );
 };
