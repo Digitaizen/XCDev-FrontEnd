@@ -91,6 +91,7 @@ const IndeterminateCheckbox = React.forwardRef(
           {...rest}
           onClick={handleValue}
           value={value}
+          style={{ backgroundColor: value ? "#fb6340" : "lightgreen" }}
         >
           {value ? "CheckedIn" : "Checkout"}
         </Button>
