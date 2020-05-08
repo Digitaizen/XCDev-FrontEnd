@@ -82,7 +82,7 @@ const IndeterminateCheckbox = React.forwardRef(
       if (value) setValue(false);
       else setValue(true);
     };
-    console.log(value);
+    // console.log(value);
     return (
       <>
         <Button
@@ -93,7 +93,7 @@ const IndeterminateCheckbox = React.forwardRef(
           value={value}
           style={{ backgroundColor: value ? "#fb6340" : "lightgreen" }}
         >
-          {value ? "CheckedIn" : "Checkout"}
+          {value ? "Check In" : "Check Out"}
         </Button>
       </>
     );
@@ -144,7 +144,7 @@ function App({ columns, data, updateMyData }) {
       ]);
     }
   );
-  console.log(rows);
+  // console.log(rows);
   return (
     <>
       <Header />
@@ -161,10 +161,13 @@ function App({ columns, data, updateMyData }) {
               <Table bordered hover responsive fluid {...getTableProps()}>
                 <thead>
                   {headerGroups.map(headerGroup => (
-                    <tr {...headerGroup.getHeaderGroupProps()}>
+                    <tr
+                      key={headerGroup.id}
+                      {...headerGroup.getHeaderGroupProps()}
+                    >
                       {/* <th>CheckIn/Out</th> */}
                       {headerGroup.headers.map(column => (
-                        <th {...column.getHeaderProps()}>
+                        <th key={column.id} {...column.getHeaderProps()}>
                           {column.render("Header")}
                         </th>
                       ))}
@@ -175,10 +178,10 @@ function App({ columns, data, updateMyData }) {
                   {rows.map((row, i) => {
                     prepareRow(row);
                     return (
-                      <tr {...row.getRowProps()}>
+                      <tr key={row.id} {...row.getRowProps()}>
                         {row.cells.map(cell => {
                           return (
-                            <td {...cell.getCellProps()}>
+                            <td key={cell.id} {...cell.getCellProps()}>
                               {cell.render("Cell")}
                             </td>
                           );
@@ -254,20 +257,20 @@ function Tables() {
     () => [
       {
         Header: "Service Tag",
-        accessor: "name"
+        accessor: "serviceTag"
       },
       {
         Header: "IP Address",
-        accessor: "username"
+        accessor: "idracIp"
       },
 
       {
         Header: "Host Name",
-        accessor: "email"
+        accessor: "hostName"
       },
       {
         Header: "Model",
-        accessor: "website"
+        accessor: "model"
       },
       {
         Header: "Comments",
@@ -295,16 +298,16 @@ function Tables() {
   };
 
   React.useEffect(() => {
-    fetch("https://jsonplaceholder.typicode.com/users")
+    fetch("/getServers")
       .then(res => res.json())
-      .then(res =>
+      .then(data =>
         setData(
-          res.map(item => {
+          data.map(item => {
             return {
-              name: item.name,
-              username: item.username,
-              email: item.email,
-              website: item.website
+              idracIp: item.ip,
+              serviceTag: item.data.System.SKU,
+              model: item.data.System.Model,
+              hostName: item.data.System.HostName
             };
           })
         )
@@ -313,6 +316,7 @@ function Tables() {
   return (
     <React.Fragment>
       <App columns={columns} data={data} updateMyData={updateMyData} />
+      {/* <pre>{(JSON.stringify(data), null, 2)}</pre> */}
     </React.Fragment>
   );
 }
