@@ -117,12 +117,9 @@ const CheckButton = row => {
   const [checkButton, setcheckButton] = useState({ value: "" });
   const [initialLoadState, setInitialLoadState] = useState(false);
 
-  //Using ref to make useEffect NOT run the first render for the "PATCH" api call
-  const isFirstRun = useRef(false);
-
   //Fetching checkButton data from the database, CheckIn or CheckOut
   useEffect(() => {
-    fetch(`http://localhost:3001/users/${row.id}`)
+    fetch(`getServers/${row.id}`)
       .then(res => res.json())
       .then(({ status }) => setcheckButton({ value: status }));
   }, [row.id]);
@@ -130,14 +127,13 @@ const CheckButton = row => {
   //Updating the status property of the checkButton on external database
   useEffect(() => {
     if (initialLoadState === true) {
-      //Using PATCH call to only update the status property in the db
       const requestOptions = {
-        method: "PATCH",
+        method: "PATCH", //Using PATCH call to only update the status property in the db
         body: JSON.stringify({ status: checkButton.value }),
         headers: { "Content-Type": "application/json" }
       };
 
-      fetch(`http://localhost:3001/users/${row.id}`, requestOptions)
+      fetch(`getServers/${row.id}`, requestOptions)
         .then(response => response.json())
         .then(response => console.log(response));
 
@@ -145,7 +141,6 @@ const CheckButton = row => {
       console.log("New Value:", checkButton.value);
     } else {
       return;
-      // isFirstRun.current = true;
     }
   }, [checkButton.value, initialLoadState, row.id]);
 
@@ -181,6 +176,7 @@ const CheckButton = row => {
 };
 
 function Tables({ columns, data, updateMyData, loading }) {
+  //default options defined for the lottie file loading animation
   const defaultOptions = {
     loop: true,
     autoplay: true,
@@ -312,12 +308,12 @@ function LabInventory() {
       },
       {
         Header: "IP Address",
-        accessor: "idracIp"
+        accessor: "ip"
       },
 
       {
         Header: "Host Name",
-        accessor: "hostName"
+        accessor: "hostname"
       },
       {
         Header: "Model",
@@ -355,20 +351,23 @@ function LabInventory() {
   }, [data]);
 
   React.useMemo(() => {
+    setLoading({ done: false });
     fetch("/getServers")
       .then(res => res.json())
       .then(data =>
         setData(
           data.map(item => {
-            return {
-              idracIp: item.ip,
-              serviceTag: item.data.System.SKU,
-              model: item.data.System.Model,
-              hostName: item.data.System.HostName
-            };
+            // return {
+            //   idracIp: item.ip,
+            //   serviceTag: item.data.System.SKU,
+            //   model: item.data.System.Model,
+            //   hostName: item.data.System.HostName
+            // };
+            return item;
           })
         )
-      );
+      )
+      .then(setLoading({ done: true }));
   }, []);
 
   return (

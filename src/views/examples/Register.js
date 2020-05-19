@@ -49,9 +49,10 @@ const Register = () => {
       headers: { "Content-Type": "application/json" }
     };
 
-    fetch(`http://localhost:1337/register`, requestOptions)
+    fetch(`/register`, requestOptions)
       .then(response => response.json())
       .then(response => {
+        console.log(response);
         setAuthTokens(response.token);
         setRegistered(true);
         // setIsError(false);

@@ -56,9 +56,10 @@ const Login = () => {
         headers: { "Content-Type": "application/json" }
       };
 
-      fetch(`http://localhost:1337/login`, requestOptions)
+      fetch(`/login`, requestOptions)
         .then(response => response.json())
         .then(response => {
+          console.log(response);
           setAuthTokens(response.token);
           setLoggedIn(true);
         });
