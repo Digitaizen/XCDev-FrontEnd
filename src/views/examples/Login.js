@@ -72,7 +72,10 @@ const Login = () => {
     <>
       <Col lg="5" md="7">
         <Card className="bg-secondary shadow border-0">
-          <CardHeader className="bg-transparent pb-5">
+          <CardHeader className="bg-transparent pb-2">
+            <div>
+              <h1 className="text-blue text-center">LOG IN</h1>
+            </div>
             {/* <div className="text-muted text-center mt-2 mb-3">
                 <small>Sign in with</small>
               </div>

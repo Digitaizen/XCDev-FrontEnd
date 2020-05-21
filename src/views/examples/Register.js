@@ -43,20 +43,25 @@ const Register = () => {
   const { setAuthTokens } = useAuth();
 
   function postRegister() {
-    const requestOptions = {
-      method: "POST",
-      body: JSON.stringify({ email: userName, password: password }),
-      headers: { "Content-Type": "application/json" }
-    };
+    if (userName === "" || password === "") {
+      setIsError(true);
+      setRegistered(false);
+    } else {
+      const requestOptions = {
+        method: "POST",
+        body: JSON.stringify({ email: userName, password: password }),
+        headers: { "Content-Type": "application/json" }
+      };
 
-    fetch(`/register`, requestOptions)
-      .then(response => response.json())
-      .then(response => {
-        console.log(response);
-        setAuthTokens(response.token);
-        setRegistered(true);
-        // setIsError(false);
-      });
+      fetch(`/register`, requestOptions)
+        .then(response => response.json())
+        .then(response => {
+          console.log(response);
+          setAuthTokens(response.token);
+          setRegistered(true);
+          // setIsError(false);
+        });
+    }
   }
 
   if (registered === true) {
@@ -67,10 +72,11 @@ const Register = () => {
     <>
       <Col lg="6" md="8">
         <Card className="bg-secondary shadow border-0">
-          {/* <CardHeader className="bg-transparent pb-5">
-              <div className="text-muted text-center mt-2 mb-4">
-                <small>Sign up with</small>
-              </div>
+          <CardHeader className="bg-transparent pb-2">
+            <div>
+              <h1 className="text-blue text-center">REGISTER</h1>
+            </div>
+            {/*
               <div className="text-center">
                 <Button
                   className="btn-neutral btn-icon mr-4"
@@ -100,11 +106,11 @@ const Register = () => {
                   </span>
                   <span className="btn-inner--text">Google</span>
                 </Button>
-              </div>
-            </CardHeader> */}
+  </div> */}
+          </CardHeader>
           <CardBody className="px-lg-5 py-lg-5">
             <div className="text-center text-muted mb-4">
-              <small>Sign up with credentials</small>
+              <small>Please input the following fields below!</small>
             </div>
             <Form role="form">
               {/* <FormGroup>
@@ -130,7 +136,7 @@ const Register = () => {
                     onChange={e => {
                       setUserName(e.target.value);
                     }}
-                    placeholder="Email"
+                    placeholder="Email Address"
                   />
                 </InputGroup>
               </FormGroup>
@@ -147,7 +153,7 @@ const Register = () => {
                     onChange={e => {
                       setPassword(e.target.value);
                     }}
-                    placeholder="password"
+                    placeholder="Password - minimum 6 characters"
                   />
                 </InputGroup>
               </FormGroup>

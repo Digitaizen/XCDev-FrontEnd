@@ -15,33 +15,14 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useTable, useRowSelect } from "react-table";
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
 
 // reactstrap components
-import {
-  Badge,
-  Button,
-  Card,
-  CardHeader,
-  CardFooter,
-  DropdownMenu,
-  DropdownItem,
-  UncontrolledDropdown,
-  DropdownToggle,
-  Media,
-  Pagination,
-  PaginationItem,
-  PaginationLink,
-  Progress,
-  Table,
-  Container,
-  Row,
-  UncontrolledTooltip
-} from "reactstrap";
+import { Button, Card, CardHeader, Table, Container, Row } from "reactstrap";
 // core components
 import Header from "../../components/Headers/Header.js";
 
@@ -73,58 +54,18 @@ const EditableCell = ({
   return <input value={value} onChange={onChange} onBlur={onBlur} />;
 };
 
-// eslint-disable-next-line
-// const IndeterminateCheckbox = React.forwardRef(
-//   ({ indeterminate, ...rest }, ref) => {
-//     const defaultRef = React.useRef();
-//     const resolvedRef = ref || defaultRef;
-//     const [value, setValue] = useState({ ...rest }.checked);
-//     React.useEffect(() => {
-//       resolvedRef.current.indeterminate = indeterminate;
-//     }, [resolvedRef, indeterminate]);
-
-//     const handleValue = () => {
-//       const requestOptions = {
-//         method: "PATCH",
-//         body: JSON.stringify({ status: true }),
-//         headers: { "Content-Type": "application/json" }
-//       };
-//       fetch("http://localhost:3001/users", requestOptions)
-//         .then(response => response.json())
-//         .then(response => console.log(response));
-//       // if (value) setValue(false);
-//       // else setValue(true);
-//     };
-//     // console.log(defaultRef);
-//     return (
-//       <>
-//         <Button
-//           type="checkbox"
-//           ref={resolvedRef}
-//           {...rest}
-//           onClick={handleValue}
-//           value={value}
-//           style={{ backgroundColor: value ? "#fb6340" : "lightgreen" }}
-//         >
-//           {value ? "Check In" : "Check Out"}
-//         </Button>
-//       </>
-//     );
-//   }
-// );
-
 const CheckButton = row => {
   const [checkButton, setcheckButton] = useState({ value: "" });
   const [initialLoadState, setInitialLoadState] = useState(false);
 
   //Fetching checkButton data from the database, CheckIn or CheckOut
   useEffect(() => {
-    fetch(`getServers/${row.id}`)
+    fetch(`/status/${row.id}`)
       .then(res => res.json())
       .then(({ status }) => setcheckButton({ value: status }));
   }, [row.id]);
 
-  //Updating the status property of the checkButton on external database
+  // Updating the status property of the checkButton on external database
   useEffect(() => {
     if (initialLoadState === true) {
       const requestOptions = {
@@ -133,7 +74,7 @@ const CheckButton = row => {
         headers: { "Content-Type": "application/json" }
       };
 
-      fetch(`getServers/${row.id}`, requestOptions)
+      fetch(`/patchStatus/${row.id}`, requestOptions)
         .then(response => response.json())
         .then(response => console.log(response));
 
@@ -176,6 +117,7 @@ const CheckButton = row => {
 };
 
 function Tables({ columns, data, updateMyData, loading }) {
+  console.log(loading);
   //default options defined for the lottie file loading animation
   const defaultOptions = {
     loop: true,
@@ -192,18 +134,6 @@ function Tables({ columns, data, updateMyData, loading }) {
     getTableBodyProps,
     headerGroups,
     prepareRow
-    // page,
-    // canPreviousPage,
-    // canNextPage,
-    // pageOptions,
-    // pageCount,
-    // gotoPage,
-    // nextPage,
-    // previousPage,
-    // setPageSize,
-    // selectedFlatRows,
-    // state: { selectedRowIds },
-    // state: { pageIndex, pageSize },
   } = useTable(
     {
       columns,
@@ -216,12 +146,7 @@ function Tables({ columns, data, updateMyData, loading }) {
         {
           id: "selection",
           Header: () => <div>CheckIn/Checkout</div>,
-          Cell: ({ row }) => (
-            <CheckButton {...row} />
-            // <div>
-            //   <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
-            // </div>
-          )
+          Cell: ({ row }) => <CheckButton {...row} />
         },
         ...columns
       ]);
@@ -238,7 +163,7 @@ function Tables({ columns, data, updateMyData, loading }) {
           <div className="col">
             <Card className="shadow">
               <CardHeader className="border-0">
-                <h3 className="mb-0">Card tables</h3>
+                <h3 className="mb-0">Lab Inventory</h3>
               </CardHeader>
               {!loading.done ? (
                 <FadeIn>
@@ -330,7 +255,7 @@ function LabInventory() {
   const [data, setData] = React.useState(
     [] || localStorage.getItem("tableData")
   );
-  const [loading, setLoading] = useState({ done: undefined });
+  const [loading, setLoading] = useState({ done: false });
 
   const updateMyData = (rowIndex, columnId, value) => {
     setData(old =>
@@ -351,10 +276,10 @@ function LabInventory() {
   }, [data]);
 
   React.useMemo(() => {
-    setLoading({ done: false });
+    // setLoading({ done: false });
     fetch("/getServers")
       .then(res => res.json())
-      .then(data =>
+      .then(data => {
         setData(
           data.map(item => {
             // return {
@@ -365,9 +290,10 @@ function LabInventory() {
             // };
             return item;
           })
-        )
-      )
-      .then(setLoading({ done: true }));
+        );
+        setLoading({ done: true });
+      });
+    // .then(setLoading({ done: true }));
   }, []);
 
   return (
