@@ -23,6 +23,7 @@ import Login from "views/examples/Login.js";
 import Tables from "views/examples/Tables.js";
 import Icons from "views/examples/Icons.js";
 import LabInventory from "views/examples/LabInventory";
+import App from "App";
 
 var routes = [
   {
@@ -30,7 +31,8 @@ var routes = [
     name: "Dashboard",
     icon: "ni ni-tv-2 text-primary",
     component: Index,
-    layout: "/admin"
+    layout: "/admin",
+    invisible: true
   },
   {
     path: "/icons",
@@ -57,32 +59,26 @@ var routes = [
   },
   {
     path: "/tables",
-    name: "Tables",
+    name: "Lab Inventory",
     icon: "ni ni-bullet-list-67 text-red",
-    component: Tables,
-    layout: "/admin",
-    invisible: true
+    component: LabInventory,
+    layout: "/admin"
   },
   {
     path: "/login",
     name: "Login",
     icon: "ni ni-key-25 text-info",
     component: Login,
-    layout: "/auth"
+    layout: "/auth",
+    invisible: true
   },
   {
     path: "/register",
     name: "Register",
     icon: "ni ni-circle-08 text-pink",
     component: Register,
-    layout: "/auth"
-  },
-  {
-    path: "/labinventory",
-    name: "Lab Inventory",
-    icon: "ni ni-bullet-list-67 text-red",
-    component: LabInventory,
-    layout: "/admin"
+    layout: "/auth",
+    invisible: true
   }
 ];
 export default routes;

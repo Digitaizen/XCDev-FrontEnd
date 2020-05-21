@@ -15,7 +15,9 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React from "react";
+import React, { useState } from "react";
+import { Link, Redirect } from "react-router-dom";
+import { useAuth } from "../../context/auth";
 
 // reactstrap components
 import {
@@ -33,14 +35,48 @@ import {
   Col
 } from "reactstrap";
 
-class Login extends React.Component {
-  render() {
-    return (
-      <>
-        <Col lg="5" md="7">
-          <Card className="bg-secondary shadow border-0">
-            <CardHeader className="bg-transparent pb-5">
-              {/* <div className="text-muted text-center mt-2 mb-3">
+const Login = () => {
+  const [isLoggedIn, setLoggedIn] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
+  const { setAuthTokens } = useAuth();
+
+  function postLogin(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (userName === "" || password === "") {
+      setIsError(true);
+      setLoggedIn(false);
+    } else {
+      const requestOptions = {
+        method: "POST",
+        body: JSON.stringify({ email: userName, password: password }),
+        headers: { "Content-Type": "application/json" }
+      };
+
+      fetch(`/login`, requestOptions)
+        .then(response => response.json())
+        .then(response => {
+          console.log(response);
+          setAuthTokens(response.token);
+          setLoggedIn(true);
+        });
+    }
+  }
+  if (isLoggedIn === true) {
+    return <Redirect to="/admin/tables" />;
+  }
+  return (
+    <>
+      <Col lg="5" md="7">
+        <Card className="bg-secondary shadow border-0">
+          <CardHeader className="bg-transparent pb-2">
+            <div>
+              <h1 className="text-blue text-center">LOG IN</h1>
+            </div>
+            {/* <div className="text-muted text-center mt-2 mb-3">
                 <small>Sign in with</small>
               </div>
               <div className="btn-wrapper text-center">
@@ -73,77 +109,106 @@ class Login extends React.Component {
                   <span className="btn-inner--text">Google</span>
                 </Button>
               </div> */}
-            </CardHeader>
-            <CardBody className="px-lg-5 py-lg-5">
-              <div className="text-center text-muted mb-4">
-                <small>Sign in with credentials</small>
-              </div>
-              <Form role="form">
-                <FormGroup className="mb-3">
-                  <InputGroup className="input-group-alternative">
-                    <InputGroupAddon addonType="prepend">
-                      <InputGroupText>
-                        <i className="ni ni-email-83" />
-                      </InputGroupText>
-                    </InputGroupAddon>
-                    <Input placeholder="Email" type="email" autoComplete="new-email"/>
-                  </InputGroup>
-                </FormGroup>
-                <FormGroup>
-                  <InputGroup className="input-group-alternative">
-                    <InputGroupAddon addonType="prepend">
-                      <InputGroupText>
-                        <i className="ni ni-lock-circle-open" />
-                      </InputGroupText>
-                    </InputGroupAddon>
-                    <Input placeholder="Password" type="password" autoComplete="new-password"/>
-                  </InputGroup>
-                </FormGroup>
-                <div className="custom-control custom-control-alternative custom-checkbox">
-                  <input
-                    className="custom-control-input"
-                    id=" customCheckLogin"
-                    type="checkbox"
+          </CardHeader>
+          <CardBody className="px-lg-5 py-lg-5">
+            <div className="text-center text-muted mb-4">
+              <small>Sign in with credentials</small>
+            </div>
+            <Form role="form">
+              <FormGroup className="mb-3">
+                <InputGroup className="input-group-alternative">
+                  <InputGroupAddon addonType="prepend">
+                    <InputGroupText>
+                      <i className="ni ni-email-83" />
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <Input
+                    placeholder="Email"
+                    type="username"
+                    value={userName}
+                    onChange={e => {
+                      setUserName(e.target.value);
+                    }}
                   />
-                  <label
-                    className="custom-control-label"
-                    htmlFor=" customCheckLogin"
-                  >
-                    <span className="text-muted">Remember me</span>
-                  </label>
-                </div>
-                <div className="text-center">
-                  <Button className="my-4" color="primary" type="button">
-                    Sign in
-                  </Button>
-                </div>
-              </Form>
-            </CardBody>
-          </Card>
-          <Row className="mt-3">
-            <Col xs="6">
-              <a
-                className="text-light"
-                href="#pablo"
-                onClick={e => e.preventDefault()}
-              >
-                <small>Forgot password?</small>
-              </a>
-            </Col>
-            <Col className="text-right" xs="6">
-              <a
-                className="text-light"
-                href="#pablo"
-                onClick={e => e.preventDefault()}
-              >
-                <small>Create new account</small>
-              </a>
-            </Col>
-          </Row>
-        </Col>
-      </>
-    );
-  }
-}
+                </InputGroup>
+              </FormGroup>
+              <FormGroup>
+                <InputGroup className="input-group-alternative">
+                  <InputGroupAddon addonType="prepend">
+                    <InputGroupText>
+                      <i className="ni ni-lock-circle-open" />
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <Input
+                    type="password"
+                    value={password}
+                    onChange={e => {
+                      setPassword(e.target.value);
+                    }}
+                    placeholder="Password"
+                  />
+                </InputGroup>
+              </FormGroup>
+              <div className="text-center text-muted mb-4">
+                {isError && (
+                  <small style={{ color: "red" }}>
+                    The username or password provided were incorrect!
+                  </small>
+                )}
+              </div>
+              {/* <div className="custom-control custom-control-alternative custom-checkbox">
+                <input
+                  className="custom-control-input"
+                  id=" customCheckLogin"
+                  type="checkbox"
+                />
+                <label
+                  className="custom-control-label"
+                  htmlFor=" customCheckLogin"
+                >
+                  <span className="text-muted">Remember me</span>
+                </label>
+              </div> */}
+              <div className="text-center">
+                <Button
+                  className="my-4"
+                  color="primary"
+                  type="submit"
+                  onClick={e => postLogin(e)}
+                >
+                  Log in
+                </Button>
+              </div>
+              <Link to="/auth/register">
+                <small>Dont have an account? Click here to Sign Up</small>
+              </Link>
+            </Form>
+          </CardBody>
+        </Card>
+
+        {/* <Row className="mt-3">
+          <Col xs="6">
+            <a
+              className="text-light"
+              href="#pablo"
+              onClick={e => e.preventDefault()}
+            >
+              <small>Forgot password?</small>
+            </a>
+          </Col>
+          <Col className="text-right" xs="6">
+            <a
+              className="text-light"
+              href="#pablo"
+              onClick={e => e.preventDefault()}
+            >
+              <small>Create new account</small>
+            </a>
+          </Col>
+        </Row> */}
+      </Col>
+    </>
+  );
+};
 
 export default Login;
