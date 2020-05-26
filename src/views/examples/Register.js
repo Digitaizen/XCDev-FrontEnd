@@ -38,6 +38,8 @@ import {
 const Register = () => {
   const [registered, setRegistered] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const { setAuthTokens } = useAuth();
@@ -49,7 +51,12 @@ const Register = () => {
     } else {
       const requestOptions = {
         method: "POST",
-        body: JSON.stringify({ email: userName, password: password }),
+        body: JSON.stringify({
+          username: userName,
+          email: email,
+          password: password,
+          name: name
+        }),
         headers: { "Content-Type": "application/json" }
       };
 
@@ -113,16 +120,40 @@ const Register = () => {
               <small>Please input the following fields below!</small>
             </div>
             <Form role="form">
-              {/* <FormGroup>
-                  <InputGroup className="input-group-alternative mb-3">
-                    <InputGroupAddon addonType="prepend">
-                      <InputGroupText>
-                        <i className="ni ni-hat-3" />
-                      </InputGroupText>
-                    </InputGroupAddon>
-                    <Input placeholder="Name" type="text" />
-                  </InputGroup>
-                </FormGroup> */}
+              <FormGroup>
+                <InputGroup className="input-group-alternative mb-3">
+                  <InputGroupAddon addonType="prepend">
+                    <InputGroupText>
+                      <i className="ni ni-hat-3" />
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <Input
+                    type="text"
+                    value={name}
+                    onChange={e => {
+                      setName(e.target.value);
+                    }}
+                    placeholder="Full Name"
+                  />
+                </InputGroup>
+              </FormGroup>
+              <FormGroup>
+                <InputGroup className="input-group-alternative mb-3">
+                  <InputGroupAddon addonType="prepend">
+                    <InputGroupText>
+                      <i className="ni ni-email-83" />
+                    </InputGroupText>
+                  </InputGroupAddon>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={e => {
+                      setEmail(e.target.value);
+                    }}
+                    placeholder="DELL Email Address"
+                  />
+                </InputGroup>
+              </FormGroup>
               <FormGroup>
                 <InputGroup className="input-group-alternative mb-3">
                   <InputGroupAddon addonType="prepend">
@@ -136,7 +167,7 @@ const Register = () => {
                     onChange={e => {
                       setUserName(e.target.value);
                     }}
-                    placeholder="Email Address"
+                    placeholder="Username"
                   />
                 </InputGroup>
               </FormGroup>
