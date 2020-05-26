@@ -52,7 +52,7 @@ const Login = () => {
     } else {
       const requestOptions = {
         method: "POST",
-        body: JSON.stringify({ email: userName, password: password }),
+        body: JSON.stringify({ username: userName, password: password }),
         headers: { "Content-Type": "application/json" }
       };
 
@@ -123,7 +123,7 @@ const Login = () => {
                     </InputGroupText>
                   </InputGroupAddon>
                   <Input
-                    placeholder="Email"
+                    placeholder="Username"
                     type="username"
                     value={userName}
                     onChange={e => {

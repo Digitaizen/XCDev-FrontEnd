@@ -78,13 +78,11 @@ const AdminNavbar = props => {
                   <span className="avatar avatar-sm rounded-circle">
                     <img
                       alt="..."
-                      src={require("assets/img/theme/team-4-800x800.jpg")}
+                      src={require("assets/img/theme/icons8-user-96.png")}
                     />
                   </span>
                   <Media className="ml-2 d-none d-lg-block">
-                    <span className="mb-0 text-sm font-weight-bold">
-                      Jessica Jones
-                    </span>
+                    <span className="mb-0 text-sm font-weight-bold">User</span>
                   </Media>
                 </Media>
               </DropdownToggle>
