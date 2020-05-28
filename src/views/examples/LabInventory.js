@@ -54,6 +54,49 @@ const EditableCell = ({
   return <input value={value} onChange={onChange} onBlur={onBlur} />;
 };
 
+const EditableComments = ({
+  value: initialValue,
+  row: { index }
+}) => {
+  // We need to keep and update the state of the cell normally
+  const [value, setValue] = React.useState(initialValue);
+
+  // Set table cell's value upon input
+  const onChange = e => {
+    setValue(e.target.value);
+  };
+
+  //Write new comment string to database upon user leaving the table cell entry
+  const onBlur = () => {
+    if (value === initialValue) {
+      return;
+    } else {
+      // Specify request options
+      const requestOptions = {
+        method: "PATCH",
+        body: JSON.stringify({ comments: value }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      };
+
+      // Now fetch it to the backend API
+      fetch(`/patchComments/${index}`, requestOptions)
+        .then(response => response.json())
+        .catch(e => { console.error(e.message); });
+      // .then(response => console.log(response));
+      // For debugging purposes
+      // .then(res => res.text())
+      // .then(text => console.log(text));
+      console.log("update fetch RowId:", index);
+      console.log("New Value:", value);
+    }
+  };
+
+  return <input value={value} onChange={onChange} onBlur={onBlur} />;
+};
+
 const CheckButton = row => {
   const [checkButton, setcheckButton] = useState({ value: "" });
   const [initialLoadState, setInitialLoadState] = useState(false);
@@ -187,44 +230,44 @@ function Tables({ columns, data, updateMyData, loading }) {
                   </div>
                 </Row>
               ) : (
-                // </FadeIn>
-                <Table bordered hover responsive fluid {...getTableProps()}>
-                  <thead>
-                    {headerGroups.map(headerGroup => (
-                      <tr
-                        key={headerGroup.id}
-                        {...headerGroup.getHeaderGroupProps()}
-                      >
-                        {headerGroup.headers.map(column => (
-                          <th key={column.id} {...column.getHeaderProps()}>
-                            {column.render("Header")}
-                          </th>
-                        ))}
-                      </tr>
-                    ))}
-                  </thead>
-                  <tbody {...getTableBodyProps()}>
-                    {rows.map((row, i) => {
-                      prepareRow(row);
-                      return (
-                        <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                          {row.cells.map(cell => {
-                            return (
-                              <td
-                                key={cell.id}
-                                id={cell.id}
-                                {...cell.getCellProps()}
-                              >
-                                {cell.render("Cell")}
-                              </td>
-                            );
-                          })}
+                  // </FadeIn>
+                  <Table bordered hover responsive fluid {...getTableProps()}>
+                    <thead>
+                      {headerGroups.map(headerGroup => (
+                        <tr
+                          key={headerGroup.id}
+                          {...headerGroup.getHeaderGroupProps()}
+                        >
+                          {headerGroup.headers.map(column => (
+                            <th key={column.id} {...column.getHeaderProps()}>
+                              {column.render("Header")}
+                            </th>
+                          ))}
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              )}
+                      ))}
+                    </thead>
+                    <tbody {...getTableBodyProps()}>
+                      {rows.map((row, i) => {
+                        prepareRow(row);
+                        return (
+                          <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                            {row.cells.map(cell => {
+                              return (
+                                <td
+                                  key={cell.id}
+                                  id={cell.id}
+                                  {...cell.getCellProps()}
+                                >
+                                  {cell.render("Cell")}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                )}
             </Card>
           </div>
         </Row>
@@ -255,7 +298,8 @@ function LabInventory() {
       },
       {
         Header: "Comments",
-        Cell: EditableCell
+        accessor: "comments",
+        Cell: EditableComments
       }
     ],
     []
