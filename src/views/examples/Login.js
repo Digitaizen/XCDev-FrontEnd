@@ -15,9 +15,10 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link, Redirect } from "react-router-dom";
 import { useAuth } from "../../context/auth";
+import { UserInfoContext } from "../../context/UserInfoContext";
 
 // reactstrap components
 import {
@@ -41,6 +42,7 @@ const Login = () => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const { setAuthTokens } = useAuth();
+  const { setUserInfo } = useContext(UserInfoContext);
 
   function postLogin(e) {
     e.preventDefault();
@@ -61,6 +63,7 @@ const Login = () => {
         .then(response => {
           console.log(response);
           setAuthTokens(response.token);
+          setUserInfo(response.userInfo);
           setLoggedIn(true);
         });
     }

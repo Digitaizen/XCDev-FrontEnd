@@ -4,11 +4,12 @@ import PrivateRoute from "./PrivateRoute";
 // import AdminLayout from "./layouts/Admin.js";
 import Admin from "./layouts/Admin.js";
 import AuthLayout from "./layouts/Auth.js";
-
 import { AuthContext } from "./context/auth";
+import { UserInfoContext } from "./context/UserInfoContext";
 
 const App = () => {
   const [authTokens, setAuthTokens] = useState();
+  const [userInfo, setUserInfo] = useState({});
 
   const setTokens = data => {
     localStorage.setItem("tokens", JSON.stringify(data));
@@ -17,19 +18,21 @@ const App = () => {
 
   return (
     <AuthContext.Provider value={{ authTokens, setAuthTokens: setTokens }}>
-      <Router>
-        <Switch>
-          <Route exact path="/" render={props => <AuthLayout {...props} />} />
-          <PrivateRoute path="/admin" component={Admin} />
-          <Route path="/auth" render={props => <AuthLayout {...props} />} />
-          <Route
-            path="/auth/register"
-            render={props => <AuthLayout {...props} />}
-          />
+      <UserInfoContext.Provider value={{ userInfo, setUserInfo }}>
+        <Router>
+          <Switch>
+            <Route exact path="/" render={props => <AuthLayout {...props} />} />
+            <PrivateRoute path="/admin" component={Admin} />
+            <Route path="/auth" render={props => <AuthLayout {...props} />} />
+            <Route
+              path="/auth/register"
+              render={props => <AuthLayout {...props} />}
+            />
 
-          {/* <Redirect from="/" to="/admin/index" /> */}
-        </Switch>
-      </Router>
+            {/* <Redirect from="/" to="/admin/index" /> */}
+          </Switch>
+        </Router>
+      </UserInfoContext.Provider>
     </AuthContext.Provider>
   );
 };
