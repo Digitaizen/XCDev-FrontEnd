@@ -15,11 +15,12 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useTable, useRowSelect } from "react-table";
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
+import { UserInfoContext } from "../../context/UserInfoContext";
 
 // reactstrap components
 import { Button, Card, CardHeader, Table, Container, Row } from "reactstrap";
@@ -57,6 +58,7 @@ const EditableCell = ({
 const CheckButton = row => {
   const [checkButton, setcheckButton] = useState({ value: "" });
   const [initialLoadState, setInitialLoadState] = useState(false);
+  const { userInfo } = useContext(UserInfoContext);
 
   //Fetching checkButton data from the database, CheckIn or CheckOut
   useEffect(() => {
@@ -66,24 +68,60 @@ const CheckButton = row => {
   }, [row.id]);
 
   // Updating the status property of the checkButton on external database
+  // useEffect(() => {
+  //   if (initialLoadState === true) {
+  //     const requestOptions = {
+  //       method: "PATCH", //Using PATCH call to only update the status property in the db
+  //       body: JSON.stringify({
+  //         status: checkButton.value,
+  //         user: ""
+  //       }),
+  //       headers: { "Content-Type": "application/json" }
+  //     };
+
+  //     fetch(`/patchStatus/${row.id}`, requestOptions)
+  //       .then(response => response.json())
+  //       .then(response => console.log(response.result));
+
+  //     console.log("update fetch RowId:", row.id);
+  //     console.log("New Value:", checkButton.value);
+  //   } else {
+  //     return;
+  //   }
+  // }, [checkButton.value, initialLoadState, row.id]);
+
   useEffect(() => {
-    if (initialLoadState === true) {
+    if (initialLoadState === true && checkButton.value === "CheckIn") {
       const requestOptions = {
         method: "PATCH", //Using PATCH call to only update the status property in the db
-        body: JSON.stringify({ status: checkButton.value }),
+        body: JSON.stringify({
+          status: checkButton.value,
+          user: userInfo.username
+        }),
         headers: { "Content-Type": "application/json" }
       };
 
       fetch(`/patchStatus/${row.id}`, requestOptions)
         .then(response => response.json())
-        .then(response => console.log(response));
+        .then(response => console.log(`USER: ${response.result}`));
+    } else if (initialLoadState === true && checkButton.value === "CheckOut") {
+      const requestOptions = {
+        method: "PATCH", //Using PATCH call to only update the status property in the db
+        body: JSON.stringify({
+          status: checkButton.value,
+          user: ""
+        }),
+        headers: { "Content-Type": "application/json" }
+      };
+
+      fetch(`/patchStatus/${row.id}`, requestOptions)
+        .then(response => response.json())
+        .then(response => console.log(response.result));
 
       console.log("update fetch RowId:", row.id);
       console.log("New Value:", checkButton.value);
-    } else {
-      return;
     }
-  }, [checkButton.value, initialLoadState, row.id]);
+  }, [checkButton.value, initialLoadState, row.id, userInfo.username]);
 
   //onClick function to switch the checkButton property
   const handleClick = () => {
