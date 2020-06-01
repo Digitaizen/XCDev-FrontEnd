@@ -58,6 +58,7 @@ const EditableCell = ({
 const CheckButton = row => {
   const [checkButton, setcheckButton] = useState({ value: "" });
   const [initialLoadState, setInitialLoadState] = useState(false);
+  const [disabled, setDisabled] = useState(false);
   const { userInfo } = useContext(UserInfoContext);
 
   //Fetching checkButton data from the database, CheckIn or CheckOut
@@ -66,6 +67,16 @@ const CheckButton = row => {
       .then(res => res.json())
       .then(({ status }) => setcheckButton({ value: status }));
   }, [row.id]);
+
+  useEffect(() => {
+    fetch(`/status/${row.id}`)
+      .then(res => res.json())
+      .then(({ user }) => {
+        if (user !== "" && user !== userInfo.username) {
+          setDisabled(true);
+        }
+      });
+  }, [row.id, userInfo.username]);
 
   // Updating the status property of the checkButton on external database
   // useEffect(() => {
@@ -140,6 +151,7 @@ const CheckButton = row => {
         id={row.id}
         onClick={handleClick}
         value={checkButton.value}
+        disabled={disabled}
         style={{
           backgroundColor:
             checkButton.value === "CheckOut" ? "lightgreen" : "#fb6340"
@@ -240,7 +252,7 @@ function Tables({ columns, data, updateMyData, loading }) {
                   </Row>
                 </FadeIn>
               ) : (
-                <Table bordered hover responsive fluid {...getTableProps()}>
+                <Table bordered hover responsive {...getTableProps()}>
                   <thead>
                     {headerGroups.map(headerGroup => (
                       <tr
