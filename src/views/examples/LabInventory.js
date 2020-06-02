@@ -54,12 +54,18 @@ const EditableCell = ({
   return <input value={value} onChange={onChange} onBlur={onBlur} />;
 };
 
+// Make comments section editable field ///////////////////////////////////////////
 const EditableComments = ({
   value: initialValue,
   row: { index }
 }) => {
   // We need to keep and update the state of the cell normally
-  const [value, setValue] = React.useState(initialValue);
+  const [value, setValue] = useState(initialValue);
+
+  // Set 'initialValue' to value read upon cell focus event
+  const onFocus = e => {
+    initialValue = e.target.value;
+  };
 
   // Set table cell's value upon input
   const onChange = e => {
@@ -85,16 +91,11 @@ const EditableComments = ({
       fetch(`/patchComments/${index}`, requestOptions)
         .then(response => response.json())
         .catch(e => { console.error(e.message); });
-      // .then(response => console.log(response));
-      // For debugging purposes
-      // .then(res => res.text())
-      // .then(text => console.log(text));
-      console.log("update fetch RowId:", index);
-      console.log("New Value:", value);
+      console.log(`Updated row ${index} with new comment: ${value}`);
     }
   };
 
-  return <input value={value} onChange={onChange} onBlur={onBlur} />;
+  return <input value={value} onChange={onChange} onBlur={onBlur} onFocus={onFocus} />;
 };
 
 const CheckButton = row => {
