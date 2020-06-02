@@ -17,7 +17,7 @@
 */
 import React, { useState, useEffect } from "react";
 import { useTable, useRowSelect } from "react-table";
-// import FadeIn from "react-fade-in";
+import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
 
@@ -160,8 +160,18 @@ const CheckButton = row => {
   );
 };
 
-const Status = () => {
-  return <div>Available or Checked Out by User on May22 10:20am</div>;
+const User = () => {
+  return <div>Avilable</div>;
+};
+
+const TimeStamp = () => {
+  // get a new date (locale machine date time)
+  var date = new Date();
+  // get the date as a string
+  var n = date.toDateString();
+  // get the time as a string
+  var time = date.toLocaleTimeString();
+  return <div>{`${n} ${time}`}</div>;
 };
 
 function Tables({ columns, data, updateMyData, loading }) {
@@ -198,12 +208,12 @@ function Tables({ columns, data, updateMyData, loading }) {
         {
           id: "status",
           Header: () => <div>User</div>,
-          Cell: ({ row }) => <Status {...row} />
+          Cell: ({ row }) => <User {...row} />
         },
         {
           id: "timeStamp",
           Header: () => <div>Time Stamp</div>,
-          Cell: ({ row }) => <Status {...row} />
+          Cell: ({ row }) => <TimeStamp {...row} />
         },
         ...columns
       ]);
@@ -223,16 +233,20 @@ function Tables({ columns, data, updateMyData, loading }) {
                 <h3 className="mb-0">Lab Inventory</h3>
               </CardHeader>
               {!loading.done ? (
-                // <FadeIn>
-                <Row className="d-flex justify-content-center align-items-center ">
-                  <div>
-                    <h1>Loading Data</h1>
-                    <Lottie options={defaultOptions} height={120} width={120} />
-                  </div>
-                </Row>
+                <FadeIn>
+                  <Row className="d-flex justify-content-center align-items-center ">
+                    <div>
+                      <h1>Loading Data</h1>
+                      <Lottie
+                        options={defaultOptions}
+                        height={120}
+                        width={120}
+                      />
+                    </div>
+                  </Row>
+                </FadeIn>
               ) : (
-                  // </FadeIn>
-                  <Table bordered hover responsive fluid {...getTableProps()}>
+                  <Table bordered hover responsive {...getTableProps()}>
                     <thead>
                       {headerGroups.map(headerGroup => (
                         <tr
@@ -307,7 +321,7 @@ function LabInventory() {
   );
 
   const [data, setData] = React.useState([]);
-  const [loading, setLoading] = useState({ done: false });
+  const [loading, setLoading] = useState({ done: undefined });
 
   const updateMyData = (rowIndex, columnId, value) => {
     setData(old =>
@@ -327,7 +341,7 @@ function LabInventory() {
   //   localStorage.setItem("tableData", data);
   // }, [data]);
 
-  React.useMemo(() => {
+  React.useEffect(() => {
     // setLoading({ done: false });
     fetch("/getServers")
       .then(res => res.json())
