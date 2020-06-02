@@ -15,11 +15,12 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useTable, useRowSelect } from "react-table";
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
+import { UserInfoContext } from "../../context/UserInfoContext";
 
 // reactstrap components
 import { Button, Card, CardHeader, Table, Container, Row } from "reactstrap";
@@ -57,13 +58,28 @@ const EditableCell = ({
 const CheckButton = row => {
   const [checkButton, setcheckButton] = useState({ value: "" });
   const [initialLoadState, setInitialLoadState] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const { userInfo } = useContext(UserInfoContext);
 
   //Fetching checkButton data from the database, CheckIn or CheckOut
   useEffect(() => {
     fetch(`/status/${row.id}`)
       .then(res => res.json())
-      .then(({ status }) => setcheckButton({ value: status }));
-  }, [row.id]);
+      .then(
+        ({ status }) => {
+          // setcheckButton({ value: status });
+          if ({ value: status } === "Available") {
+            setcheckButton("check-OUT");
+          } else if ({ value: status } === "Unavailable") {
+            setDisabled(true);
+          } else {
+            if ({ username }) {
+
+            }
+          };
+        }
+      );
+  }, [row.id, userInfo.username]);
 
   // Updating the status property of the checkButton on external database
   useEffect(() => {
@@ -202,43 +218,43 @@ function Tables({ columns, data, updateMyData, loading }) {
                   </Row>
                 </FadeIn>
               ) : (
-                <Table bordered hover responsive fluid {...getTableProps()}>
-                  <thead>
-                    {headerGroups.map(headerGroup => (
-                      <tr
-                        key={headerGroup.id}
-                        {...headerGroup.getHeaderGroupProps()}
-                      >
-                        {headerGroup.headers.map(column => (
-                          <th key={column.id} {...column.getHeaderProps()}>
-                            {column.render("Header")}
-                          </th>
-                        ))}
-                      </tr>
-                    ))}
-                  </thead>
-                  <tbody {...getTableBodyProps()}>
-                    {rows.map((row, i) => {
-                      prepareRow(row);
-                      return (
-                        <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                          {row.cells.map(cell => {
-                            return (
-                              <td
-                                key={cell.id}
-                                id={cell.id}
-                                {...cell.getCellProps()}
-                              >
-                                {cell.render("Cell")}
-                              </td>
-                            );
-                          })}
+                  <Table bordered hover responsive fluid {...getTableProps()}>
+                    <thead>
+                      {headerGroups.map(headerGroup => (
+                        <tr
+                          key={headerGroup.id}
+                          {...headerGroup.getHeaderGroupProps()}
+                        >
+                          {headerGroup.headers.map(column => (
+                            <th key={column.id} {...column.getHeaderProps()}>
+                              {column.render("Header")}
+                            </th>
+                          ))}
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              )}
+                      ))}
+                    </thead>
+                    <tbody {...getTableBodyProps()}>
+                      {rows.map((row, i) => {
+                        prepareRow(row);
+                        return (
+                          <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                            {row.cells.map(cell => {
+                              return (
+                                <td
+                                  key={cell.id}
+                                  id={cell.id}
+                                  {...cell.getCellProps()}
+                                >
+                                  {cell.render("Cell")}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                )}
             </Card>
           </div>
         </Row>
