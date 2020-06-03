@@ -55,6 +55,56 @@ const EditableCell = ({
   return <input value={value} onChange={onChange} onBlur={onBlur} />;
 };
 
+// Make comments section editable field ///////////////////////////////////////////
+const EditableComments = ({ value: initialValue, row: { index } }) => {
+  // We need to keep and update the state of the cell normally
+  const [value, setValue] = useState(initialValue);
+
+  // Set 'initialValue' to value read upon cell focus event
+  const onFocus = e => {
+    initialValue = e.target.value;
+  };
+
+  // Set table cell's value upon input
+  const onChange = e => {
+    setValue(e.target.value);
+  };
+
+  //Write new comment string to database upon user leaving the table cell entry
+  const onBlur = () => {
+    if (value === initialValue) {
+      return;
+    } else {
+      // Specify request options
+      const requestOptions = {
+        method: "PATCH",
+        body: JSON.stringify({ comments: value }),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json"
+        }
+      };
+
+      // Now fetch it to the backend API
+      fetch(`/patchComments/${index}`, requestOptions)
+        .then(response => response.json())
+        .catch(e => {
+          console.error(e.message);
+        });
+      console.log(`Updated row ${index} with new comment: ${value}`);
+    }
+  };
+
+  return (
+    <input
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      onFocus={onFocus}
+    />
+  );
+};
+
 const CheckButton = row => {
   const [checkButton, setcheckButton] = useState({ value: "" });
   const [initialLoadState, setInitialLoadState] = useState(false);
@@ -319,7 +369,8 @@ function LabInventory() {
       },
       {
         Header: "Comments",
-        Cell: EditableCell
+        accessor: "comments",
+        Cell: EditableComments
       }
     ],
     []
