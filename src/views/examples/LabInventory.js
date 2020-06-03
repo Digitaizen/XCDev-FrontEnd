@@ -15,11 +15,12 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useTable, useRowSelect } from "react-table";
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
+import { UserInfoContext } from "../../context/UserInfoContext";
 
 // reactstrap components
 import { Button, Card, CardHeader, Table, Container, Row } from "reactstrap";
@@ -55,10 +56,7 @@ const EditableCell = ({
 };
 
 // Make comments section editable field ///////////////////////////////////////////
-const EditableComments = ({
-  value: initialValue,
-  row: { index }
-}) => {
+const EditableComments = ({ value: initialValue, row: { index } }) => {
   // We need to keep and update the state of the cell normally
   const [value, setValue] = useState(initialValue);
 
@@ -82,25 +80,36 @@ const EditableComments = ({
         method: "PATCH",
         body: JSON.stringify({ comments: value }),
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json"
         }
       };
 
       // Now fetch it to the backend API
       fetch(`/patchComments/${index}`, requestOptions)
         .then(response => response.json())
-        .catch(e => { console.error(e.message); });
+        .catch(e => {
+          console.error(e.message);
+        });
       console.log(`Updated row ${index} with new comment: ${value}`);
     }
   };
 
-  return <input value={value} onChange={onChange} onBlur={onBlur} onFocus={onFocus} />;
+  return (
+    <input
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      onFocus={onFocus}
+    />
+  );
 };
 
 const CheckButton = row => {
   const [checkButton, setcheckButton] = useState({ value: "" });
   const [initialLoadState, setInitialLoadState] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const { userInfo } = useContext(UserInfoContext);
 
   //Fetching checkButton data from the database, CheckIn or CheckOut
   useEffect(() => {
@@ -109,25 +118,71 @@ const CheckButton = row => {
       .then(({ status }) => setcheckButton({ value: status }));
   }, [row.id]);
 
-  // Updating the status property of the checkButton on external database
   useEffect(() => {
-    if (initialLoadState === true) {
+    fetch(`/status/${row.id}`)
+      .then(res => res.json())
+      .then(({ user }) => {
+        if (user !== "" && user !== userInfo.username) {
+          setDisabled(true);
+        }
+      });
+  }, [row.id, userInfo.username]);
+
+  // Updating the status property of the checkButton on external database
+  // useEffect(() => {
+  //   if (initialLoadState === true) {
+  //     const requestOptions = {
+  //       method: "PATCH", //Using PATCH call to only update the status property in the db
+  //       body: JSON.stringify({
+  //         status: checkButton.value,
+  //         user: ""
+  //       }),
+  //       headers: { "Content-Type": "application/json" }
+  //     };
+
+  //     fetch(`/patchStatus/${row.id}`, requestOptions)
+  //       .then(response => response.json())
+  //       .then(response => console.log(response.result));
+
+  //     console.log("update fetch RowId:", row.id);
+  //     console.log("New Value:", checkButton.value);
+  //   } else {
+  //     return;
+  //   }
+  // }, [checkButton.value, initialLoadState, row.id]);
+
+  useEffect(() => {
+    if (initialLoadState === true && checkButton.value === "CheckIn") {
       const requestOptions = {
         method: "PATCH", //Using PATCH call to only update the status property in the db
-        body: JSON.stringify({ status: checkButton.value }),
+        body: JSON.stringify({
+          status: checkButton.value,
+          user: userInfo.username
+        }),
         headers: { "Content-Type": "application/json" }
       };
 
       fetch(`/patchStatus/${row.id}`, requestOptions)
         .then(response => response.json())
-        .then(response => console.log(response));
+        .then(response => console.log(`USER: ${response.result}`));
+    } else if (initialLoadState === true && checkButton.value === "CheckOut") {
+      const requestOptions = {
+        method: "PATCH", //Using PATCH call to only update the status property in the db
+        body: JSON.stringify({
+          status: checkButton.value,
+          user: ""
+        }),
+        headers: { "Content-Type": "application/json" }
+      };
+
+      fetch(`/patchStatus/${row.id}`, requestOptions)
+        .then(response => response.json())
+        .then(response => console.log(response.result));
 
       console.log("update fetch RowId:", row.id);
       console.log("New Value:", checkButton.value);
-    } else {
-      return;
     }
-  }, [checkButton.value, initialLoadState, row.id]);
+  }, [checkButton.value, initialLoadState, row.id, userInfo.username]);
 
   //onClick function to switch the checkButton property
   const handleClick = () => {
@@ -146,6 +201,7 @@ const CheckButton = row => {
         id={row.id}
         onClick={handleClick}
         value={checkButton.value}
+        disabled={disabled}
         style={{
           backgroundColor:
             checkButton.value === "CheckOut" ? "lightgreen" : "#fb6340"
@@ -246,43 +302,43 @@ function Tables({ columns, data, updateMyData, loading }) {
                   </Row>
                 </FadeIn>
               ) : (
-                  <Table bordered hover responsive {...getTableProps()}>
-                    <thead>
-                      {headerGroups.map(headerGroup => (
-                        <tr
-                          key={headerGroup.id}
-                          {...headerGroup.getHeaderGroupProps()}
-                        >
-                          {headerGroup.headers.map(column => (
-                            <th key={column.id} {...column.getHeaderProps()}>
-                              {column.render("Header")}
-                            </th>
-                          ))}
+                <Table bordered hover responsive {...getTableProps()}>
+                  <thead>
+                    {headerGroups.map(headerGroup => (
+                      <tr
+                        key={headerGroup.id}
+                        {...headerGroup.getHeaderGroupProps()}
+                      >
+                        {headerGroup.headers.map(column => (
+                          <th key={column.id} {...column.getHeaderProps()}>
+                            {column.render("Header")}
+                          </th>
+                        ))}
+                      </tr>
+                    ))}
+                  </thead>
+                  <tbody {...getTableBodyProps()}>
+                    {rows.map((row, i) => {
+                      prepareRow(row);
+                      return (
+                        <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                          {row.cells.map(cell => {
+                            return (
+                              <td
+                                key={cell.id}
+                                id={cell.id}
+                                {...cell.getCellProps()}
+                              >
+                                {cell.render("Cell")}
+                              </td>
+                            );
+                          })}
                         </tr>
-                      ))}
-                    </thead>
-                    <tbody {...getTableBodyProps()}>
-                      {rows.map((row, i) => {
-                        prepareRow(row);
-                        return (
-                          <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                            {row.cells.map(cell => {
-                              return (
-                                <td
-                                  key={cell.id}
-                                  id={cell.id}
-                                  {...cell.getCellProps()}
-                                >
-                                  {cell.render("Cell")}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                )}
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              )}
             </Card>
           </div>
         </Row>
