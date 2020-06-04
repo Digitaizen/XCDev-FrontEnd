@@ -26,7 +26,6 @@ import { UserInfoContext } from "../../context/UserInfoContext";
 import { Button, Card, CardHeader, Table, Container, Row } from "reactstrap";
 // core components
 import Header from "../../components/Headers/Header.js";
-import { doc, format } from "prettier";
 
 const EditableCell = ({
   value: initialValue,
@@ -51,129 +50,8 @@ const EditableCell = ({
     setValue(initialValue);
   }, [initialValue]);
 
-  //removed onBlur={onBlur}
-
   return <input value={value} onChange={onChange} onBlur={onBlur} />;
 };
-
-// const CheckButton = row => {
-//   const [checkButton, setcheckButton] = useState("check-OUT");
-//   const [initialLoadState, setInitialLoadState] = useState(false);
-//   const [disabled, setDisabled] = useState(false);
-//   const { userInfo } = useContext(UserInfoContext);
-
-//   // // Updating the status property of the checkButton on external database
-//   // useEffect(() => {
-//   //   if (initialLoadState === true) {
-//   //     const requestOptions = {
-//   //       method: "PATCH", //Using PATCH call to only update the status property in the db
-//   //       body: JSON.stringify({ status: checkButton.value }),
-//   //       headers: { "Content-Type": "application/json" }
-//   //     };
-
-//   //     fetch(`/patchStatus/${row.id}`, requestOptions)
-//   //       .then(response => response.json())
-//   //       .then(response => console.log(response));
-
-//   //     console.log("update fetch RowId:", row.id);
-//   //     console.log("New Value:", checkButton.value);
-//   //   } else {
-//   //     return;
-//   //   }
-//   // }, [checkButton.value, initialLoadState, row.id]);
-
-//   // //onClick function to switch the checkButton property
-//   // const handleClick = () => {
-//   //   setInitialLoadState(true);
-//   //   setcheckButton(prev => ({
-//   //     value: prev.value === "CheckOut" ? "CheckIn" : "CheckOut"
-//   //   }));
-
-//   //   console.log("Old Value:", checkButton.value);
-//   // };
-
-//   //Fetching checkButton data from the database, CheckIn or CheckOut
-//   useEffect(() => {
-//     fetch(`/status/${row.id}`)
-//       .then(res => res.json())
-//       .then(({ status }) => {
-//         console.log("Status: ", status);
-//         if (status === "Available") {
-//           setcheckButton("check-OUT");
-//         } else if (status === "Unavailable") {
-//           setDisabled(true);
-//         } else {
-//           if (status === userInfo.username) {
-//             setcheckButton("check-IN");
-//           } else {
-//             setDisabled(true);
-//           }
-//         };
-//       }
-//       );
-//   }, [row]);
-
-//   // onClick function to switch the checkButton property
-//   const handleClick = () => {
-//     // Set button value and the patch req payload
-//     let payload;
-//     if (checkButton.value === "check-IN") {
-//       payload = { status: "Available" };
-//       setcheckButton("check-OUT");
-//     } else {
-//       payload = { status: userInfo.username };
-//       setcheckButton("check-IN");
-//     }
-//     // Specify req options based on the current availability status
-//     const requestOptions = {
-//       method: "PATCH", //Using PATCH call to only update the status property in the db
-//       body: JSON.stringify(payload),
-//       headers: { "Content-Type": "application/json" }
-//     };
-
-//     // Fetch it to the backend API with a new status 
-//     fetch(`/patchStatus/${row.id}`, requestOptions)
-//       .then(response => response.json())
-//       .then(response => console.log(response));
-
-//     console.log(`Updated db with new status: ${payload}`);
-
-//     // Finally, set the appropriate new value for the button
-//     setcheckButton(prev => ({
-//       value: prev.value === "check-OUT" ? "check-IN" : "check-OUT"
-//     }));
-//   };
-
-//   return (
-//     <>
-//       <Button
-//         key={row.id}
-//         id={row.id}
-//         onClick={handleClick}
-//         value={checkButton.value}
-//         style={{
-//           backgroundColor:
-//             checkButton.value === "check-OUT" ? "lightgreen" : "#fb6340"
-//         }}
-//       >
-//         {checkButton.value}
-//       </Button>
-//       {/* <pre>
-//         <code>{JSON.stringify(checkButton, null, 2)}</code>
-//       </pre> */}
-//     </>
-//   );
-// };
-
-// const TimeStamp = () => {
-//   // get a new date (locale machine date time)
-//   var date = new Date();
-//   // get the date as a string
-//   var n = date.toDateString();
-//   // get the time as a string
-//   var time = date.toLocaleTimeString();
-//   return <div>{`${n} ${time}`}</div>;
-// };
 
 function Tables({ columns, data, updateMyData, loading }) {
   //default options defined for the lottie file loading animation
@@ -198,29 +76,9 @@ function Tables({ columns, data, updateMyData, loading }) {
       data,
       updateMyData
     },
-    useRowSelect,
-    // hooks => {
-    //   hooks.visibleColumns.push(columns => [
-    //     {
-    //       id: "selection",
-    //       Header: () => <div>Action</div>,
-    //       Cell: ({ row }) => <CheckButton {...row} />
-    //     },
-    //     // {
-    //     //   id: "status",
-    //     //   Header: () => <div>Status</div>,
-    //     //   Cell: ({ row }) => <User {...row} />
-    //     // },
-    //     // {
-    //     //   id: "timeStamp",
-    //     //   Header: () => <div>Time Stamp</div>,
-    //     //   Cell: ({ row }) => <TimeStamp {...row} />
-    //     // },
-    //     ...columns
-    //   ]);
-    // }
+    useRowSelect
   );
-  // console.log(rows);
+
   return (
     <>
       <Header />
@@ -247,43 +105,43 @@ function Tables({ columns, data, updateMyData, loading }) {
                   </Row>
                 </FadeIn>
               ) : (
-                  <Table bordered hover responsive fluid {...getTableProps()}>
-                    <thead>
-                      {headerGroups.map(headerGroup => (
-                        <tr
-                          key={headerGroup.id}
-                          {...headerGroup.getHeaderGroupProps()}
-                        >
-                          {headerGroup.headers.map(column => (
-                            <th key={column.id} {...column.getHeaderProps()}>
-                              {column.render("Header")}
-                            </th>
-                          ))}
+                <Table bordered hover responsive {...getTableProps()}>
+                  <thead>
+                    {headerGroups.map(headerGroup => (
+                      <tr
+                        key={headerGroup.id}
+                        {...headerGroup.getHeaderGroupProps()}
+                      >
+                        {headerGroup.headers.map(column => (
+                          <th key={column.id} {...column.getHeaderProps()}>
+                            {column.render("Header")}
+                          </th>
+                        ))}
+                      </tr>
+                    ))}
+                  </thead>
+                  <tbody {...getTableBodyProps()}>
+                    {rows.map((row, i) => {
+                      prepareRow(row);
+                      return (
+                        <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                          {row.cells.map(cell => {
+                            return (
+                              <td
+                                key={cell.id}
+                                id={cell.id}
+                                {...cell.getCellProps()}
+                              >
+                                {cell.render("Cell")}
+                              </td>
+                            );
+                          })}
                         </tr>
-                      ))}
-                    </thead>
-                    <tbody {...getTableBodyProps()}>
-                      {rows.map((row, i) => {
-                        prepareRow(row);
-                        return (
-                          <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                            {row.cells.map(cell => {
-                              return (
-                                <td
-                                  key={cell.id}
-                                  id={cell.id}
-                                  {...cell.getCellProps()}
-                                >
-                                  {cell.render("Cell")}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                )}
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              )}
             </Card>
           </div>
         </Row>
@@ -294,74 +152,98 @@ function Tables({ columns, data, updateMyData, loading }) {
 
 function LabInventory() {
   const { userInfo } = useContext(UserInfoContext);
+
   const columns = React.useMemo(
     () => [
       {
         Header: "Action",
+        // eslint-disable-next-line
         Cell: props => {
           // return (<CheckButton {...props} />)
           let rowIdx = props.cell.row.original._id;
           let rowStatus = props.cell.row.original.status;
           let btnId = "btn" + rowIdx;
           let btnVal = "";
-          let btnBkgdColor = "white";
-          let btnColor = "white";
+
+          // Get current timestamp
+          let currentDateAndTime = new Date().toLocaleString();
+
+          // Set payload for PATCH req to db
+          let payload;
 
           // Set action button props based on db's 'Status' value for each row
           if (rowStatus === "available") {
-            btnVal = "check-OUT";
-            btnBkgdColor = "#5e72e4";
-            btnColor = "white";
-          } else if (rowStatus === userInfo.username) {
-            btnVal = "check-IN"
-            btnBkgdColor = "#fb6340";
-            btnColor = "white";
-          } else if (rowStatus !== userInfo.username) {
-            btnVal = "n/a"
-            btnBkgdColor = "lightgray";
-            btnColor = "white";
+            btnVal = "Check-Out";
+          } else if (rowStatus === userInfo.name) {
+            btnVal = "Check-In";
+          } else if (rowStatus !== userInfo.name) {
+            btnVal = "n/a";
           }
 
           // Build the action button for each row with the props set above
-          return (<input type="button" style={{ minWidth: 100, minHeight: 30, backgroundColor: btnBkgdColor, color: btnColor, borderRadius: ".25rem", border: "none", fontSize: "14px", fontWeight: "bolder", fontFamily: ("Consolas", "Menlo", "Monaco", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Courier New", "Courier", "monospace") }} id={btnId} value={btnVal}
-            onClick={() => {
-              // Get current timestamp
-              let currentDateAndTime = new Date().toLocaleString();
-
-              // Set payload for PATCH req to db
-              let payload;
-              if (btnVal === "check-IN") {
-                payload = { status: "available", timestamp: currentDateAndTime };
-              } else if (btnVal === "check-OUT") {
-                payload = { status: userInfo.username, timestamp: currentDateAndTime };
-              } else {
-                return;
+          return (
+            <Button
+              style={{
+                minWidth: 100,
+                minHeight: 30,
+                backgroundColor:
+                  btnVal === "Check-Out" ? "lightgreen" : "#fb6340"
+              }}
+              id={btnId}
+              value={btnVal}
+              disabled={
+                rowStatus === "available" || rowStatus === userInfo.name
+                  ? false
+                  : true
               }
-              // Specify req options based on the current availability status
-              const requestOptions = {
-                method: "PATCH", //Using PATCH call to only update the status property in the db
-                body: JSON.stringify(payload),
-                headers: { "Content-Type": "application/json" }
-              };
+              onClick={() => {
+                //Checking if the user has the ability to Check-Out a server
+                fetch(`/status/${rowIdx}`)
+                  .then(res => res.json())
+                  .then(({ status }) => {
+                    console.log(`"STATUS IS HERE" ${status}`);
+                    if (status !== "available" || status !== userInfo.name) {
+                      btnVal = "n/a";
+                    } else if (
+                      status === "available" ||
+                      status === userInfo.name
+                    ) {
+                      console.log("Else Block Invoked" + " " + status);
+                      if (btnVal === "Check-In") {
+                        payload = {
+                          status: "available",
+                          timestamp: currentDateAndTime
+                        };
+                      } else if (btnVal === "Check-Out") {
+                        payload = {
+                          status: userInfo.name,
+                          timestamp: currentDateAndTime
+                        };
+                      }
+                      // Specify req options based on the current availability status
+                      const requestOptions = {
+                        method: "PATCH", //Using PATCH call to only update the status property in the db
+                        body: JSON.stringify(payload),
+                        headers: { "Content-Type": "application/json" }
+                      };
 
-              // Fetch it to the backend API with a new status 
-              fetch(`/patchStatus/${rowIdx}`, requestOptions)
-                .then(response => response.json())
-                .then(response => console.log(response));
+                      // Fetch it to the backend API with a new status
+                      fetch(`/patchStatus/${rowIdx}`, requestOptions)
+                        .then(response => response.json())
+                        .then(response => console.log(response));
 
-              // Set appropriate button props upon change
-              btnVal = (btnVal === "check-OUT") ? "check-IN" : "check-OUT";
-              btnBkgdColor = (btnBkgdColor === "#5e72e4") ? "#fb6340" : "#5e72e4";
+                      // Update row's 'Status' to either "available" or the currently logged-in username
+                      updateMyData(rowIdx, "status", payload.status);
 
-              document.getElementById(btnId).value = btnVal;
-              document.getElementById(btnId).style.backgroundColor = btnBkgdColor;
-
-              // Update row's 'Status' to either "available" or the currently logged-in username
-              updateMyData(rowIdx, "status", payload.status);
-
-              // Update the row's 'Timestamp' to the current time
-              updateMyData(rowIdx, "timestamp", currentDateAndTime)
-            }} />)
+                      // Update the row's 'Timestamp' to the current time
+                      updateMyData(rowIdx, "timestamp", currentDateAndTime);
+                    }
+                  });
+              }}
+            >
+              {btnVal}
+            </Button>
+          );
         }
       },
       {
@@ -397,7 +279,7 @@ function LabInventory() {
         Cell: EditableCell
       }
     ],
-    []
+    [userInfo.username]
   );
 
   const [data, setData] = React.useState([]);
@@ -417,23 +299,17 @@ function LabInventory() {
     );
   };
 
-  // React.useEffect(() => {
+  // useEffect(() => {
   //   localStorage.setItem("tableData", data);
   // }, [data]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // setLoading({ done: false });
     fetch("/getServers")
       .then(res => res.json())
       .then(data => {
         setData(
           data.map(item => {
-            // return {
-            //   idracIp: item.ip,
-            //   serviceTag: item.data.System.SKU,
-            //   model: item.data.System.Model,
-            //   hostName: item.data.System.HostName
-            // };
             return item;
           })
         );
