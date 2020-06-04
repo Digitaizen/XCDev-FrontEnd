@@ -306,30 +306,23 @@ function LabInventory() {
           let btnVal = "";
           let btnBkgdColor = "white";
           let btnColor = "white";
-          let btnDisabled = false;
 
-          console.log("Props row id: ", rowIdx, " and status: ", rowStatus); //for debugging
-
+          // Set action button props based on db's 'Status' value for each row
           if (rowStatus === "available") {
             btnVal = "check-OUT";
             btnBkgdColor = "#5e72e4";
             btnColor = "white";
-            btnDisabled = false;
           } else if (rowStatus === userInfo.username) {
             btnVal = "check-IN"
             btnBkgdColor = "#fb6340";
             btnColor = "white";
-            btnDisabled = false;
           } else if (rowStatus !== userInfo.username) {
             btnVal = "n/a"
             btnBkgdColor = "lightgray";
             btnColor = "white";
-            btnDisabled = true;
           }
 
-          console.log("Username logged-in: ", userInfo.username); //for debugging
-          console.log("Value of newly set btn text: ", btnVal, " and Disabled status: ", btnDisabled); //for debugging
-
+          // Build the action button for each row with the props set above
           return (<input type="button" style={{ minWidth: 100, minHeight: 30, backgroundColor: btnBkgdColor, color: btnColor, borderRadius: ".25rem", border: "none", fontSize: "14px", fontWeight: "bolder", fontFamily: ("Consolas", "Menlo", "Monaco", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Courier New", "Courier", "monospace") }} id={btnId} value={btnVal}
             onClick={() => {
               // Get current timestamp
@@ -356,19 +349,12 @@ function LabInventory() {
                 .then(response => response.json())
                 .then(response => console.log(response));
 
-              console.log(`Updated db with the new status: ${payload.status}`); //for debugging
-
-              console.log("Old btn value: ", btnVal, " and old btn bkgd color: ", btnBkgdColor); //for debugging
-
               // Set appropriate button props upon change
               btnVal = (btnVal === "check-OUT") ? "check-IN" : "check-OUT";
               btnBkgdColor = (btnBkgdColor === "#5e72e4") ? "#fb6340" : "#5e72e4";
 
-              console.log("New btn value: ", btnVal, " and new btn bkgd color: ", btnBkgdColor); //for debugging
-
               document.getElementById(btnId).value = btnVal;
               document.getElementById(btnId).style.backgroundColor = btnBkgdColor;
-              console.log(document.getElementById(rowIdx).innerHTML); //for debugging
 
               // Update row's 'Status' to either "available" or the currently logged-in username
               updateMyData(rowIdx, "status", payload.status);
