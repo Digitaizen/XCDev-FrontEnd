@@ -26,6 +26,7 @@ import { UserInfoContext } from "../../context/UserInfoContext";
 import { Button, Card, CardHeader, Table, Container, Row } from "reactstrap";
 // core components
 import Header from "../../components/Headers/Header.js";
+import { doc, format } from "prettier";
 
 const EditableCell = ({
   value: initialValue,
@@ -55,96 +56,124 @@ const EditableCell = ({
   return <input value={value} onChange={onChange} onBlur={onBlur} />;
 };
 
-const CheckButton = row => {
-  const [checkButton, setcheckButton] = useState({ value: "" });
-  const [initialLoadState, setInitialLoadState] = useState(false);
-  const [disabled, setDisabled] = useState(false);
-  const { userInfo } = useContext(UserInfoContext);
+// const CheckButton = row => {
+//   const [checkButton, setcheckButton] = useState("check-OUT");
+//   const [initialLoadState, setInitialLoadState] = useState(false);
+//   const [disabled, setDisabled] = useState(false);
+//   const { userInfo } = useContext(UserInfoContext);
 
-  //Fetching checkButton data from the database, CheckIn or CheckOut
-  useEffect(() => {
-    fetch(`/status/${row.id}`)
-      .then(res => res.json())
-      .then(
-        ({ status }) => {
-          // setcheckButton({ value: status });
-          if ({ value: status } === "Available") {
-            setcheckButton("check-OUT");
-          } else if ({ value: status } === "Unavailable") {
-            setDisabled(true);
-          } else {
-            if ({ username }) {
+//   // // Updating the status property of the checkButton on external database
+//   // useEffect(() => {
+//   //   if (initialLoadState === true) {
+//   //     const requestOptions = {
+//   //       method: "PATCH", //Using PATCH call to only update the status property in the db
+//   //       body: JSON.stringify({ status: checkButton.value }),
+//   //       headers: { "Content-Type": "application/json" }
+//   //     };
 
-            }
-          };
-        }
-      );
-  }, [row.id, userInfo.username]);
+//   //     fetch(`/patchStatus/${row.id}`, requestOptions)
+//   //       .then(response => response.json())
+//   //       .then(response => console.log(response));
 
-  // Updating the status property of the checkButton on external database
-  useEffect(() => {
-    if (initialLoadState === true) {
-      const requestOptions = {
-        method: "PATCH", //Using PATCH call to only update the status property in the db
-        body: JSON.stringify({ status: checkButton.value }),
-        headers: { "Content-Type": "application/json" }
-      };
+//   //     console.log("update fetch RowId:", row.id);
+//   //     console.log("New Value:", checkButton.value);
+//   //   } else {
+//   //     return;
+//   //   }
+//   // }, [checkButton.value, initialLoadState, row.id]);
 
-      fetch(`/patchStatus/${row.id}`, requestOptions)
-        .then(response => response.json())
-        .then(response => console.log(response));
+//   // //onClick function to switch the checkButton property
+//   // const handleClick = () => {
+//   //   setInitialLoadState(true);
+//   //   setcheckButton(prev => ({
+//   //     value: prev.value === "CheckOut" ? "CheckIn" : "CheckOut"
+//   //   }));
 
-      console.log("update fetch RowId:", row.id);
-      console.log("New Value:", checkButton.value);
-    } else {
-      return;
-    }
-  }, [checkButton.value, initialLoadState, row.id]);
+//   //   console.log("Old Value:", checkButton.value);
+//   // };
 
-  //onClick function to switch the checkButton property
-  const handleClick = () => {
-    setInitialLoadState(true);
-    setcheckButton(prev => ({
-      value: prev.value === "CheckOut" ? "CheckIn" : "CheckOut"
-    }));
+//   //Fetching checkButton data from the database, CheckIn or CheckOut
+//   useEffect(() => {
+//     fetch(`/status/${row.id}`)
+//       .then(res => res.json())
+//       .then(({ status }) => {
+//         console.log("Status: ", status);
+//         if (status === "Available") {
+//           setcheckButton("check-OUT");
+//         } else if (status === "Unavailable") {
+//           setDisabled(true);
+//         } else {
+//           if (status === userInfo.username) {
+//             setcheckButton("check-IN");
+//           } else {
+//             setDisabled(true);
+//           }
+//         };
+//       }
+//       );
+//   }, [row]);
 
-    console.log("Old Value:", checkButton.value);
-  };
+//   // onClick function to switch the checkButton property
+//   const handleClick = () => {
+//     // Set button value and the patch req payload
+//     let payload;
+//     if (checkButton.value === "check-IN") {
+//       payload = { status: "Available" };
+//       setcheckButton("check-OUT");
+//     } else {
+//       payload = { status: userInfo.username };
+//       setcheckButton("check-IN");
+//     }
+//     // Specify req options based on the current availability status
+//     const requestOptions = {
+//       method: "PATCH", //Using PATCH call to only update the status property in the db
+//       body: JSON.stringify(payload),
+//       headers: { "Content-Type": "application/json" }
+//     };
 
-  return (
-    <>
-      <Button
-        key={row.id}
-        id={row.id}
-        onClick={handleClick}
-        value={checkButton.value}
-        style={{
-          backgroundColor:
-            checkButton.value === "CheckOut" ? "lightgreen" : "#fb6340"
-        }}
-      >
-        {checkButton.value}
-      </Button>
-      {/* <pre>
-        <code>{JSON.stringify(checkButton, null, 2)}</code>
-      </pre> */}
-    </>
-  );
-};
+//     // Fetch it to the backend API with a new status 
+//     fetch(`/patchStatus/${row.id}`, requestOptions)
+//       .then(response => response.json())
+//       .then(response => console.log(response));
 
-const User = () => {
-  return <div>Avilable</div>;
-};
+//     console.log(`Updated db with new status: ${payload}`);
 
-const TimeStamp = () => {
-  // get a new date (locale machine date time)
-  var date = new Date();
-  // get the date as a string
-  var n = date.toDateString();
-  // get the time as a string
-  var time = date.toLocaleTimeString();
-  return <div>{`${n} ${time}`}</div>;
-};
+//     // Finally, set the appropriate new value for the button
+//     setcheckButton(prev => ({
+//       value: prev.value === "check-OUT" ? "check-IN" : "check-OUT"
+//     }));
+//   };
+
+//   return (
+//     <>
+//       <Button
+//         key={row.id}
+//         id={row.id}
+//         onClick={handleClick}
+//         value={checkButton.value}
+//         style={{
+//           backgroundColor:
+//             checkButton.value === "check-OUT" ? "lightgreen" : "#fb6340"
+//         }}
+//       >
+//         {checkButton.value}
+//       </Button>
+//       {/* <pre>
+//         <code>{JSON.stringify(checkButton, null, 2)}</code>
+//       </pre> */}
+//     </>
+//   );
+// };
+
+// const TimeStamp = () => {
+//   // get a new date (locale machine date time)
+//   var date = new Date();
+//   // get the date as a string
+//   var n = date.toDateString();
+//   // get the time as a string
+//   var time = date.toLocaleTimeString();
+//   return <div>{`${n} ${time}`}</div>;
+// };
 
 function Tables({ columns, data, updateMyData, loading }) {
   //default options defined for the lottie file loading animation
@@ -170,26 +199,26 @@ function Tables({ columns, data, updateMyData, loading }) {
       updateMyData
     },
     useRowSelect,
-    hooks => {
-      hooks.visibleColumns.push(columns => [
-        {
-          id: "selection",
-          Header: () => <div>CheckIn/Checkout</div>,
-          Cell: ({ row }) => <CheckButton {...row} />
-        },
-        {
-          id: "status",
-          Header: () => <div>User</div>,
-          Cell: ({ row }) => <User {...row} />
-        },
-        {
-          id: "timeStamp",
-          Header: () => <div>Time Stamp</div>,
-          Cell: ({ row }) => <TimeStamp {...row} />
-        },
-        ...columns
-      ]);
-    }
+    // hooks => {
+    //   hooks.visibleColumns.push(columns => [
+    //     {
+    //       id: "selection",
+    //       Header: () => <div>Action</div>,
+    //       Cell: ({ row }) => <CheckButton {...row} />
+    //     },
+    //     // {
+    //     //   id: "status",
+    //     //   Header: () => <div>Status</div>,
+    //     //   Cell: ({ row }) => <User {...row} />
+    //     // },
+    //     // {
+    //     //   id: "timeStamp",
+    //     //   Header: () => <div>Time Stamp</div>,
+    //     //   Cell: ({ row }) => <TimeStamp {...row} />
+    //     // },
+    //     ...columns
+    //   ]);
+    // }
   );
   // console.log(rows);
   return (
@@ -264,8 +293,99 @@ function Tables({ columns, data, updateMyData, loading }) {
 }
 
 function LabInventory() {
+  const { userInfo } = useContext(UserInfoContext);
   const columns = React.useMemo(
     () => [
+      {
+        Header: "Action",
+        Cell: props => {
+          // return (<CheckButton {...props} />)
+          let rowIdx = props.cell.row.original._id;
+          let rowStatus = props.cell.row.original.status;
+          let btnId = "btn" + rowIdx;
+          let btnVal = "";
+          let btnBkgdColor = "white";
+          let btnColor = "white";
+          let btnDisabled = false;
+
+          console.log("Props row id: ", rowIdx, " and status: ", rowStatus); //for debugging
+
+          if (rowStatus === "available") {
+            btnVal = "check-OUT";
+            btnBkgdColor = "#5e72e4";
+            btnColor = "white";
+            btnDisabled = false;
+          } else if (rowStatus === userInfo.username) {
+            btnVal = "check-IN"
+            btnBkgdColor = "#fb6340";
+            btnColor = "white";
+            btnDisabled = false;
+          } else if (rowStatus !== userInfo.username) {
+            btnVal = "n/a"
+            btnBkgdColor = "lightgray";
+            btnColor = "white";
+            btnDisabled = true;
+          }
+
+          console.log("Username logged-in: ", userInfo.username); //for debugging
+          console.log("Value of newly set btn text: ", btnVal, " and Disabled status: ", btnDisabled); //for debugging
+
+          return (<input type="button" style={{ minWidth: 100, minHeight: 30, backgroundColor: btnBkgdColor, color: btnColor, borderRadius: ".25rem", border: "none", fontSize: "14px", fontWeight: "bolder", fontFamily: ("Consolas", "Menlo", "Monaco", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", "Courier New", "Courier", "monospace") }} id={btnId} value={btnVal}
+            onClick={() => {
+              // Get current timestamp
+              let currentDateAndTime = new Date().toLocaleString();
+
+              // Set payload for PATCH req to db
+              let payload;
+              if (btnVal === "check-IN") {
+                payload = { status: "available", timestamp: currentDateAndTime };
+              } else if (btnVal === "check-OUT") {
+                payload = { status: userInfo.username, timestamp: currentDateAndTime };
+              } else {
+                return;
+              }
+              // Specify req options based on the current availability status
+              const requestOptions = {
+                method: "PATCH", //Using PATCH call to only update the status property in the db
+                body: JSON.stringify(payload),
+                headers: { "Content-Type": "application/json" }
+              };
+
+              // Fetch it to the backend API with a new status 
+              fetch(`/patchStatus/${rowIdx}`, requestOptions)
+                .then(response => response.json())
+                .then(response => console.log(response));
+
+              console.log(`Updated db with the new status: ${payload.status}`); //for debugging
+
+              console.log("Old btn value: ", btnVal, " and old btn bkgd color: ", btnBkgdColor); //for debugging
+
+              // Set appropriate button props upon change
+              btnVal = (btnVal === "check-OUT") ? "check-IN" : "check-OUT";
+              btnBkgdColor = (btnBkgdColor === "#5e72e4") ? "#fb6340" : "#5e72e4";
+
+              console.log("New btn value: ", btnVal, " and new btn bkgd color: ", btnBkgdColor); //for debugging
+
+              document.getElementById(btnId).value = btnVal;
+              document.getElementById(btnId).style.backgroundColor = btnBkgdColor;
+              console.log(document.getElementById(rowIdx).innerHTML); //for debugging
+
+              // Update row's 'Status' to either "available" or the currently logged-in username
+              updateMyData(rowIdx, "status", payload.status);
+
+              // Update the row's 'Timestamp' to the current time
+              updateMyData(rowIdx, "timestamp", currentDateAndTime)
+            }} />)
+        }
+      },
+      {
+        Header: "Status",
+        accessor: "status"
+      },
+      {
+        Header: "TimeStamp",
+        accessor: "timestamp"
+      },
       {
         Header: "Service Tag",
         accessor: "serviceTag"
@@ -274,7 +394,6 @@ function LabInventory() {
         Header: "IP Address",
         accessor: "ip"
       },
-
       {
         Header: "Host Name",
         accessor: "hostname"
@@ -282,6 +401,10 @@ function LabInventory() {
       {
         Header: "Model",
         accessor: "model"
+      },
+      {
+        Header: "Generation",
+        accessor: "generation"
       },
       {
         Header: "Comments",
