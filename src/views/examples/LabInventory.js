@@ -50,8 +50,6 @@ const EditableCell = ({
     setValue(initialValue);
   }, [initialValue]);
 
-  //removed onBlur={onBlur}
-
   return <input value={value} onChange={onChange} onBlur={onBlur} />;
 };
 
@@ -253,29 +251,9 @@ function Tables({ columns, data, updateMyData, loading }) {
       data,
       updateMyData
     },
-    useRowSelect,
-    hooks => {
-      hooks.visibleColumns.push(columns => [
-        {
-          id: "selection",
-          Header: () => <div>CheckIn/Checkout</div>,
-          Cell: ({ row }) => <CheckButton {...row} />
-        },
-        {
-          id: "status",
-          Header: () => <div>User</div>,
-          Cell: ({ row }) => <User {...row} />
-        },
-        {
-          id: "timeStamp",
-          Header: () => <div>Time Stamp</div>,
-          Cell: ({ row }) => <TimeStamp {...row} />
-        },
-        ...columns
-      ]);
-    }
+    useRowSelect
   );
-  // console.log(rows);
+
   return (
     <>
       <Header />
@@ -348,8 +326,112 @@ function Tables({ columns, data, updateMyData, loading }) {
 }
 
 function LabInventory() {
+  const { userInfo } = useContext(UserInfoContext);
+
   const columns = React.useMemo(
     () => [
+      {
+        Header: "Action",
+        // eslint-disable-next-line
+        Cell: props => {
+          // return (<CheckButton {...props} />)
+          let rowIdx = props.cell.row.original._id;
+          let rowStatus = props.cell.row.original.status;
+          let btnId = "btn" + rowIdx;
+          let btnVal = "";
+
+          // Get current timestamp
+          let currentDateAndTime = new Date().toLocaleString();
+
+          // Set payload for PATCH req to db
+          let payload;
+
+          // Set action button props based on db's 'Status' value for each row
+          if (rowStatus === "available") {
+            btnVal = "Check-Out";
+          } else if (rowStatus === userInfo.name) {
+            btnVal = "Check-In";
+          } else if (rowStatus !== userInfo.name) {
+            btnVal = "n/a";
+          }
+
+          // Build the action button for each row with the props set above
+          return (
+            <Button
+              style={{
+                minWidth: 100,
+                minHeight: 30,
+                backgroundColor:
+                  btnVal === "Check-Out" ? "lightgreen" : "#fb6340"
+              }}
+              id={btnId}
+              value={btnVal}
+              disabled={
+                rowStatus === "available" || rowStatus === userInfo.name
+                  ? false
+                  : true
+              }
+              onClick={() => {
+                //Checking if the user has the ability to Check-Out a server
+                fetch(`/status/${rowIdx}`)
+                  .then(res => res.json())
+                  .then(({ status }) => {
+                    if (status === "available" || status === userInfo.name) {
+                      if (btnVal === "Check-In") {
+                        payload = {
+                          status: "available",
+                          timestamp: currentDateAndTime
+                        };
+                      } else if (btnVal === "Check-Out") {
+                        payload = {
+                          status: userInfo.name,
+                          timestamp: currentDateAndTime
+                        };
+                      }
+                      // Specify req options based on the current availability status
+                      const requestOptions = {
+                        method: "PATCH", //Using PATCH call to only update the status property in the db
+                        body: JSON.stringify(payload),
+                        headers: { "Content-Type": "application/json" }
+                      };
+
+                      // Fetch it to the backend API with a new status
+                      fetch(`/patchStatus/${rowIdx}`, requestOptions)
+                        .then(response => response.json())
+                        .then(response => console.log(response));
+
+                      btnVal =
+                        btnVal === "Check-Out" ? "Check-In" : "Check-Out";
+
+                      document.getElementById(btnId).value = btnVal;
+
+                      // Update row's 'Status' to either "available" or the currently logged-in username
+                      updateMyData(rowIdx, "status", payload.status);
+
+                      // Update the row's 'Timestamp' to the current time
+                      updateMyData(rowIdx, "timestamp", currentDateAndTime);
+                    } else if (
+                      status !== "available" ||
+                      status !== userInfo.name
+                    ) {
+                      btnVal = "n/a";
+                    }
+                  });
+              }}
+            >
+              {btnVal}
+            </Button>
+          );
+        }
+      },
+      {
+        Header: "Status",
+        accessor: "status"
+      },
+      {
+        Header: "TimeStamp",
+        accessor: "timestamp"
+      },
       {
         Header: "Service Tag",
         accessor: "serviceTag"
@@ -358,7 +440,6 @@ function LabInventory() {
         Header: "IP Address",
         accessor: "ip"
       },
-
       {
         Header: "Host Name",
         accessor: "hostname"
@@ -368,12 +449,16 @@ function LabInventory() {
         accessor: "model"
       },
       {
+        Header: "Generation",
+        accessor: "generation"
+      },
+      {
         Header: "Comments",
         accessor: "comments",
         Cell: EditableComments
       }
     ],
-    []
+    [userInfo.name]
   );
 
   const [data, setData] = React.useState([]);
@@ -393,23 +478,17 @@ function LabInventory() {
     );
   };
 
-  // React.useEffect(() => {
+  // useEffect(() => {
   //   localStorage.setItem("tableData", data);
   // }, [data]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // setLoading({ done: false });
     fetch("/getServers")
       .then(res => res.json())
       .then(data => {
         setData(
           data.map(item => {
-            // return {
-            //   idracIp: item.ip,
-            //   serviceTag: item.data.System.SKU,
-            //   model: item.data.System.Model,
-            //   hostName: item.data.System.HostName
-            // };
             return item;
           })
         );
