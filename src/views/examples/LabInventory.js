@@ -27,32 +27,6 @@ import { Button, Card, CardHeader, Table, Container, Row } from "reactstrap";
 // core components
 import Header from "../../components/Headers/Header.js";
 
-const EditableCell = ({
-  value: initialValue,
-  row: { index },
-  column: { id },
-  updateMyData // This is a custom function that we supplied to our table instance
-}) => {
-  // We need to keep and update the state of the cell normally
-  const [value, setValue] = React.useState(initialValue);
-
-  const onChange = e => {
-    setValue(e.target.value);
-  };
-
-  //   We'll only update the external data when the input is blurred
-  const onBlur = () => {
-    updateMyData(index, id, value);
-  };
-
-  // If the initialValue is changed external, sync it up with our state
-  React.useEffect(() => {
-    setValue(initialValue);
-  }, [initialValue]);
-
-  return <input value={value} onChange={onChange} onBlur={onBlur} />;
-};
-
 // Make comments section editable field ///////////////////////////////////////////
 const EditableComments = ({ value: initialValue, row: { index } }) => {
   // We need to keep and update the state of the cell normally
@@ -89,7 +63,7 @@ const EditableComments = ({ value: initialValue, row: { index } }) => {
         .catch(e => {
           console.error(e.message);
         });
-      console.log(`Updated row ${index} with new comment: ${value}`);
+      console.log(`Updated row ${index} with new comment: ${value}`); //Leaving here for logging and troubleshooting
     }
   };
 
@@ -101,131 +75,6 @@ const EditableComments = ({ value: initialValue, row: { index } }) => {
       onFocus={onFocus}
     />
   );
-};
-
-const CheckButton = row => {
-  const [checkButton, setcheckButton] = useState({ value: "" });
-  const [initialLoadState, setInitialLoadState] = useState(false);
-  const [disabled, setDisabled] = useState(false);
-  const { userInfo } = useContext(UserInfoContext);
-
-  //Fetching checkButton data from the database, CheckIn or CheckOut
-  useEffect(() => {
-    fetch(`/status/${row.id}`)
-      .then(res => res.json())
-      .then(({ status }) => setcheckButton({ value: status }));
-  }, [row.id]);
-
-  useEffect(() => {
-    fetch(`/status/${row.id}`)
-      .then(res => res.json())
-      .then(({ user }) => {
-        if (user !== "" && user !== userInfo.username) {
-          setDisabled(true);
-        }
-      });
-  }, [row.id, userInfo.username]);
-
-  // Updating the status property of the checkButton on external database
-  // useEffect(() => {
-  //   if (initialLoadState === true) {
-  //     const requestOptions = {
-  //       method: "PATCH", //Using PATCH call to only update the status property in the db
-  //       body: JSON.stringify({
-  //         status: checkButton.value,
-  //         user: ""
-  //       }),
-  //       headers: { "Content-Type": "application/json" }
-  //     };
-
-  //     fetch(`/patchStatus/${row.id}`, requestOptions)
-  //       .then(response => response.json())
-  //       .then(response => console.log(response.result));
-
-  //     console.log("update fetch RowId:", row.id);
-  //     console.log("New Value:", checkButton.value);
-  //   } else {
-  //     return;
-  //   }
-  // }, [checkButton.value, initialLoadState, row.id]);
-
-  useEffect(() => {
-    if (initialLoadState === true && checkButton.value === "CheckIn") {
-      const requestOptions = {
-        method: "PATCH", //Using PATCH call to only update the status property in the db
-        body: JSON.stringify({
-          status: checkButton.value,
-          user: userInfo.username
-        }),
-        headers: { "Content-Type": "application/json" }
-      };
-
-      fetch(`/patchStatus/${row.id}`, requestOptions)
-        .then(response => response.json())
-        .then(response => console.log(`USER: ${response.result}`));
-    } else if (initialLoadState === true && checkButton.value === "CheckOut") {
-      const requestOptions = {
-        method: "PATCH", //Using PATCH call to only update the status property in the db
-        body: JSON.stringify({
-          status: checkButton.value,
-          user: ""
-        }),
-        headers: { "Content-Type": "application/json" }
-      };
-
-      fetch(`/patchStatus/${row.id}`, requestOptions)
-        .then(response => response.json())
-        .then(response => console.log(response.result));
-
-      console.log("update fetch RowId:", row.id);
-      console.log("New Value:", checkButton.value);
-    }
-  }, [checkButton.value, initialLoadState, row.id, userInfo.username]);
-
-  //onClick function to switch the checkButton property
-  const handleClick = () => {
-    setInitialLoadState(true);
-    setcheckButton(prev => ({
-      value: prev.value === "CheckOut" ? "CheckIn" : "CheckOut"
-    }));
-
-    console.log("Old Value:", checkButton.value);
-  };
-
-  return (
-    <>
-      <Button
-        key={row.id}
-        id={row.id}
-        onClick={handleClick}
-        value={checkButton.value}
-        disabled={disabled}
-        style={{
-          backgroundColor:
-            checkButton.value === "CheckOut" ? "lightgreen" : "#fb6340"
-        }}
-      >
-        {checkButton.value}
-      </Button>
-      {/* <pre>
-        <code>{JSON.stringify(checkButton, null, 2)}</code>
-      </pre> */}
-    </>
-  );
-};
-
-const User = () => {
-  return <div>Avilable</div>;
-};
-
-const TimeStamp = () => {
-  // get a new date (locale machine date time)
-  var date = new Date();
-  // get the date as a string
-  var n = date.toDateString();
-  // get the time as a string
-  var time = date.toLocaleTimeString();
-  return <div>{`${n} ${time}`}</div>;
 };
 
 function Tables({ columns, data, updateMyData, loading }) {
@@ -478,12 +327,7 @@ function LabInventory() {
     );
   };
 
-  // useEffect(() => {
-  //   localStorage.setItem("tableData", data);
-  // }, [data]);
-
   useEffect(() => {
-    // setLoading({ done: false });
     fetch("/getServers")
       .then(res => res.json())
       .then(data => {
@@ -494,7 +338,6 @@ function LabInventory() {
         );
         setLoading({ done: true });
       });
-    // .then(setLoading({ done: true }));
   }, []);
 
   return (
