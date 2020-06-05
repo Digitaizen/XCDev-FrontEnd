@@ -16,18 +16,81 @@
 
 */
 import React, { useState, useEffect, useContext } from "react";
-import { useTable, useRowSelect, useSortBy } from "react-table";
+import {
+  useTable,
+  useRowSelect,
+  useSortBy,
+  useFilters,
+  useGlobalFilter,
+  useAsyncDebounce
+} from "react-table";
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
 import { UserInfoContext } from "../../context/UserInfoContext";
+import matchSorter from "match-sorter";
 
 // reactstrap components
 import { Button, Card, CardHeader, Table, Container, Row } from "reactstrap";
 // core components
 import Header from "../../components/Headers/Header.js";
 
-// Make comments section editable field ///////////////////////////////////////////
+// Define a default UI for filtering
+function GlobalFilter({
+  preGlobalFilteredRows,
+  globalFilter,
+  setGlobalFilter
+}) {
+  const count = preGlobalFilteredRows.length;
+  const [value, setValue] = React.useState(globalFilter);
+  const onChange = useAsyncDebounce(value => {
+    setGlobalFilter(value || undefined);
+  }, 200);
+
+  return (
+    <span>
+      Search:{" "}
+      <input
+        value={value || ""}
+        onChange={e => {
+          setValue(e.target.value);
+          onChange(e.target.value);
+        }}
+        placeholder={`${count} records...`}
+        style={{
+          fontSize: "1.1rem",
+          border: "0"
+        }}
+      />
+    </span>
+  );
+}
+
+// Define a default filtering method
+function DefaultColumnFilter({
+  column: { filterValue, preFilteredRows, setFilter }
+}) {
+  const count = preFilteredRows.length;
+
+  return (
+    <input
+      value={filterValue || ""}
+      onChange={e => {
+        setFilter(e.target.value || undefined); // Set undefined to remove the filter entirely
+      }}
+      placeholder={`Search ${count} records...`}
+    />
+  );
+}
+
+function fuzzyTextFilterFn(rows, id, filterValue) {
+  return matchSorter(rows, filterValue, { keys: [row => row.values[id]] });
+}
+
+// Let the table remove the filter if the string is empty
+fuzzyTextFilterFn.autoRemove = val => !val;
+
+// Make comments section editable field
 const EditableComments = ({ value: initialValue, row: { index } }) => {
   // We need to keep and update the state of the cell normally
   const [value, setValue] = useState(initialValue);
@@ -88,18 +151,55 @@ function Tables({ columns, data, updateMyData, loading }) {
     }
   };
 
+  //Fuzzy text filtering
+  const filterTypes = React.useMemo(
+    () => ({
+      // Add a new fuzzyTextFilterFn filter type.
+      fuzzyText: fuzzyTextFilterFn,
+      // Or, override the default text filter to use
+      // "startWith"
+      text: (rows, id, filterValue) => {
+        return rows.filter(row => {
+          const rowValue = row.values[id];
+          return rowValue !== undefined
+            ? String(rowValue)
+                .toLowerCase()
+                .startsWith(String(filterValue).toLowerCase())
+            : true;
+        });
+      }
+    }),
+    []
+  );
+
+  const defaultColumn = React.useMemo(
+    () => ({
+      // Let's set up our default Filter UI
+      Filter: DefaultColumnFilter
+    }),
+    []
+  );
+
   const {
-    rows,
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    prepareRow
+    rows,
+    prepareRow,
+    state,
+    visibleColumns,
+    preGlobalFilteredRows,
+    setGlobalFilter
   } = useTable(
     {
       columns,
       data,
-      updateMyData
+      updateMyData,
+      defaultColumn,
+      filterTypes
     },
+    useFilters,
+    useGlobalFilter,
     useSortBy,
     useRowSelect
   );
@@ -130,7 +230,13 @@ function Tables({ columns, data, updateMyData, loading }) {
                   </Row>
                 </FadeIn>
               ) : (
-                <Table bordered hover responsive {...getTableProps()}>
+                <Table
+                  className="align-items-center"
+                  bordered
+                  hover
+                  responsive
+                  {...getTableProps()}
+                >
                   <thead>
                     {headerGroups.map(headerGroup => (
                       <tr
@@ -138,24 +244,42 @@ function Tables({ columns, data, updateMyData, loading }) {
                         {...headerGroup.getHeaderGroupProps()}
                       >
                         {headerGroup.headers.map(column => (
-                          <th
-                            key={column.id}
-                            {...column.getHeaderProps(
-                              column.getSortByToggleProps()
-                            )}
-                          >
-                            {column.render("Header")}
-                            <span>
-                              {column.isSorted
-                                ? column.isSortedDesc
-                                  ? " 🔽"
-                                  : " 🔼"
-                                : ""}
-                            </span>
+                          <th key={column.id} {...column.getHeaderProps()}>
+                            <div>
+                              <span {...column.getSortByToggleProps()}>
+                                {column.render("Header")}
+                                {/* Add a sort direction indicator */}
+                                {column.isSorted
+                                  ? column.isSortedDesc
+                                    ? " 🔽"
+                                    : " 🔼"
+                                  : ""}
+                              </span>
+                            </div>
+                            {/* Render the columns filter UI */}
+                            <div>
+                              {column.canFilter
+                                ? column.render("Filter")
+                                : null}
+                            </div>
                           </th>
                         ))}
                       </tr>
                     ))}
+                    <tr>
+                      <th
+                        colSpan={visibleColumns.length}
+                        style={{
+                          textAlign: "left"
+                        }}
+                      >
+                        <GlobalFilter
+                          preGlobalFilteredRows={preGlobalFilteredRows}
+                          globalFilter={state.globalFilter}
+                          setGlobalFilter={setGlobalFilter}
+                        />
+                      </th>
+                    </tr>
                   </thead>
                   <tbody {...getTableBodyProps()}>
                     {rows.map((row, i) => {
@@ -186,6 +310,20 @@ function Tables({ columns, data, updateMyData, loading }) {
     </>
   );
 }
+
+// Define a custom filter filter function!
+function filterGreaterThan(rows, id, filterValue) {
+  return rows.filter(row => {
+    const rowValue = row.values[id];
+    return rowValue >= filterValue;
+  });
+}
+
+// This is an autoRemove method on the filter function that
+// when given the new filter value and returns true, the filter
+// will be automatically removed. Normally this is just an undefined
+// check, but here, we want to remove the filter if it's not a number
+filterGreaterThan.autoRemove = val => typeof val !== "number";
 
 function LabInventory() {
   const { userInfo } = useContext(UserInfoContext);
@@ -288,37 +426,45 @@ function LabInventory() {
       },
       {
         Header: "Status",
-        accessor: "status"
+        accessor: "status",
+        filter: "fuzzyText"
       },
       {
         Header: "TimeStamp",
         accessor: "timestamp",
-        sortType: "basic"
+        sortType: "basic",
+        filter: "fuzzyText"
       },
       {
         Header: "Service Tag",
-        accessor: "serviceTag"
+        accessor: "serviceTag",
+        filter: "fuzzyText"
       },
       {
         Header: "IP Address",
-        accessor: "ip"
+        accessor: "ip",
+        filter: "fuzzyText"
       },
       {
         Header: "Host Name",
-        accessor: "hostname"
+        accessor: "hostname",
+        filter: "fuzzyText"
       },
       {
         Header: "Model",
-        accessor: "model"
+        accessor: "model",
+        filter: "fuzzyText"
       },
       {
         Header: "Generation",
-        accessor: "generation"
+        accessor: "generation",
+        filter: "fuzzyText"
       },
       {
         Header: "Comments",
         accessor: "comments",
-        Cell: EditableComments
+        Cell: EditableComments,
+        disableFilters: true
       }
     ],
     [userInfo.name]
