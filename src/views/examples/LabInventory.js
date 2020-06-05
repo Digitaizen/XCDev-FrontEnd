@@ -201,14 +201,7 @@ function LabInventory() {
                 fetch(`/status/${rowIdx}`)
                   .then(res => res.json())
                   .then(({ status }) => {
-                    console.log(`"STATUS IS HERE" ${status}`);
-                    if (status !== "available" || status !== userInfo.name) {
-                      btnVal = "n/a";
-                    } else if (
-                      status === "available" ||
-                      status === userInfo.name
-                    ) {
-                      console.log("Else Block Invoked" + " " + status);
+                    if (status === "available" || status === userInfo.name) {
                       if (btnVal === "Check-In") {
                         payload = {
                           status: "available",
@@ -232,11 +225,21 @@ function LabInventory() {
                         .then(response => response.json())
                         .then(response => console.log(response));
 
+                      btnVal =
+                        btnVal === "Check-Out" ? "Check-In" : "Check-Out";
+
+                      document.getElementById(btnId).value = btnVal;
+
                       // Update row's 'Status' to either "available" or the currently logged-in username
                       updateMyData(rowIdx, "status", payload.status);
 
                       // Update the row's 'Timestamp' to the current time
                       updateMyData(rowIdx, "timestamp", currentDateAndTime);
+                    } else if (
+                      status !== "available" ||
+                      status !== userInfo.name
+                    ) {
+                      btnVal = "n/a";
                     }
                   });
               }}
@@ -279,7 +282,7 @@ function LabInventory() {
         Cell: EditableCell
       }
     ],
-    [userInfo.username]
+    [userInfo.name]
   );
 
   const [data, setData] = React.useState([]);
