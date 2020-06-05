@@ -46,6 +46,7 @@
   ],
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.12.1",
+    "bootstrap": "^4.5.0",
     "chart.js": "^2.9.3",
     "classnames": "^2.2.6",
     "match-sorter": "^4.1.0",
@@ -55,6 +56,7 @@
     "parcel-bundler": "^1.12.4",
     "prettier": "^1.19.1",
     "react": "^16.12.0",
+    "react-bootstrap": "^1.0.1",
     "react-chartjs-2": "^2.9.0",
     "react-copy-to-clipboard": "^5.0.2",
     "react-datetime": "^2.16.3",
