@@ -16,7 +16,7 @@
 
 */
 import React, { useState, useEffect, useContext } from "react";
-import { useTable, useRowSelect } from "react-table";
+import { useTable, useRowSelect, useSortBy } from "react-table";
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
@@ -100,6 +100,7 @@ function Tables({ columns, data, updateMyData, loading }) {
       data,
       updateMyData
     },
+    useSortBy,
     useRowSelect
   );
 
@@ -137,8 +138,20 @@ function Tables({ columns, data, updateMyData, loading }) {
                         {...headerGroup.getHeaderGroupProps()}
                       >
                         {headerGroup.headers.map(column => (
-                          <th key={column.id} {...column.getHeaderProps()}>
+                          <th
+                            key={column.id}
+                            {...column.getHeaderProps(
+                              column.getSortByToggleProps()
+                            )}
+                          >
                             {column.render("Header")}
+                            <span>
+                              {column.isSorted
+                                ? column.isSortedDesc
+                                  ? " 🔽"
+                                  : " 🔼"
+                                : ""}
+                            </span>
                           </th>
                         ))}
                       </tr>
@@ -279,7 +292,8 @@ function LabInventory() {
       },
       {
         Header: "TimeStamp",
-        accessor: "timestamp"
+        accessor: "timestamp",
+        sortType: "basic"
       },
       {
         Header: "Service Tag",
