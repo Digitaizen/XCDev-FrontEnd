@@ -31,7 +31,6 @@ import {
   InputGroupAddon,
   InputGroupText,
   InputGroup,
-  Row,
   Col
 } from "reactstrap";
 
@@ -70,6 +69,12 @@ const Register = () => {
         });
     }
   }
+
+  // function handleEmail(e) {
+  //   let email = e.target.value;
+  //   setEmail(email);
+  //   setUserName(email.substring(0, email.lastIndexOf("@")));
+  // }
 
   if (registered === true) {
     return <Redirect to="/auth/login" />;
@@ -147,9 +152,7 @@ const Register = () => {
                   <Input
                     type="email"
                     value={email}
-                    onChange={e => {
-                      setEmail(e.target.value);
-                    }}
+                    onChange={e => setEmail(e.target.value)}
                     placeholder="DELL Email Address"
                   />
                 </InputGroup>
@@ -163,11 +166,13 @@ const Register = () => {
                   </InputGroupAddon>
                   <Input
                     type="username"
-                    value={userName}
-                    onChange={e => {
-                      setUserName(e.target.value);
-                    }}
+                    // value={userName}
+                    defaultValue={email.substring(0, email.lastIndexOf("@"))}
+                    // onChange={e => {
+                    //   setUserName(e.target.value);
+                    // }}
                     placeholder="Username"
+                    readOnly="readonly"
                   />
                 </InputGroup>
               </FormGroup>

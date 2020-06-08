@@ -44,7 +44,6 @@ import {
 } from "reactstrap";
 
 import Form from "react-bootstrap/Form";
-import Badge from "react-bootstrap/Badge";
 
 // core components
 import Header from "../../components/Headers/Header.js";
@@ -156,8 +155,8 @@ const EditableComments = ({ value: initialValue, row: { index } }) => {
 
 function Tables({ columns, data, updateMyData, loading }) {
   //Dropdown Menu State
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const toggle = () => setDropdownOpen(prevState => !prevState);
+  // const [dropdownOpen, setDropdownOpen] = useState(false);
+  // const toggle = () => setDropdownOpen(prevState => !prevState);
 
   //default options defined for the lottie file loading animation
   const defaultOptions = {
@@ -589,11 +588,11 @@ function LabInventory() {
         accessor: "model",
         filter: "fuzzyText"
       },
-      {
-        Header: "Generation",
-        accessor: "generation",
-        filter: "fuzzyText"
-      },
+      // {
+      //   Header: "Generation",
+      //   accessor: "generation",
+      //   filter: "fuzzyText"
+      // },
       {
         Header: "Comments",
         accessor: "comments",

@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, Redirect } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { UserInfoContext } from "../../context/UserInfoContext";
@@ -32,8 +32,8 @@ import {
   InputGroupAddon,
   InputGroupText,
   InputGroup,
-  Row,
-  Col
+  Col,
+  UncontrolledAlert
 } from "reactstrap";
 
 const Login = () => {
@@ -154,9 +154,15 @@ const Login = () => {
               </FormGroup>
               <div className="text-center text-muted mb-4">
                 {isError && (
-                  <small style={{ color: "red" }}>
-                    The username or password provided were incorrect!
-                  </small>
+                  <UncontrolledAlert color="danger" fade={false}>
+                    <span className="alert-inner--text">
+                      <strong>Error!</strong> Please check your username and
+                      password
+                    </span>
+                  </UncontrolledAlert>
+                  // <small style={{ color: "red" }}>
+                  //   The username or password provided were incorrect!
+                  // </small>
                 )}
               </div>
               {/* <div className="custom-control custom-control-alternative custom-checkbox">

@@ -19,7 +19,6 @@ import React, { useContext } from "react";
 
 // reactstrap components
 import {
-  Button,
   Card,
   CardHeader,
   CardBody,
@@ -43,7 +42,7 @@ const Profile = () => {
       {/* Page content */}
       <Container className="mt--7" fluid>
         <Row>
-          <Col className="order-xl-2 mb-5 mb-xl-0" xl="4">
+          {/* <Col className="order-xl-2 mb-5 mb-xl-0" xl="4">
             <Card className="card-profile shadow">
               <Row className="justify-content-center">
                 <Col className="order-lg-2" lg="3">
@@ -101,8 +100,7 @@ const Profile = () => {
                 </Row>
                 <div className="text-center">
                   <h3>
-                    {/* Jessica Jones */}
-                    User
+                    {userInfo.name}
                     <span className="font-weight-light">, 27</span>
                   </h3>
                   <div className="h5 font-weight-300">
@@ -129,23 +127,23 @@ const Profile = () => {
                 </div>
               </CardBody>
             </Card>
-          </Col>
-          <Col className="order-xl-1" xl="8">
+          </Col> */}
+          <Col className="order-xl-1" xl="12">
             <Card className="bg-secondary shadow">
               <CardHeader className="bg-white border-0">
                 <Row className="align-items-center">
                   <Col xs="8">
-                    <h3 className="mb-0">My account</h3>
+                    <h3 className="mb-0">Account Information</h3>
                   </Col>
                   <Col className="text-right" xs="4">
-                    <Button
+                    {/* <Button
                       color="primary"
                       href="#pablo"
                       onClick={e => e.preventDefault()}
                       size="sm"
                     >
                       Settings
-                    </Button>
+                    </Button> */}
                   </Col>
                 </Row>
               </CardHeader>
@@ -166,7 +164,7 @@ const Profile = () => {
                           </label>
                           <Input
                             className="form-control-alternative"
-                            defaultValue="lucky.jesse"
+                            defaultValue={userInfo.username}
                             id="input-username"
                             placeholder="Username"
                             type="text"
@@ -184,7 +182,7 @@ const Profile = () => {
                           <Input
                             className="form-control-alternative"
                             id="input-email"
-                            value={userInfo.email}
+                            defaultValue={userInfo.email}
                             // placeholder="jesse@example.com"
                             type="email"
                           />
@@ -204,7 +202,10 @@ const Profile = () => {
                             className="form-control-alternative"
                             type="text"
                             // defaultValue="Lucky"
-                            value={userInfo.name}
+                            defaultValue={userInfo.name
+                              .split(" ")
+                              .slice(0, -1)
+                              .join(" ")}
                             id="input-first-name"
                             placeholder="First name"
                           />
@@ -220,7 +221,10 @@ const Profile = () => {
                           </label>
                           <Input
                             className="form-control-alternative"
-                            defaultValue="Jesse"
+                            defaultValue={userInfo.name
+                              .split(" ")
+                              .slice(-1)
+                              .join(" ")}
                             id="input-last-name"
                             placeholder="Last name"
                             type="text"
@@ -229,8 +233,8 @@ const Profile = () => {
                       </Col>
                     </Row>
                   </div>
-                  <hr className="my-4" />
-                  {/* Address */}
+                  {/* <hr className="my-4" />
+                  Address
                   <h6 className="heading-small text-muted mb-4">
                     Contact information
                   </h6>
@@ -308,7 +312,7 @@ const Profile = () => {
                     </Row>
                   </div>
                   <hr className="my-4" />
-                  {/* Description */}
+                  Description
                   <h6 className="heading-small text-muted mb-4">About me</h6>
                   <div className="pl-lg-4">
                     <FormGroup>
@@ -322,7 +326,7 @@ const Profile = () => {
                         type="textarea"
                       />
                     </FormGroup>
-                  </div>
+                  </div> */}
                 </Form>
               </CardBody>
             </Card>

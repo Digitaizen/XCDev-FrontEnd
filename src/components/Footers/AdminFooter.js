@@ -35,7 +35,7 @@ class Footer extends React.Component {
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                DELL XC Engineering
+                DELL
               </a>
             </div>
           </Col>
