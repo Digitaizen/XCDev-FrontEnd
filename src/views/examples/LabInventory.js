@@ -153,7 +153,7 @@ const EditableComments = ({ value: initialValue, row: { index } }) => {
   );
 };
 
-function Tables({ columns, data, updateMyData, loading }) {
+function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   //Dropdown Menu State
   // const [dropdownOpen, setDropdownOpen] = useState(false);
   // const toggle = () => setDropdownOpen(prevState => !prevState);
@@ -205,7 +205,6 @@ function Tables({ columns, data, updateMyData, loading }) {
     prepareRow,
     pageOptions,
     page,
-    state: { pageIndex, pageSize },
     state,
     pageCount,
     gotoPage,
@@ -216,11 +215,19 @@ function Tables({ columns, data, updateMyData, loading }) {
     canNextPage,
     visibleColumns,
     preGlobalFilteredRows,
-    setGlobalFilter
+    setGlobalFilter,
+    state: { pageIndex, pageSize }
   } = useTable(
     {
       columns,
       data,
+      autoResetPage: !skipPageResetRef.current,
+      autoResetExpanded: !skipPageResetRef.current,
+      autoResetGroupBy: !skipPageResetRef.current,
+      autoResetSelectedRows: !skipPageResetRef.current,
+      autoResetSortBy: !skipPageResetRef.current,
+      autoResetFilters: !skipPageResetRef.current,
+      autoResetRowState: !skipPageResetRef.current,
       updateMyData,
       defaultColumn,
       filterTypes
@@ -460,6 +467,12 @@ filterGreaterThan.autoRemove = val => typeof val !== "number";
 
 function LabInventory() {
   const { userInfo } = useContext(UserInfoContext);
+  const [data, setData] = React.useState([]);
+  const [loading, setLoading] = useState({ done: undefined });
+  // We need to keep the table from resetting the pageIndex when we
+  // Update data. So we can keep track of that flag with a ref.
+
+  const skipPageResetRef = React.useRef();
 
   const columns = React.useMemo(
     () => [
@@ -607,10 +620,13 @@ function LabInventory() {
     [userInfo.name]
   );
 
-  const [data, setData] = React.useState([]);
-  const [loading, setLoading] = useState({ done: undefined });
-
+  // When our cell renderer calls updateMyData, we'll use
+  // the rowIndex, columnId and new value to update the
+  // original data
   const updateMyData = (rowIndex, columnId, value) => {
+    // When data gets updated with this function, set a flag
+    // to disable all of the auto resetting
+    skipPageResetRef.current = true;
     setData(old =>
       old.map((row, index) => {
         if (index === rowIndex) {
@@ -623,6 +639,14 @@ function LabInventory() {
       })
     );
   };
+
+  // After data changes, we turn the flag back off
+  // so that if data actually changes when we're not
+  // editing it, the page is reset
+  React.useEffect(() => {
+    // After the table has updated, always remove the flag
+    skipPageResetRef.current = false;
+  });
 
   useEffect(() => {
     fetch("/getServers")
@@ -644,6 +668,7 @@ function LabInventory() {
         data={data}
         updateMyData={updateMyData}
         loading={loading}
+        skipPageResetRef={skipPageResetRef}
       />
     </React.Fragment>
   );
