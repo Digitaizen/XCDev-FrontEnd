@@ -78,15 +78,17 @@ const AdminNavbar = props => {
             <UncontrolledDropdown nav>
               <DropdownToggle className="pr-0" nav>
                 <Media className="align-items-center">
-                  <span className="avatar avatar-sm rounded-circle">
-                    <img
+                  {/* <span className="avatar avatar-sm rounded-circle"> */}
+                  <span className="rounded-circle">
+                    {/* <img
                       alt="..."
                       src={require("assets/img/theme/icons8-user-96.png")}
-                    />
+                    /> */}
+                    <i className="fas fa-user-circle"></i>
                   </span>
                   <Media className="ml-2 d-none d-lg-block">
                     <span className="mb-0 text-sm font-weight-bold">
-                      Hello {userInfo.name}
+                      {userInfo.name}
                     </span>
                   </Media>
                 </Media>
