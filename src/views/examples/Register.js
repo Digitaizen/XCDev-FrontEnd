@@ -43,6 +43,13 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const { setAuthTokens } = useAuth();
 
+  function handleChange(e) {
+    let value = e.target.value;
+    setEmail(e.target.value);
+    let username = value.substring(0, value.lastIndexOf("@"));
+    setUserName(username);
+  }
+
   function postRegister() {
     if (userName === "" || password === "") {
       setIsError(true);
@@ -152,8 +159,9 @@ const Register = () => {
                   <Input
                     type="email"
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={e => handleChange(e)}
                     placeholder="DELL Email Address"
+                    // onBlur={e => handleBlur(e)}
                   />
                 </InputGroup>
               </FormGroup>
@@ -166,12 +174,12 @@ const Register = () => {
                   </InputGroupAddon>
                   <Input
                     type="username"
-                    // value={userName}
-                    defaultValue={email.substring(0, email.lastIndexOf("@"))}
+                    value={userName}
+                    // defaultValue={email.substring(0, email.lastIndexOf("@"))}
                     // onChange={e => {
                     //   setUserName(e.target.value);
                     // }}
-                    placeholder="Username"
+                    // placeholder="Username"
                     readOnly="readonly"
                   />
                 </InputGroup>

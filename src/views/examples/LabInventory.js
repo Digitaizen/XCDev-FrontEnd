@@ -536,8 +536,6 @@ function LabInventory() {
                       btnVal =
                         btnVal === "Check-Out" ? "Check-In" : "Check-Out";
 
-                      document.getElementById(btnId).value = btnVal;
-
                       // Update row's 'Status' to either "available" or the currently logged-in username
                       updateMyData(rowIdx, "status", payload.status);
 
@@ -548,7 +546,13 @@ function LabInventory() {
                       status !== userInfo.name
                     ) {
                       btnVal = "n/a";
+                      console.log("I AM RUNNING");
+                      // toggleModal();
+                      updateMyData(rowIdx, "Action", btnVal);
                     }
+
+                    // document.getElementById(btnId).value = btnVal;
+                    // updateMyData(rowIdx, "action", btnVal);
                   });
               }}
             >
