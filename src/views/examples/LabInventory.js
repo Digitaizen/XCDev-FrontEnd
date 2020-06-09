@@ -180,8 +180,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
           const rowValue = row.values[id];
           return rowValue !== undefined
             ? String(rowValue)
-                .toLowerCase()
-                .startsWith(String(filterValue).toLowerCase())
+              .toLowerCase()
+              .startsWith(String(filterValue).toLowerCase())
             : true;
         });
       }
@@ -265,149 +265,149 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                   </Row>
                 </FadeIn>
               ) : (
-                <React.Fragment>
-                  <Table
-                    className="align-items-center"
-                    bordered
-                    hover
-                    responsive
-                    {...getTableProps()}
-                  >
-                    <thead>
-                      {headerGroups.map(headerGroup => (
-                        <tr
-                          key={headerGroup.id}
-                          {...headerGroup.getHeaderGroupProps()}
-                        >
-                          {headerGroup.headers.map(column => (
-                            <th key={column.id} {...column.getHeaderProps()}>
-                              <div>
-                                <span {...column.getSortByToggleProps()}>
-                                  {column.render("Header")}
-                                  {/* Add a sort direction indicator */}
-                                  {column.isSorted
-                                    ? column.isSortedDesc
-                                      ? " 🔽"
-                                      : " 🔼"
-                                    : ""}
-                                </span>
-                              </div>
-                              <br />
-                              {/* Render the columns filter UI */}
-                              <div>
-                                {column.canFilter
-                                  ? column.render("Filter")
-                                  : null}
-                              </div>
-                            </th>
-                          ))}
-                        </tr>
-                      ))}
-                      <tr>
-                        <th
-                          colSpan={visibleColumns.length}
-                          style={{
-                            textAlign: "left"
-                          }}
-                        >
-                          <GlobalFilter
-                            preGlobalFilteredRows={preGlobalFilteredRows}
-                            globalFilter={state.globalFilter}
-                            setGlobalFilter={setGlobalFilter}
-                          />
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody {...getTableBodyProps()}>
-                      {page.map((row, i) => {
-                        prepareRow(row);
-                        return (
-                          <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                            {row.cells.map(cell => {
-                              return (
-                                <td
-                                  key={cell.id}
-                                  id={cell.id}
-                                  {...cell.getCellProps()}
-                                >
-                                  {cell.render("Cell")}
-                                </td>
-                              );
-                            })}
+                  <React.Fragment>
+                    <Table
+                      className="align-items-center"
+                      bordered
+                      hover
+                      responsive
+                      {...getTableProps()}
+                    >
+                      <thead>
+                        {headerGroups.map(headerGroup => (
+                          <tr
+                            key={headerGroup.id}
+                            {...headerGroup.getHeaderGroupProps()}
+                          >
+                            {headerGroup.headers.map(column => (
+                              <th key={column.id} {...column.getHeaderProps()}>
+                                <div>
+                                  <span {...column.getSortByToggleProps()}>
+                                    {column.render("Header")}
+                                    {/* Add a sort direction indicator */}
+                                    {column.isSorted
+                                      ? column.isSortedDesc
+                                        ? " 🔽"
+                                        : " 🔼"
+                                      : ""}
+                                  </span>
+                                </div>
+                                <br />
+                                {/* Render the columns filter UI */}
+                                <div>
+                                  {column.canFilter
+                                    ? column.render("Filter")
+                                    : null}
+                                </div>
+                              </th>
+                            ))}
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                  <CardFooter className="py-4">
-                    <nav aria-label="...">
-                      <Pagination
-                        className="pagination justify-content-end mb-0"
-                        listClassName="justify-content-end mb-0"
-                      >
-                        <Button color="info">
-                          Page {pageIndex + 1} of {pageOptions.length}
-                          <span className="sr-only">unread messages</span>
-                        </Button>
-                        <Button
-                          className="btn-icon btn-2"
-                          color="primary"
-                          type="button"
-                          onClick={() => gotoPage(0)}
-                          disabled={!canPreviousPage}
+                        ))}
+                        <tr>
+                          <th
+                            colSpan={visibleColumns.length}
+                            style={{
+                              textAlign: "left"
+                            }}
+                          >
+                            <GlobalFilter
+                              preGlobalFilteredRows={preGlobalFilteredRows}
+                              globalFilter={state.globalFilter}
+                              setGlobalFilter={setGlobalFilter}
+                            />
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody {...getTableBodyProps()}>
+                        {page.map((row, i) => {
+                          prepareRow(row);
+                          return (
+                            <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                              {row.cells.map(cell => {
+                                return (
+                                  <td
+                                    key={cell.id}
+                                    id={cell.id}
+                                    {...cell.getCellProps()}
+                                  >
+                                    {cell.render("Cell")}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                    <CardFooter className="py-4">
+                      <nav aria-label="...">
+                        <Pagination
+                          className="pagination justify-content-end mb-0"
+                          listClassName="justify-content-end mb-0"
                         >
-                          <span className="btn-inner--icon">
-                            <i className="fas fa-angle-double-left"></i>
-                          </span>
-                        </Button>{" "}
-                        {/* Previous Page */}
-                        <Button
-                          className="btn-icon btn-2"
-                          color="primary"
-                          type="button"
-                          onClick={() => previousPage()}
-                          disabled={!canPreviousPage}
-                        >
-                          <span className="btn-inner--icon">
-                            <i className="fas fa-angle-left"></i>
-                          </span>
-                        </Button>{" "}
-                        {/* Next Page */}
-                        <Button
-                          className="btn-icon btn-2"
-                          color="primary"
-                          type="button"
-                          onClick={() => nextPage()}
-                          disabled={!canNextPage}
-                        >
-                          <span className="btn-inner--icon">
-                            <i className="fas fa-angle-right"></i>
-                          </span>
-                        </Button>{" "}
-                        <Button
-                          className="btn-icon btn-2"
-                          color="primary"
-                          type="button"
-                          onClick={() => gotoPage(pageCount - 1)}
-                          disabled={!canNextPage}
-                        >
-                          <span className="btn-inner--icon">
-                            <i className="fas fa-angle-double-right"></i>
-                          </span>
-                        </Button>{" "}
-                        {/* <button
+                          <Button color="info">
+                            Page {pageIndex + 1} of {pageOptions.length}
+                            <span className="sr-only">unread messages</span>
+                          </Button>
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => gotoPage(0)}
+                            disabled={!canPreviousPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-double-left"></i>
+                            </span>
+                          </Button>{" "}
+                          {/* Previous Page */}
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => previousPage()}
+                            disabled={!canPreviousPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-left"></i>
+                            </span>
+                          </Button>{" "}
+                          {/* Next Page */}
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => nextPage()}
+                            disabled={!canNextPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-right"></i>
+                            </span>
+                          </Button>{" "}
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => gotoPage(pageCount - 1)}
+                            disabled={!canNextPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-double-right"></i>
+                            </span>
+                          </Button>{" "}
+                          {/* <button
                           onClick={() => gotoPage(pageCount - 1)}
                           disabled={!canNextPage}
                         >
                           {">>"}
                         </button>{" "} */}
-                        {/* <span>
+                          {/* <span>
                           Page{" "}
                           <strong>
                             {pageIndex + 1} of {pageOptions.length}
                           </strong>{" "}
                         </span> */}
-                        {/* <span>
+                          {/* <span>
                           | Go to page:{" "}
                           <input
                             type="number"
@@ -421,28 +421,28 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                             style={{ width: "100px" }}
                           />
                         </span>{" "} */}
-                        <Form.Control
-                          as="select"
-                          custom
-                          value={pageSize}
-                          onChange={e => {
-                            setPageSize(Number(e.target.value));
-                          }}
-                          onBlur={e => {
-                            setPageSize(Number(e.target.value));
-                          }}
-                        >
-                          {[10, 20, 30, 40, 50].map(pageSize => (
-                            <option key={pageSize} value={pageSize}>
-                              Show {pageSize}
-                            </option>
-                          ))}
-                        </Form.Control>
-                      </Pagination>
-                    </nav>
-                  </CardFooter>
-                </React.Fragment>
-              )}
+                          <Form.Control
+                            as="select"
+                            custom
+                            value={pageSize}
+                            onChange={e => {
+                              setPageSize(Number(e.target.value));
+                            }}
+                            onBlur={e => {
+                              setPageSize(Number(e.target.value));
+                            }}
+                          >
+                            {[10, 20, 30, 40, 50].map(pageSize => (
+                              <option key={pageSize} value={pageSize}>
+                                Show {pageSize}
+                              </option>
+                            ))}
+                          </Form.Control>
+                        </Pagination>
+                      </nav>
+                    </CardFooter>
+                  </React.Fragment>
+                )}
             </Card>
           </div>
         </Row>
@@ -480,35 +480,39 @@ function LabInventory() {
         Header: "Action",
         // eslint-disable-next-line
         Cell: props => {
-          // return (<CheckButton {...props} />)
-          let rowIdx = props.cell.row.original._id;
+          // Pull data for each row and save it into temp variables
+          let dbRowIdx = props.cell.row.original._id;
+          let tblRowIdx = props.row.index;
           let rowStatus = props.cell.row.original.status;
-          let btnId = "btn" + rowIdx;
+          let rowTag = props.cell.row.original.serviceTag;
+          let btnId = "btn" + tblRowIdx;
           let btnVal = "";
+          let btnBkgdColor = "white";
+          let ColorCheckOut = "lightgreen";
+          let ColorCheckIn = "#fb6340";
+          let ColorTaken = "lightgray";
 
-          // Get current timestamp
-          let currentDateAndTime = new Date().toLocaleString();
-
-          // Set payload for PATCH req to db
-          let payload;
+          // console.log("dbRowIdx: ", dbRowIdx, " and tblRowIdx: ", tblRowIdx); // debugging
 
           // Set action button props based on db's 'Status' value for each row
           if (rowStatus === "available") {
             btnVal = "Check-Out";
+            btnBkgdColor = ColorCheckOut;
           } else if (rowStatus === userInfo.name) {
             btnVal = "Check-In";
+            btnBkgdColor = ColorCheckIn;
           } else if (rowStatus !== userInfo.name) {
-            btnVal = "n/a";
+            btnVal = "taken";
+            btnBkgdColor = ColorTaken;
           }
 
           // Build the action button for each row with the props set above
           return (
             <Button
               style={{
-                minWidth: 100,
+                minWidth: 118, // set button's width so they are uniform in size
                 minHeight: 30,
-                backgroundColor:
-                  btnVal === "Check-Out" ? "lightgreen" : "#fb6340"
+                backgroundColor: btnBkgdColor
               }}
               id={btnId}
               value={btnVal}
@@ -518,56 +522,94 @@ function LabInventory() {
                   : true
               }
               onClick={() => {
-                //Checking if the user has the ability to Check-Out a server
-                fetch(`/status/${rowIdx}`)
-                  .then(res => res.json())
-                  .then(({ status }) => {
-                    if (status === "available" || status === userInfo.name) {
-                      if (btnVal === "Check-In") {
-                        payload = {
-                          status: "available",
-                          timestamp: currentDateAndTime
-                        };
-                      } else if (btnVal === "Check-Out") {
+                // Get current timestamp
+                let currentDateAndTime = new Date().toLocaleString();
+
+                // Declare var 'payload' for PATCH req to db
+                let payload;
+
+                // Declare var 'checkStatus' for status req to db
+                let checkStatus = "";
+
+                console.log("onClick btnVal: ", btnVal); //debugging
+
+                // Set action logic based on button's Action value
+                if (btnVal === "Check-Out") {
+                  // Run db check to see if this server is still available
+                  fetch(`/status/${dbRowIdx}`)
+                    .then(res => res.json())
+                    .then(({ status, serviceTag }) => {
+                      checkStatus = status;
+
+                      console.log("Check status: ", checkStatus); //debugging
+
+                      // Based on the db check above either check-out the server into user's name or   
+                      // notify the user that it has already been checked-out 
+                      if (checkStatus === "available") {
+                        // Flip button value to 'Check-Out'
+                        btnVal = "Check-Out";
+
+                        // Set the payload with user's name and current timestamp
                         payload = {
                           status: userInfo.name,
                           timestamp: currentDateAndTime
                         };
+                        // Specify req options based on the current availability status
+                        const requestOptions = {
+                          method: "PATCH",
+                          body: JSON.stringify(payload),
+                          headers: { "Content-Type": "application/json" }
+                        };
+
+                        console.log("Checking-out ", serviceTag, " out of db with these values: ", payload.status, " and ", payload.timestamp, " for dbRowIdx ", dbRowIdx, " and tblRowIdx ", tblRowIdx); //debugging
+
+                        // Fetch it to the backend API with a new status
+                        fetch(`/patchStatus/${dbRowIdx}`, requestOptions)
+                          .then(response => response.json())
+                          .then(response => console.log(response));
+
+                        // Update row's 'Status' to the currently logged-in username
+                        updateMyData(tblRowIdx, "status", payload.status);
+
+                        // Update the row's 'Timestamp' to the current time
+                        updateMyData(tblRowIdx, "timestamp", currentDateAndTime);
+                      } else {
+                        // Here, let the user know that this server has already been taken
+                        console.log("Sorry, the server ", rowTag, " has already been checked-out by: ", checkStatus); //debugging
+                        return;
                       }
-                      // Specify req options based on the current availability status
-                      const requestOptions = {
-                        method: "PATCH", //Using PATCH call to only update the status property in the db
-                        body: JSON.stringify(payload),
-                        headers: { "Content-Type": "application/json" }
-                      };
+                    })
+                } else {
+                  // Flip button value to 'Check-In'
+                  btnVal = "Check-In";
 
-                      // Fetch it to the backend API with a new status
-                      fetch(`/patchStatus/${rowIdx}`, requestOptions)
-                        .then(response => response.json())
-                        .then(response => console.log(response));
+                  // Set the payload with 'available' status and current timestamp
+                  payload = {
+                    status: "available",
+                    timestamp: currentDateAndTime
+                  };
+                  // Specify req options based on the current availability status
+                  const requestOptions = {
+                    method: "PATCH", //Using PATCH call to only update the status property in the db
+                    body: JSON.stringify(payload),
+                    headers: { "Content-Type": "application/json" }
+                  };
 
-                      btnVal =
-                        btnVal === "Check-Out" ? "Check-In" : "Check-Out";
+                  console.log("Checking-in ", rowTag, " into db with these values: ", payload.status, " and ", payload.timestamp, " for dbRowIdx ", dbRowIdx, " and tblRowIdx ", tblRowIdx); //debugging
 
-                      // Update row's 'Status' to either "available" or the currently logged-in username
-                      updateMyData(rowIdx, "status", payload.status);
+                  // Fetch it to the backend API with a new status
+                  fetch(`/patchStatus/${dbRowIdx}`, requestOptions)
+                    .then(response => response.json())
+                    .then(response => console.log(response));
 
-                      // Update the row's 'Timestamp' to the current time
-                      updateMyData(rowIdx, "timestamp", currentDateAndTime);
-                    } else if (
-                      status !== "available" ||
-                      status !== userInfo.name
-                    ) {
-                      btnVal = "n/a";
-                      console.log("I AM RUNNING");
-                      // toggleModal();
-                      updateMyData(rowIdx, "Action", btnVal);
-                    }
+                  // Update row's 'Status' to "available"
+                  updateMyData(tblRowIdx, "status", payload.status);
 
-                    // document.getElementById(btnId).value = btnVal;
-                    // updateMyData(rowIdx, "action", btnVal);
-                  });
-              }}
+                  // Update the row's 'Timestamp' to the current time
+                  updateMyData(tblRowIdx, "timestamp", currentDateAndTime);
+                }
+              }
+              }
             >
               {btnVal}
             </Button>
@@ -605,11 +647,11 @@ function LabInventory() {
         accessor: "model",
         filter: "fuzzyText"
       },
-      // {
-      //   Header: "Generation",
-      //   accessor: "generation",
-      //   filter: "fuzzyText"
-      // },
+      {
+        Header: "Generation",
+        accessor: "generation",
+        filter: "fuzzyText"
+      },
       {
         Header: "Comments",
         accessor: "comments",
