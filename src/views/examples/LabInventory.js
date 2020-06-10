@@ -30,6 +30,7 @@ import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
 import { UserInfoContext } from "../../context/UserInfoContext";
 import matchSorter from "match-sorter";
+import PropTypes from 'prop-types';
 
 // reactstrap components
 import {
@@ -40,7 +41,8 @@ import {
   Container,
   Row,
   CardFooter,
-  Pagination
+  Pagination,
+  Modal
 } from "reactstrap";
 
 import Form from "react-bootstrap/Form";
@@ -144,12 +146,21 @@ const EditableComments = ({ value: initialValue, row: { index } }) => {
   };
 
   return (
-    <input
-      value={value}
-      onChange={onChange}
-      onBlur={onBlur}
-      onFocus={onFocus}
-    />
+    <div>
+      <input
+        // display="inline"
+        // type="text"
+        // size=""
+        // width="100%"
+        // height="100%"
+        style={
+          { border: "none", margin: "0", padding: "0", width: "100%", height: "100%" }}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        onFocus={onFocus}
+      />
+    </div>
   );
 };
 
@@ -546,9 +557,6 @@ function LabInventory() {
                       // Based on the db check above either check-out the server into user's name or   
                       // notify the user that it has already been checked-out 
                       if (checkStatus === "available") {
-                        // Flip button value to 'Check-Out'
-                        btnVal = "Check-Out";
-
                         // Set the payload with user's name and current timestamp
                         payload = {
                           status: userInfo.name,
@@ -576,13 +584,11 @@ function LabInventory() {
                       } else {
                         // Here, let the user know that this server has already been taken
                         console.log("Sorry, the server ", rowTag, " has already been checked-out by: ", checkStatus); //debugging
+                        alert(`Sorry, the server ${rowTag} has already been checked-out by: ${checkStatus}. Please, refresh the page to see the updates.`);
                         return;
                       }
                     })
                 } else {
-                  // Flip button value to 'Check-In'
-                  btnVal = "Check-In";
-
                   // Set the payload with 'available' status and current timestamp
                   payload = {
                     status: "available",
@@ -590,7 +596,7 @@ function LabInventory() {
                   };
                   // Specify req options based on the current availability status
                   const requestOptions = {
-                    method: "PATCH", //Using PATCH call to only update the status property in the db
+                    method: "PATCH",
                     body: JSON.stringify(payload),
                     headers: { "Content-Type": "application/json" }
                   };
