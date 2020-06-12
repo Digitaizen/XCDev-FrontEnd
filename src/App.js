@@ -1,5 +1,10 @@
 import React, { useState } from "react";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Switch,
+  Redirect
+} from "react-router-dom";
 import PrivateRoute from "./PrivateRoute";
 // import AdminLayout from "./layouts/Admin.js";
 import Admin from "./layouts/Admin.js";
@@ -29,7 +34,7 @@ const App = () => {
               render={props => <AuthLayout {...props} />}
             />
 
-            {/* <Redirect from="/" to="/admin/index" /> */}
+            <Redirect from="/" to="/auth/login" />
           </Switch>
         </Router>
       </UserInfoContext.Provider>

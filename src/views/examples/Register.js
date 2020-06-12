@@ -42,6 +42,7 @@ const Register = () => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const { setAuthTokens } = useAuth();
+  const apiServer = "http://100.80.149.19:8080";
 
   function handleChange(e) {
     let value = e.target.value;
@@ -66,7 +67,7 @@ const Register = () => {
         headers: { "Content-Type": "application/json" }
       };
 
-      fetch(`/register`, requestOptions)
+      fetch(`${apiServer}/register`, requestOptions)
         .then(response => response.json())
         .then(response => {
           console.log(response);

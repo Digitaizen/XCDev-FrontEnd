@@ -30,7 +30,7 @@ import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
 import { UserInfoContext } from "../../context/UserInfoContext";
 import matchSorter from "match-sorter";
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 
 // reactstrap components
 import {
@@ -49,6 +49,7 @@ import Form from "react-bootstrap/Form";
 
 // core components
 import Header from "../../components/Headers/Header.js";
+const apiServer = "http://100.80.149.19:8080";
 
 // Define a default UI for filtering
 function GlobalFilter({
@@ -136,7 +137,7 @@ const EditableComments = ({ value: initialValue, row: { index } }) => {
       };
 
       // Now fetch it to the backend API
-      fetch(`/patchComments/${index}`, requestOptions)
+      fetch(`${apiServer}/patchComments/${index}`, requestOptions)
         .then(response => response.json())
         .catch(e => {
           console.error(e.message);
@@ -153,8 +154,13 @@ const EditableComments = ({ value: initialValue, row: { index } }) => {
         // size=""
         // width="100%"
         // height="100%"
-        style={
-          { border: "none", margin: "0", padding: "0", width: "100%", height: "100%" }}
+        style={{
+          border: "none",
+          margin: "0",
+          padding: "0",
+          width: "100%",
+          height: "100%"
+        }}
         value={value}
         onChange={onChange}
         onBlur={onBlur}
@@ -191,8 +197,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
           const rowValue = row.values[id];
           return rowValue !== undefined
             ? String(rowValue)
-              .toLowerCase()
-              .startsWith(String(filterValue).toLowerCase())
+                .toLowerCase()
+                .startsWith(String(filterValue).toLowerCase())
             : true;
         });
       }
@@ -276,149 +282,149 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                   </Row>
                 </FadeIn>
               ) : (
-                  <React.Fragment>
-                    <Table
-                      className="align-items-center"
-                      bordered
-                      hover
-                      responsive
-                      {...getTableProps()}
-                    >
-                      <thead>
-                        {headerGroups.map(headerGroup => (
-                          <tr
-                            key={headerGroup.id}
-                            {...headerGroup.getHeaderGroupProps()}
-                          >
-                            {headerGroup.headers.map(column => (
-                              <th key={column.id} {...column.getHeaderProps()}>
-                                <div>
-                                  <span {...column.getSortByToggleProps()}>
-                                    {column.render("Header")}
-                                    {/* Add a sort direction indicator */}
-                                    {column.isSorted
-                                      ? column.isSortedDesc
-                                        ? " 🔽"
-                                        : " 🔼"
-                                      : ""}
-                                  </span>
-                                </div>
-                                <br />
-                                {/* Render the columns filter UI */}
-                                <div>
-                                  {column.canFilter
-                                    ? column.render("Filter")
-                                    : null}
-                                </div>
-                              </th>
-                            ))}
-                          </tr>
-                        ))}
-                        <tr>
-                          <th
-                            colSpan={visibleColumns.length}
-                            style={{
-                              textAlign: "left"
-                            }}
-                          >
-                            <GlobalFilter
-                              preGlobalFilteredRows={preGlobalFilteredRows}
-                              globalFilter={state.globalFilter}
-                              setGlobalFilter={setGlobalFilter}
-                            />
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody {...getTableBodyProps()}>
-                        {page.map((row, i) => {
-                          prepareRow(row);
-                          return (
-                            <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                              {row.cells.map(cell => {
-                                return (
-                                  <td
-                                    key={cell.id}
-                                    id={cell.id}
-                                    {...cell.getCellProps()}
-                                  >
-                                    {cell.render("Cell")}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </Table>
-                    <CardFooter className="py-4">
-                      <nav aria-label="...">
-                        <Pagination
-                          className="pagination justify-content-end mb-0"
-                          listClassName="justify-content-end mb-0"
+                <React.Fragment>
+                  <Table
+                    className="align-items-center"
+                    bordered
+                    hover
+                    responsive
+                    {...getTableProps()}
+                  >
+                    <thead>
+                      {headerGroups.map(headerGroup => (
+                        <tr
+                          key={headerGroup.id}
+                          {...headerGroup.getHeaderGroupProps()}
                         >
-                          <Button color="info">
-                            Page {pageIndex + 1} of {pageOptions.length}
-                            <span className="sr-only">unread messages</span>
-                          </Button>
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => gotoPage(0)}
-                            disabled={!canPreviousPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-double-left"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* Previous Page */}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => previousPage()}
-                            disabled={!canPreviousPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-left"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* Next Page */}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => nextPage()}
-                            disabled={!canNextPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-right"></i>
-                            </span>
-                          </Button>{" "}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => gotoPage(pageCount - 1)}
-                            disabled={!canNextPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-double-right"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* <button
+                          {headerGroup.headers.map(column => (
+                            <th key={column.id} {...column.getHeaderProps()}>
+                              <div>
+                                <span {...column.getSortByToggleProps()}>
+                                  {column.render("Header")}
+                                  {/* Add a sort direction indicator */}
+                                  {column.isSorted
+                                    ? column.isSortedDesc
+                                      ? " 🔽"
+                                      : " 🔼"
+                                    : ""}
+                                </span>
+                              </div>
+                              <br />
+                              {/* Render the columns filter UI */}
+                              <div>
+                                {column.canFilter
+                                  ? column.render("Filter")
+                                  : null}
+                              </div>
+                            </th>
+                          ))}
+                        </tr>
+                      ))}
+                      <tr>
+                        <th
+                          colSpan={visibleColumns.length}
+                          style={{
+                            textAlign: "left"
+                          }}
+                        >
+                          <GlobalFilter
+                            preGlobalFilteredRows={preGlobalFilteredRows}
+                            globalFilter={state.globalFilter}
+                            setGlobalFilter={setGlobalFilter}
+                          />
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody {...getTableBodyProps()}>
+                      {page.map((row, i) => {
+                        prepareRow(row);
+                        return (
+                          <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                            {row.cells.map(cell => {
+                              return (
+                                <td
+                                  key={cell.id}
+                                  id={cell.id}
+                                  {...cell.getCellProps()}
+                                >
+                                  {cell.render("Cell")}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                  <CardFooter className="py-4">
+                    <nav aria-label="...">
+                      <Pagination
+                        className="pagination justify-content-end mb-0"
+                        listClassName="justify-content-end mb-0"
+                      >
+                        <Button color="info">
+                          Page {pageIndex + 1} of {pageOptions.length}
+                          <span className="sr-only">unread messages</span>
+                        </Button>
+                        <Button
+                          className="btn-icon btn-2"
+                          color="primary"
+                          type="button"
+                          onClick={() => gotoPage(0)}
+                          disabled={!canPreviousPage}
+                        >
+                          <span className="btn-inner--icon">
+                            <i className="fas fa-angle-double-left"></i>
+                          </span>
+                        </Button>{" "}
+                        {/* Previous Page */}
+                        <Button
+                          className="btn-icon btn-2"
+                          color="primary"
+                          type="button"
+                          onClick={() => previousPage()}
+                          disabled={!canPreviousPage}
+                        >
+                          <span className="btn-inner--icon">
+                            <i className="fas fa-angle-left"></i>
+                          </span>
+                        </Button>{" "}
+                        {/* Next Page */}
+                        <Button
+                          className="btn-icon btn-2"
+                          color="primary"
+                          type="button"
+                          onClick={() => nextPage()}
+                          disabled={!canNextPage}
+                        >
+                          <span className="btn-inner--icon">
+                            <i className="fas fa-angle-right"></i>
+                          </span>
+                        </Button>{" "}
+                        <Button
+                          className="btn-icon btn-2"
+                          color="primary"
+                          type="button"
+                          onClick={() => gotoPage(pageCount - 1)}
+                          disabled={!canNextPage}
+                        >
+                          <span className="btn-inner--icon">
+                            <i className="fas fa-angle-double-right"></i>
+                          </span>
+                        </Button>{" "}
+                        {/* <button
                           onClick={() => gotoPage(pageCount - 1)}
                           disabled={!canNextPage}
                         >
                           {">>"}
                         </button>{" "} */}
-                          {/* <span>
+                        {/* <span>
                           Page{" "}
                           <strong>
                             {pageIndex + 1} of {pageOptions.length}
                           </strong>{" "}
                         </span> */}
-                          {/* <span>
+                        {/* <span>
                           | Go to page:{" "}
                           <input
                             type="number"
@@ -432,28 +438,28 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                             style={{ width: "100px" }}
                           />
                         </span>{" "} */}
-                          <Form.Control
-                            as="select"
-                            custom
-                            value={pageSize}
-                            onChange={e => {
-                              setPageSize(Number(e.target.value));
-                            }}
-                            onBlur={e => {
-                              setPageSize(Number(e.target.value));
-                            }}
-                          >
-                            {[10, 20, 30, 40, 50].map(pageSize => (
-                              <option key={pageSize} value={pageSize}>
-                                Show {pageSize}
-                              </option>
-                            ))}
-                          </Form.Control>
-                        </Pagination>
-                      </nav>
-                    </CardFooter>
-                  </React.Fragment>
-                )}
+                        <Form.Control
+                          as="select"
+                          custom
+                          value={pageSize}
+                          onChange={e => {
+                            setPageSize(Number(e.target.value));
+                          }}
+                          onBlur={e => {
+                            setPageSize(Number(e.target.value));
+                          }}
+                        >
+                          {[10, 20, 30, 40, 50].map(pageSize => (
+                            <option key={pageSize} value={pageSize}>
+                              Show {pageSize}
+                            </option>
+                          ))}
+                        </Form.Control>
+                      </Pagination>
+                    </nav>
+                  </CardFooter>
+                </React.Fragment>
+              )}
             </Card>
           </div>
         </Row>
@@ -547,15 +553,15 @@ function LabInventory() {
                 // Set action logic based on button's Action value
                 if (btnVal === "Check-Out") {
                   // Run db check to see if this server is still available
-                  fetch(`/status/${dbRowIdx}`)
+                  fetch(`${apiServer}/status/${dbRowIdx}`)
                     .then(res => res.json())
                     .then(({ status, serviceTag }) => {
                       checkStatus = status;
 
                       console.log("Check status: ", checkStatus); //debugging
 
-                      // Based on the db check above either check-out the server into user's name or   
-                      // notify the user that it has already been checked-out 
+                      // Based on the db check above either check-out the server into user's name or
+                      // notify the user that it has already been checked-out
                       if (checkStatus === "available") {
                         // Set the payload with user's name and current timestamp
                         payload = {
@@ -569,10 +575,24 @@ function LabInventory() {
                           headers: { "Content-Type": "application/json" }
                         };
 
-                        console.log("Checking-out ", serviceTag, " out of db with these values: ", payload.status, " and ", payload.timestamp, " for dbRowIdx ", dbRowIdx, " and tblRowIdx ", tblRowIdx); //debugging
+                        console.log(
+                          "Checking-out ",
+                          serviceTag,
+                          " out of db with these values: ",
+                          payload.status,
+                          " and ",
+                          payload.timestamp,
+                          " for dbRowIdx ",
+                          dbRowIdx,
+                          " and tblRowIdx ",
+                          tblRowIdx
+                        ); //debugging
 
                         // Fetch it to the backend API with a new status
-                        fetch(`/patchStatus/${dbRowIdx}`, requestOptions)
+                        fetch(
+                          `${apiServer}/patchStatus/${dbRowIdx}`,
+                          requestOptions
+                        )
                           .then(response => response.json())
                           .then(response => console.log(response));
 
@@ -580,14 +600,25 @@ function LabInventory() {
                         updateMyData(tblRowIdx, "status", payload.status);
 
                         // Update the row's 'Timestamp' to the current time
-                        updateMyData(tblRowIdx, "timestamp", currentDateAndTime);
+                        updateMyData(
+                          tblRowIdx,
+                          "timestamp",
+                          currentDateAndTime
+                        );
                       } else {
                         // Here, let the user know that this server has already been taken
-                        console.log("Sorry, the server ", rowTag, " has already been checked-out by: ", checkStatus); //debugging
-                        alert(`Sorry, the server ${rowTag} has already been checked-out by: ${checkStatus}. Please, refresh the page to see the updates.`);
+                        console.log(
+                          "Sorry, the server ",
+                          rowTag,
+                          " has already been checked-out by: ",
+                          checkStatus
+                        ); //debugging
+                        alert(
+                          `Sorry, the server ${rowTag} has already been checked-out by: ${checkStatus}. Please, refresh the page to see the updates.`
+                        );
                         return;
                       }
-                    })
+                    });
                 } else {
                   // Set the payload with 'available' status and current timestamp
                   payload = {
@@ -601,10 +632,21 @@ function LabInventory() {
                     headers: { "Content-Type": "application/json" }
                   };
 
-                  console.log("Checking-in ", rowTag, " into db with these values: ", payload.status, " and ", payload.timestamp, " for dbRowIdx ", dbRowIdx, " and tblRowIdx ", tblRowIdx); //debugging
+                  console.log(
+                    "Checking-in ",
+                    rowTag,
+                    " into db with these values: ",
+                    payload.status,
+                    " and ",
+                    payload.timestamp,
+                    " for dbRowIdx ",
+                    dbRowIdx,
+                    " and tblRowIdx ",
+                    tblRowIdx
+                  ); //debugging
 
                   // Fetch it to the backend API with a new status
-                  fetch(`/patchStatus/${dbRowIdx}`, requestOptions)
+                  fetch(`${apiServer}/patchStatus/${dbRowIdx}`, requestOptions)
                     .then(response => response.json())
                     .then(response => console.log(response));
 
@@ -614,8 +656,7 @@ function LabInventory() {
                   // Update the row's 'Timestamp' to the current time
                   updateMyData(tblRowIdx, "timestamp", currentDateAndTime);
                 }
-              }
-              }
+              }}
             >
               {btnVal}
             </Button>
@@ -697,7 +738,7 @@ function LabInventory() {
   });
 
   useEffect(() => {
-    fetch("/getServers")
+    fetch(`${apiServer}/getServers`)
       .then(res => res.json())
       .then(data => {
         setData(

@@ -43,6 +43,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const { setAuthTokens } = useAuth();
   const { setUserInfo } = useContext(UserInfoContext);
+  const apiServer = "http://100.80.149.19:8080";
 
   function postLogin(e) {
     e.preventDefault();
@@ -58,7 +59,7 @@ const Login = () => {
         headers: { "Content-Type": "application/json" }
       };
 
-      fetch(`/login`, requestOptions)
+      fetch(`${apiServer}/login`, requestOptions)
         .then(response => response.json())
         .then(response => {
           console.log(response);

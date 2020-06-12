@@ -22,7 +22,6 @@
   "bugs": {
     "url": "https://github.com/creativetimofficial/argon-dashboard-react/issues"
   },
-  "homepage": "https://demos.creative-tim.com/argon-dashboard-react/",
   "scripts": {
     "dev": "parcel public/index.html",
     "start": "react-scripts start",
@@ -84,6 +83,5 @@
     "gulp": "^4.0.2",
     "gulp-append-prepend": "^1.0.8",
     "typescript": "^3.7.5"
-  },
-  "proxy": "http://localhost:8080"
+  }
 }
