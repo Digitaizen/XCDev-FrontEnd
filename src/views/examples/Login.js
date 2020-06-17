@@ -39,39 +39,50 @@ import {
 const Login = () => {
   const [isLoggedIn, setLoggedIn] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [errMessage, setErrMessage] = useState("");
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const { setAuthTokens } = useAuth();
   const { setUserInfo } = useContext(UserInfoContext);
-  const apiServer = "http://100.80.149.19:8080";
+  const apiServer = "http://100.80.149.19:8080"; // for production build
+  // const apiServer = ""; // for local dev work
 
   function postLogin(e) {
     e.preventDefault();
     e.stopPropagation();
 
-    if (userName === "" || password === "") {
-      setIsError(true);
-      setLoggedIn(false);
-    } else {
-      const requestOptions = {
-        method: "POST",
-        body: JSON.stringify({ username: userName, password: password }),
-        headers: { "Content-Type": "application/json" }
-      };
+    const requestOptions = {
+      method: "POST",
+      body: JSON.stringify({ username: userName, password: password }),
+      headers: { "Content-Type": "application/json" }
+    };
 
-      fetch(`${apiServer}/login`, requestOptions)
-        .then(response => response.json())
-        .then(response => {
-          console.log(response);
+    // Fetch user-entered login data to backend API for validation
+    fetch(`${apiServer}/login`, requestOptions)
+      .then(response => response.json())
+      .then(response => {
+        // If backend API returns an object with 'success' flag then login user
+        // otherwise display error message on the login screen
+        if (response.success) {
+          console.log(response.message); //debugging
           setAuthTokens(response.token);
           setUserInfo(response.userInfo);
           setLoggedIn(true);
-        });
-    }
+        } else {
+          console.log(response.message); //debugging
+          setErrMessage(response.message);
+          setIsError(true);
+          setLoggedIn(false);
+        }
+      });
   }
+
+  // Redirect to main page upon a successful login
   if (isLoggedIn === true) {
     return <Redirect to="/admin/tables" />;
   }
+
+  // Build the Login Form
   return (
     <>
       <Col lg="5" md="7">
@@ -157,8 +168,7 @@ const Login = () => {
                 {isError && (
                   <UncontrolledAlert color="danger" fade={false}>
                     <span className="alert-inner--text">
-                      <strong>Error!</strong> Please check your username and
-                      password
+                      <strong>Error: </strong>{errMessage}
                     </span>
                   </UncontrolledAlert>
                   // <small style={{ color: "red" }}>
