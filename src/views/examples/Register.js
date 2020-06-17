@@ -31,18 +31,21 @@ import {
   InputGroupAddon,
   InputGroupText,
   InputGroup,
-  Col
+  Col,
+  UncontrolledAlert
 } from "reactstrap";
 
 const Register = () => {
   const [registered, setRegistered] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [errMessage, setErrMessage] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const { setAuthTokens } = useAuth();
-  const apiServer = "http://100.80.149.19:8080";
+  const apiServer = "http://100.80.149.19:8080"; // for production build
+  // const apiServer = ""; // for local dev work
 
   function handleChange(e) {
     let value = e.target.value;
@@ -51,43 +54,47 @@ const Register = () => {
     setUserName(username);
   }
 
-  function postRegister() {
-    if (userName === "" || password === "") {
-      setIsError(true);
-      setRegistered(false);
-    } else {
-      const requestOptions = {
-        method: "POST",
-        body: JSON.stringify({
-          username: userName,
-          email: email,
-          password: password,
-          name: name
-        }),
-        headers: { "Content-Type": "application/json" }
-      };
+  function postRegister(e) {
+    e.preventDefault();
+    e.stopPropagation();
 
-      fetch(`${apiServer}/register`, requestOptions)
-        .then(response => response.json())
-        .then(response => {
-          console.log(response);
+    const requestOptions = {
+      method: "POST",
+      body: JSON.stringify({
+        username: userName,
+        email: email,
+        password: password,
+        name: name
+      }),
+      headers: { "Content-Type": "application/json" }
+    };
+
+    // Fetch user-entered login data to backend API for validation
+    fetch(`${apiServer}/register`, requestOptions)
+      .then(response => response.json())
+      .then(response => {
+        console.log(response); //debugging
+        // If backend API returns an object with 'success' flag then login user
+        // otherwise display error message on the login screen
+        if (response.success) {
+          console.log(response.message); //debugging
           setAuthTokens(response.token);
           setRegistered(true);
-          // setIsError(false);
-        });
-    }
+        } else {
+          console.log(response.message); //debugging
+          setErrMessage(response.message);
+          setIsError(true);
+          setRegistered(false);
+        }
+      });
   }
 
-  // function handleEmail(e) {
-  //   let email = e.target.value;
-  //   setEmail(email);
-  //   setUserName(email.substring(0, email.lastIndexOf("@")));
-  // }
-
+  // Redirect to login page upon a successful registration
   if (registered === true) {
     return <Redirect to="/auth/login" />;
   }
 
+  // Build the Registration Form
   return (
     <>
       <Col lg="6" md="8">
@@ -162,7 +169,7 @@ const Register = () => {
                     value={email}
                     onChange={e => handleChange(e)}
                     placeholder="DELL Email Address"
-                    // onBlur={e => handleBlur(e)}
+                  // onBlur={e => handleBlur(e)}
                   />
                 </InputGroup>
               </FormGroup>
@@ -202,6 +209,15 @@ const Register = () => {
                   />
                 </InputGroup>
               </FormGroup>
+              <div className="text-center text-muted mb-4">
+                {isError && (
+                  <UncontrolledAlert color="danger" fade={false}>
+                    <span className="alert-inner--text">
+                      <strong>Error: </strong>{errMessage}
+                    </span>
+                  </UncontrolledAlert>
+                )}
+              </div>
               {/* <div className="text-muted font-italic">
                   <small>
                     password strength:{" "}
@@ -232,7 +248,7 @@ const Register = () => {
                 </Row> */}
               <div className="text-center">
                 <Button
-                  onClick={postRegister}
+                  onClick={e => postRegister(e)}
                   className="mt-4"
                   color="primary"
                   type="button"
@@ -245,11 +261,11 @@ const Register = () => {
                 <small>Already have an account? Log In</small>
               </Link>
             </Form>
-            {isError && (
+            {/* {isError && (
               <small style={{ color: "red" }}>
-                An Error has occurred, please try again!
+                An Error has occurred, please try again! {errMessage}
               </small>
-            )}
+            )} */}
           </CardBody>
         </Card>
       </Col>
