@@ -31,10 +31,13 @@ import {
 } from "reactstrap";
 // core components
 import UserHeader from "components/Headers/UserHeader.js";
-import { UserInfoContext } from "../../context/UserInfoContext";
+// import { UserInfoContext } from "../../context/UserInfoContext";
 
 const Profile = () => {
-  const { userInfo } = useContext(UserInfoContext);
+  // const { userInfo } = useContext(UserInfoContext);
+
+  const userInfo = JSON.parse(localStorage.getItem("user"));
+  console.log(userInfo.name);
 
   return (
     <>

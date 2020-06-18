@@ -18,7 +18,7 @@
 import React, { useState, useContext } from "react";
 import { Link, Redirect } from "react-router-dom";
 import { useAuth } from "../../context/auth";
-import { UserInfoContext } from "context/UserInfoContext";
+// import { UserInfoContext } from "context/UserInfoContext";
 
 // reactstrap components
 import {
@@ -40,11 +40,12 @@ import {
 
 const AdminNavbar = props => {
   const { setAuthTokens } = useAuth();
-  const { userInfo } = useContext(UserInfoContext);
+  // const { userInfo } = useContext(UserInfoContext);
   const [isLoggedOut, setIsLoggedOut] = useState(false);
+  const userInfo = JSON.parse(localStorage.getItem("user"));
 
   function logOut() {
-    setAuthTokens();
+    setAuthTokens("");
     setIsLoggedOut(true);
   }
 
