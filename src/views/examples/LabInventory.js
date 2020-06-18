@@ -28,9 +28,9 @@ import {
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
-import { UserInfoContext } from "../../context/UserInfoContext";
+// import { UserInfoContext } from "../../context/UserInfoContext";
 import matchSorter from "match-sorter";
-import PropTypes from "prop-types";
+// import PropTypes from "prop-types";
 
 // reactstrap components
 import {
@@ -484,7 +484,8 @@ function filterGreaterThan(rows, id, filterValue) {
 filterGreaterThan.autoRemove = val => typeof val !== "number";
 
 function LabInventory() {
-  const { userInfo } = useContext(UserInfoContext);
+  // const { userInfo } = useContext(UserInfoContext);
+  const userInfo = JSON.parse(localStorage.getItem("user"));
   const [data, setData] = React.useState([]);
   const [loading, setLoading] = useState({ done: undefined });
   // We need to keep the table from resetting the pageIndex when we

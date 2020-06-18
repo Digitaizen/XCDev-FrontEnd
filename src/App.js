@@ -16,6 +16,11 @@ const App = () => {
   const [authTokens, setAuthTokens] = useState();
   const [userInfo, setUserInfo] = useState({});
 
+  const setUser = data => {
+    localStorage.setItem("user", JSON.stringify(data));
+    setUserInfo(data);
+  };
+
   const setTokens = data => {
     localStorage.setItem("tokens", JSON.stringify(data));
     setAuthTokens(data);
@@ -23,7 +28,7 @@ const App = () => {
 
   return (
     <AuthContext.Provider value={{ authTokens, setAuthTokens: setTokens }}>
-      <UserInfoContext.Provider value={{ userInfo, setUserInfo }}>
+      <UserInfoContext.Provider value={{ userInfo, setUserInfo: setUser }}>
         <Router>
           <Switch>
             <Route exact path="/" render={props => <AuthLayout {...props} />} />
