@@ -18,7 +18,7 @@
 import React, { useState, useContext } from "react";
 import { Link, Redirect } from "react-router-dom";
 import { useAuth } from "../../context/auth";
-// import { UserInfoContext } from "context/UserInfoContext";
+import { UserInfoContext } from "context/UserInfoContext";
 
 // reactstrap components
 import {
@@ -40,13 +40,17 @@ import {
 
 const AdminNavbar = props => {
   const { setAuthTokens } = useAuth();
-  // const { userInfo } = useContext(UserInfoContext);
+  const { setUserInfo } = useContext(UserInfoContext);
   const [isLoggedOut, setIsLoggedOut] = useState(false);
   const userInfo = JSON.parse(localStorage.getItem("user"));
+  // const [userInfo, setUserInfo] = useState(
+  //   JSON.parse(localStorage.getItem("user"))
+  // );
 
   function logOut() {
     setAuthTokens("");
     setIsLoggedOut(true);
+    setUserInfo("");
   }
 
   if (isLoggedOut) {
@@ -63,7 +67,8 @@ const AdminNavbar = props => {
           >
             {props.brandText}
           </Link>
-          <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
+          {/* Disabling the Search Bar on the Header of every page */}
+          {/* <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
             <FormGroup className="mb-0">
               <InputGroup className="input-group-alternative">
                 <InputGroupAddon addonType="prepend">
@@ -74,7 +79,7 @@ const AdminNavbar = props => {
                 <Input placeholder="Search" type="text" />
               </InputGroup>
             </FormGroup>
-          </Form>
+          </Form> */}
           <Nav className="align-items-center d-none d-md-flex" navbar>
             <UncontrolledDropdown nav>
               <DropdownToggle className="pr-0" nav>
