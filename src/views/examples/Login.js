@@ -143,6 +143,7 @@ const Login = () => {
                     value={userName}
                     onChange={e => {
                       setUserName(e.target.value);
+                      setIsError(false);
                     }}
                   />
                 </InputGroup>
@@ -168,7 +169,8 @@ const Login = () => {
                 {isError && (
                   <UncontrolledAlert color="danger" fade={false}>
                     <span className="alert-inner--text">
-                      <strong>Error: </strong>{errMessage}
+                      <strong>Error: </strong>
+                      {errMessage}
                     </span>
                   </UncontrolledAlert>
                   // <small style={{ color: "red" }}>
