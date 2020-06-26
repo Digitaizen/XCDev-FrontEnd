@@ -42,7 +42,6 @@ import {
   Row,
   CardFooter,
   Pagination,
-  Modal,
   Input
 } from "reactstrap";
 
@@ -109,7 +108,12 @@ function fuzzyTextFilterFn(rows, id, filterValue) {
 fuzzyTextFilterFn.autoRemove = val => !val;
 
 // Make comments section editable field
-const EditableComments = ({ value: initialValue, row }) => {
+const EditableComments = ({
+  value: initialValue,
+  row,
+  column: { id },
+  updateMyData
+}) => {
   // We need to keep and update the state of the cell normally
   const [value, setValue] = useState(initialValue);
 
@@ -123,8 +127,14 @@ const EditableComments = ({ value: initialValue, row }) => {
     setValue(e.target.value);
   };
 
+  // If the initialValue is changed external, sync it up with our state
+  React.useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
   //Write new comment string to database upon user leaving the table cell entry
   const onBlur = () => {
+    updateMyData(row.index, id, value);
     if (value === initialValue) {
       return;
     } else {
