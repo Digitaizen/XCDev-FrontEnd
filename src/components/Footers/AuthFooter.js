@@ -33,7 +33,7 @@ class Login extends React.Component {
                   © 2020{" "}
                   <a
                     className="font-weight-bold ml-1"
-                    href="https://www.creative-tim.com?ref=adr-auth-footer"
+                    href="https://www.dell.com"
                     target="_blank"
                   >
                     DELL
@@ -44,20 +44,20 @@ class Login extends React.Component {
                 <Nav className="nav-footer justify-content-center justify-content-xl-end">
                   <NavItem>
                     <NavLink
-                      href="https://www.creative-tim.com?ref=adr-auth-footer"
+                      href="https://confluence.gtie.dell.com/display/XC"
                       target="_blank"
                     >
                       DELL XC
                     </NavLink>
                   </NavItem>
-                  <NavItem>
+                  {/* <NavItem>
                     <NavLink
                       href="https://www.creative-tim.com/presentation?ref=adr-auth-footer"
                       target="_blank"
                     >
                       About Us
                     </NavLink>
-                  </NavItem>
+                  </NavItem> */}
                   {/* <NavItem>
                     <NavLink
                       href="http://blog.creative-tim.com?ref=adr-auth-footer"

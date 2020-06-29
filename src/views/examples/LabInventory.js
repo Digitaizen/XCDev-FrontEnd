@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   useTable,
   useRowSelect,
@@ -49,7 +49,8 @@ import Form from "react-bootstrap/Form";
 
 // core components
 import Header from "../../components/Headers/Header.js";
-const apiServer = "http://100.80.149.19:8080"; // for production build
+// const apiServer = "http://100.80.149.19:8080"; // for production build
+const apiServer = process.env.REACT_APP_API_SERVER;
 // const apiServer = ""; // for local dev work
 
 // Define a default UI for filtering
@@ -154,7 +155,7 @@ const EditableComments = ({
         .catch(e => {
           console.error(e.message);
         });
-      console.log(`Updated row ${row.index} with new comment: ${value}`); //Leaving here for logging and troubleshooting
+      // console.log(`Updated row ${row.index} with new comment: ${value}`); //Leaving here for logging and troubleshooting
     }
   };
 
@@ -349,7 +350,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                       </tr>
                     </thead>
                     <tbody {...getTableBodyProps()}>
-                      {page.map((row, i) => {
+                      {page.map(row => {
                         prepareRow(row);
                         return (
                           <tr key={row.id} id={row.id} {...row.getRowProps()}>
@@ -562,17 +563,17 @@ function LabInventory() {
                 // Declare var 'checkStatus' for status req to db
                 let checkStatus = "";
 
-                console.log("onClick btnVal: ", btnVal); //debugging
+                // console.log("onClick btnVal: ", btnVal); //debugging
 
                 // Set action logic based on button's Action value
                 if (btnVal === "Check-Out") {
                   // Run db check to see if this server is still available
                   fetch(`${apiServer}/status/${dbRowIdx}`)
                     .then(res => res.json())
-                    .then(({ status, serviceTag }) => {
+                    .then(({ status }) => {
                       checkStatus = status;
 
-                      console.log("Check status: ", checkStatus); //debugging
+                      // console.log("Check status: ", checkStatus); //debugging
 
                       // Based on the db check above either check-out the server into user's name or
                       // notify the user that it has already been checked-out
@@ -589,26 +590,25 @@ function LabInventory() {
                           headers: { "Content-Type": "application/json" }
                         };
 
-                        console.log(
-                          "Checking-out ",
-                          serviceTag,
-                          " out of db with these values: ",
-                          payload.status,
-                          " and ",
-                          payload.timestamp,
-                          " for dbRowIdx ",
-                          dbRowIdx,
-                          " and tblRowIdx ",
-                          tblRowIdx
-                        ); //debugging
+                        // console.log(
+                        //   "Checking-out ",
+                        //   serviceTag,
+                        //   " out of db with these values: ",
+                        //   payload.status,
+                        //   " and ",
+                        //   payload.timestamp,
+                        //   " for dbRowIdx ",
+                        //   dbRowIdx,
+                        //   " and tblRowIdx ",
+                        //   tblRowIdx
+                        // ); //debugging
 
                         // Fetch it to the backend API with a new status
                         fetch(
                           `${apiServer}/patchStatus/${dbRowIdx}`,
                           requestOptions
-                        )
-                          .then(response => response.json())
-                          .then(response => console.log(response));
+                        ).then(response => response.json());
+                        // .then(response => console.log(response));
 
                         // Update row's 'Status' to the currently logged-in username
                         updateMyData(tblRowIdx, "status", payload.status);
@@ -621,12 +621,12 @@ function LabInventory() {
                         );
                       } else {
                         // Here, let the user know that this server has already been taken
-                        console.log(
-                          "Sorry, the server ",
-                          rowTag,
-                          " has already been checked-out by: ",
-                          checkStatus
-                        ); //debugging
+                        // console.log(
+                        //   "Sorry, the server ",
+                        //   rowTag,
+                        //   " has already been checked-out by: ",
+                        //   checkStatus
+                        // ); //debugging
                         alert(
                           `Sorry, the server ${rowTag} has already been checked-out by: ${checkStatus}. Please, refresh the page to see the updates.`
                         );
@@ -646,23 +646,25 @@ function LabInventory() {
                     headers: { "Content-Type": "application/json" }
                   };
 
-                  console.log(
-                    "Checking-in ",
-                    rowTag,
-                    " into db with these values: ",
-                    payload.status,
-                    " and ",
-                    payload.timestamp,
-                    " for dbRowIdx ",
-                    dbRowIdx,
-                    " and tblRowIdx ",
-                    tblRowIdx
-                  ); //debugging
+                  // console.log(
+                  //   "Checking-in ",
+                  //   rowTag,
+                  //   " into db with these values: ",
+                  //   payload.status,
+                  //   " and ",
+                  //   payload.timestamp,
+                  //   " for dbRowIdx ",
+                  //   dbRowIdx,
+                  //   " and tblRowIdx ",
+                  //   tblRowIdx
+                  // ); //debugging
 
                   // Fetch it to the backend API with a new status
-                  fetch(`${apiServer}/patchStatus/${dbRowIdx}`, requestOptions)
-                    .then(response => response.json())
-                    .then(response => console.log(response));
+                  fetch(
+                    `${apiServer}/patchStatus/${dbRowIdx}`,
+                    requestOptions
+                  ).then(response => response.json());
+                  // .then(response => console.log(response));
 
                   // Update row's 'Status' to "available"
                   updateMyData(tblRowIdx, "status", payload.status);
