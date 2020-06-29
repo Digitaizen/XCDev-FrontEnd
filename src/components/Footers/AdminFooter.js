@@ -31,7 +31,7 @@ class Footer extends React.Component {
               © 2020{" "}
               <a
                 className="font-weight-bold ml-1"
-                href="https://www.creative-tim.com?ref=adr-admin-footer"
+                href="https://www.dell.com"
                 rel="noopener noreferrer"
                 target="_blank"
               >
@@ -44,7 +44,7 @@ class Footer extends React.Component {
             <Nav className="nav-footer justify-content-center justify-content-xl-end">
               <NavItem>
                 <NavLink
-                  href="https://www.creative-tim.com?ref=adr-admin-footer"
+                  href="https://confluence.gtie.dell.com/display/XC"
                   rel="noopener noreferrer"
                   target="_blank"
                 >
@@ -52,7 +52,7 @@ class Footer extends React.Component {
                 </NavLink>
               </NavItem>
 
-              <NavItem>
+              {/* <NavItem>
                 <NavLink
                   href="https://www.creative-tim.com/presentation?ref=adr-admin-footer"
                   rel="noopener noreferrer"
@@ -60,7 +60,7 @@ class Footer extends React.Component {
                 >
                   About Us
                 </NavLink>
-              </NavItem>
+              </NavItem> */}
 
               {/* <NavItem>
                 <NavLink

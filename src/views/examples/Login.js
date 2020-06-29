@@ -15,7 +15,7 @@
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 */
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { Link, Redirect } from "react-router-dom";
 import { useAuth } from "../../context/auth";
 import { UserInfoContext } from "../../context/UserInfoContext";
@@ -44,7 +44,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const { setAuthTokens } = useAuth();
   const { setUserInfo } = useContext(UserInfoContext);
-  const apiServer = "http://100.80.149.19:8080"; // for production build
+  // const apiServer = "http://100.80.149.19:8080"; // for production build
+  const apiServer = process.env.REACT_APP_API_SERVER;
   // const apiServer = ""; // for local dev work
 
   function postLogin(e) {

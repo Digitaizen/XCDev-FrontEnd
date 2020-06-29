@@ -44,7 +44,8 @@ const Register = () => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const { setAuthTokens } = useAuth();
-  const apiServer = "http://100.80.149.19:8080"; // for production build
+  // const apiServer = "http://100.80.149.19:8080"; // for production build
+  const apiServer = process.env.REACT_APP_API_SERVER;
   // const apiServer = ""; // for local dev work
 
   function handleChange(e) {
@@ -169,7 +170,7 @@ const Register = () => {
                     value={email}
                     onChange={e => handleChange(e)}
                     placeholder="DELL Email Address"
-                  // onBlur={e => handleBlur(e)}
+                    // onBlur={e => handleBlur(e)}
                   />
                 </InputGroup>
               </FormGroup>
@@ -213,7 +214,8 @@ const Register = () => {
                 {isError && (
                   <UncontrolledAlert color="danger" fade={false}>
                     <span className="alert-inner--text">
-                      <strong>Error: </strong>{errMessage}
+                      <strong>Error: </strong>
+                      {errMessage}
                     </span>
                   </UncontrolledAlert>
                 )}
