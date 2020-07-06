@@ -108,6 +108,13 @@ function fuzzyTextFilterFn(rows, id, filterValue) {
 // Let the table remove the filter if the string is empty
 fuzzyTextFilterFn.autoRemove = val => !val;
 
+// Function to resize a textarea box to match its content size
+function ResizeTextArea(id) {
+  let taHeight = "";
+  taHeight = document.getElementById(id).scrollHeight;
+  document.getElementById(id).style.height = taHeight + 'px';
+}
+
 // Make comments section editable field
 const EditableComments = ({
   value: initialValue,
@@ -136,6 +143,8 @@ const EditableComments = ({
   // If the initialValue is changed external, sync it up with our state
   React.useEffect(() => {
     setValue(initialValue);
+    // Call function to resize textarea's height to display full comment
+    ResizeTextArea("ta" + row.id);
   }, [initialValue]);
 
   //Write new comment string to database upon user leaving the table cell entry
@@ -171,11 +180,12 @@ const EditableComments = ({
           border: "none",
           margin: "0px",
           padding: "0px",
-          width: "100%",
+          width: "250px",
           height: "100%",
           resize: "none",
           overflow: "hidden"
         }}
+        id={"ta" + row.id}
         type="textarea"
         value={value}
         onChange={onChange}
