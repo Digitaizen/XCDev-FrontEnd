@@ -196,6 +196,17 @@ const EditableComments = ({
   );
 };
 
+// Turn table IPs into hyperlinks that open a new tab to an iDRAC page on click
+const IP_Hyperlink = (props) => {
+  let iDRAC_IP = props.cell.row.original.ip;
+  let iDRAC_link = "http://" + iDRAC_IP;
+  return (
+    <div>
+      <a target="_blank" href={iDRAC_link}>{iDRAC_IP}</a>
+    </div>
+  )
+}
+
 function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   //Dropdown Menu State
   // const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -705,6 +716,7 @@ function LabInventory() {
       {
         Header: "IP Address",
         accessor: "ip",
+        Cell: IP_Hyperlink,
         filter: "fuzzyText"
       },
       // {
