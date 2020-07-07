@@ -144,7 +144,7 @@ const Login = () => {
                     value={userName}
                     onChange={e => {
                       setUserName(e.target.value);
-                      setIsError(false);
+                      setIsError(false);  //reset error message upon new value entry
                     }}
                   />
                 </InputGroup>
@@ -161,6 +161,7 @@ const Login = () => {
                     value={password}
                     onChange={e => {
                       setPassword(e.target.value);
+                      setIsError(false);  //reset error message upon new value entry
                     }}
                     placeholder="Password"
                   />
