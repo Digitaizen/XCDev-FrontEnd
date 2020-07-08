@@ -705,13 +705,11 @@ function LabInventory() {
 
       {
         Header: "Service Tag",
-        accessor: "serviceTag",
-        filter: "fuzzyText"
+        accessor: "serviceTag"
       },
       {
         Header: "System",
-        accessor: "system",
-        filter: "fuzzyText"
+        accessor: "system"
       },
       {
         Header: "IP Address",
@@ -722,33 +720,29 @@ function LabInventory() {
       // {
       //   Header: "Host Name",
       //   accessor: "hostname",
-      //   filter: "fuzzyText"
       // },
       {
         Header: "Model",
-        accessor: "model",
-        filter: "fuzzyText"
+        accessor: "model"
       },
       {
         Header: "Location",
-        accessor: "location",
-        filter: "fuzzyText"
+        accessor: "location"
+        //
       },
       // {
       //   Header: "Generation",
       //   accessor: "generation",
-      //   filter: "fuzzyText"
       // },
       {
         Header: "Status",
-        accessor: "status",
-        filter: "fuzzyText"
+        accessor: "status"
       },
       {
         Header: "TimeStamp",
         accessor: "timestamp",
-        sortType: "basic",
-        filter: "fuzzyText"
+        sortType: "basic"
+        // filter: "fuzzyText"
       },
       {
         Header: "Comments",
