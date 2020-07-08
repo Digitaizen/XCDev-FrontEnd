@@ -112,7 +112,7 @@ fuzzyTextFilterFn.autoRemove = val => !val;
 function ResizeTextArea(id) {
   let taHeight = "";
   taHeight = document.getElementById(id).scrollHeight;
-  document.getElementById(id).style.height = taHeight + 'px';
+  document.getElementById(id).style.height = taHeight + "px";
 }
 
 // Make comments section editable field
@@ -129,7 +129,7 @@ const EditableComments = ({
   const onFocus = e => {
     initialValue = e.target.value;
     // set height of textarea to display the full comment
-    e.target.style.height = e.target.scrollHeight + "px"
+    e.target.style.height = e.target.scrollHeight + "px";
   };
 
   // Set table cell's value upon input
@@ -137,7 +137,7 @@ const EditableComments = ({
     setValue(e.target.value);
     // reset height of textarea to match display of the full comment being entered
     e.target.style.height = "";
-    e.target.style.height = e.target.scrollHeight + "px"
+    e.target.style.height = e.target.scrollHeight + "px";
   };
 
   // If the initialValue is changed external, sync it up with our state
@@ -145,7 +145,7 @@ const EditableComments = ({
     setValue(initialValue);
     // Call function to resize textarea's height to display full comment
     ResizeTextArea("ta" + row.id);
-  }, [initialValue]);
+  }, [initialValue, row.id]);
 
   //Write new comment string to database upon user leaving the table cell entry
   const onBlur = () => {
@@ -197,15 +197,17 @@ const EditableComments = ({
 };
 
 // Turn table IPs into hyperlinks that open a new tab to an iDRAC page on click
-const IP_Hyperlink = (props) => {
+const IP_Hyperlink = props => {
   let iDRAC_IP = props.cell.row.original.ip;
   let iDRAC_link = "http://" + iDRAC_IP;
   return (
     <div>
-      <a target="_blank" href={iDRAC_link}>{iDRAC_IP}</a>
+      <a target="_blank" href={iDRAC_link}>
+        {iDRAC_IP}
+      </a>
     </div>
-  )
-}
+  );
+};
 
 function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   //Dropdown Menu State
@@ -234,8 +236,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
           const rowValue = row.values[id];
           return rowValue !== undefined
             ? String(rowValue)
-              .toLowerCase()
-              .startsWith(String(filterValue).toLowerCase())
+                .toLowerCase()
+                .startsWith(String(filterValue).toLowerCase())
             : true;
         });
       }
@@ -319,149 +321,149 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                   </Row>
                 </FadeIn>
               ) : (
-                  <React.Fragment>
-                    <Table
-                      className="align-items-center"
-                      bordered
-                      hover
-                      responsive
-                      {...getTableProps()}
-                    >
-                      <thead>
-                        {headerGroups.map(headerGroup => (
-                          <tr
-                            key={headerGroup.id}
-                            {...headerGroup.getHeaderGroupProps()}
-                          >
-                            {headerGroup.headers.map(column => (
-                              <th key={column.id} {...column.getHeaderProps()}>
-                                <div>
-                                  <span {...column.getSortByToggleProps()}>
-                                    {column.render("Header")}
-                                    {/* Add a sort direction indicator */}
-                                    {column.isSorted
-                                      ? column.isSortedDesc
-                                        ? " 🔽"
-                                        : " 🔼"
-                                      : ""}
-                                  </span>
-                                </div>
-                                <br />
-                                {/* Render the columns filter UI */}
-                                <div>
-                                  {column.canFilter
-                                    ? column.render("Filter")
-                                    : null}
-                                </div>
-                              </th>
-                            ))}
-                          </tr>
-                        ))}
-                        <tr>
-                          <th
-                            colSpan={visibleColumns.length}
-                            style={{
-                              textAlign: "left"
-                            }}
-                          >
-                            <GlobalFilter
-                              preGlobalFilteredRows={preGlobalFilteredRows}
-                              globalFilter={state.globalFilter}
-                              setGlobalFilter={setGlobalFilter}
-                            />
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody {...getTableBodyProps()}>
-                        {page.map(row => {
-                          prepareRow(row);
-                          return (
-                            <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                              {row.cells.map(cell => {
-                                return (
-                                  <td
-                                    key={cell.id}
-                                    id={cell.id}
-                                    {...cell.getCellProps()}
-                                  >
-                                    {cell.render("Cell")}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </Table>
-                    <CardFooter className="py-4">
-                      <nav aria-label="...">
-                        <Pagination
-                          className="pagination justify-content-end mb-0"
-                          listClassName="justify-content-end mb-0"
+                <React.Fragment>
+                  <Table
+                    className="align-items-center"
+                    bordered
+                    hover
+                    responsive
+                    {...getTableProps()}
+                  >
+                    <thead>
+                      {headerGroups.map(headerGroup => (
+                        <tr
+                          key={headerGroup.id}
+                          {...headerGroup.getHeaderGroupProps()}
                         >
-                          <Button color="info">
-                            Page {pageIndex + 1} of {pageOptions.length}
-                            <span className="sr-only">unread messages</span>
-                          </Button>
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => gotoPage(0)}
-                            disabled={!canPreviousPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-double-left"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* Previous Page */}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => previousPage()}
-                            disabled={!canPreviousPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-left"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* Next Page */}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => nextPage()}
-                            disabled={!canNextPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-right"></i>
-                            </span>
-                          </Button>{" "}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => gotoPage(pageCount - 1)}
-                            disabled={!canNextPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-double-right"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* <button
+                          {headerGroup.headers.map(column => (
+                            <th key={column.id} {...column.getHeaderProps()}>
+                              <div>
+                                <span {...column.getSortByToggleProps()}>
+                                  {column.render("Header")}
+                                  {/* Add a sort direction indicator */}
+                                  {column.isSorted
+                                    ? column.isSortedDesc
+                                      ? " 🔽"
+                                      : " 🔼"
+                                    : ""}
+                                </span>
+                              </div>
+                              <br />
+                              {/* Render the columns filter UI */}
+                              <div>
+                                {column.canFilter
+                                  ? column.render("Filter")
+                                  : null}
+                              </div>
+                            </th>
+                          ))}
+                        </tr>
+                      ))}
+                      <tr>
+                        <th
+                          colSpan={visibleColumns.length}
+                          style={{
+                            textAlign: "left"
+                          }}
+                        >
+                          <GlobalFilter
+                            preGlobalFilteredRows={preGlobalFilteredRows}
+                            globalFilter={state.globalFilter}
+                            setGlobalFilter={setGlobalFilter}
+                          />
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody {...getTableBodyProps()}>
+                      {page.map(row => {
+                        prepareRow(row);
+                        return (
+                          <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                            {row.cells.map(cell => {
+                              return (
+                                <td
+                                  key={cell.id}
+                                  id={cell.id}
+                                  {...cell.getCellProps()}
+                                >
+                                  {cell.render("Cell")}
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                  <CardFooter className="py-4">
+                    <nav aria-label="...">
+                      <Pagination
+                        className="pagination justify-content-end mb-0"
+                        listClassName="justify-content-end mb-0"
+                      >
+                        <Button color="info">
+                          Page {pageIndex + 1} of {pageOptions.length}
+                          <span className="sr-only">unread messages</span>
+                        </Button>
+                        <Button
+                          className="btn-icon btn-2"
+                          color="primary"
+                          type="button"
+                          onClick={() => gotoPage(0)}
+                          disabled={!canPreviousPage}
+                        >
+                          <span className="btn-inner--icon">
+                            <i className="fas fa-angle-double-left"></i>
+                          </span>
+                        </Button>{" "}
+                        {/* Previous Page */}
+                        <Button
+                          className="btn-icon btn-2"
+                          color="primary"
+                          type="button"
+                          onClick={() => previousPage()}
+                          disabled={!canPreviousPage}
+                        >
+                          <span className="btn-inner--icon">
+                            <i className="fas fa-angle-left"></i>
+                          </span>
+                        </Button>{" "}
+                        {/* Next Page */}
+                        <Button
+                          className="btn-icon btn-2"
+                          color="primary"
+                          type="button"
+                          onClick={() => nextPage()}
+                          disabled={!canNextPage}
+                        >
+                          <span className="btn-inner--icon">
+                            <i className="fas fa-angle-right"></i>
+                          </span>
+                        </Button>{" "}
+                        <Button
+                          className="btn-icon btn-2"
+                          color="primary"
+                          type="button"
+                          onClick={() => gotoPage(pageCount - 1)}
+                          disabled={!canNextPage}
+                        >
+                          <span className="btn-inner--icon">
+                            <i className="fas fa-angle-double-right"></i>
+                          </span>
+                        </Button>{" "}
+                        {/* <button
                           onClick={() => gotoPage(pageCount - 1)}
                           disabled={!canNextPage}
                         >
                           {">>"}
                         </button>{" "} */}
-                          {/* <span>
+                        {/* <span>
                           Page{" "}
                           <strong>
                             {pageIndex + 1} of {pageOptions.length}
                           </strong>{" "}
                         </span> */}
-                          {/* <span>
+                        {/* <span>
                           | Go to page:{" "}
                           <input
                             type="number"
@@ -475,28 +477,28 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                             style={{ width: "100px" }}
                           />
                         </span>{" "} */}
-                          <Form.Control
-                            as="select"
-                            custom
-                            value={pageSize}
-                            onChange={e => {
-                              setPageSize(Number(e.target.value));
-                            }}
-                            onBlur={e => {
-                              setPageSize(Number(e.target.value));
-                            }}
-                          >
-                            {[10, 20, 30, 40, 50].map(pageSize => (
-                              <option key={pageSize} value={pageSize}>
-                                Show {pageSize}
-                              </option>
-                            ))}
-                          </Form.Control>
-                        </Pagination>
-                      </nav>
-                    </CardFooter>
-                  </React.Fragment>
-                )}
+                        <Form.Control
+                          as="select"
+                          custom
+                          value={pageSize}
+                          onChange={e => {
+                            setPageSize(Number(e.target.value));
+                          }}
+                          onBlur={e => {
+                            setPageSize(Number(e.target.value));
+                          }}
+                        >
+                          {[10, 20, 30, 40, 50].map(pageSize => (
+                            <option key={pageSize} value={pageSize}>
+                              Show {pageSize}
+                            </option>
+                          ))}
+                        </Form.Control>
+                      </Pagination>
+                    </nav>
+                  </CardFooter>
+                </React.Fragment>
+              )}
             </Card>
           </div>
         </Row>
@@ -714,8 +716,7 @@ function LabInventory() {
       {
         Header: "IP Address",
         accessor: "ip",
-        Cell: IP_Hyperlink,
-        filter: "fuzzyText"
+        Cell: IP_Hyperlink
       },
       // {
       //   Header: "Host Name",
