@@ -60,7 +60,7 @@ class Auth extends React.Component {
                   <Col lg="5" md="6">
                     <h1 className="text-white">Welcome!</h1>
                     <p className="text-lead text-light">
-                      Use the form below to login or register a new account for DELL XC Webapp Portal.
+                      Use the form below to login into DELL XC Webapp Portal.
                     </p>
                   </Col>
                 </Row>

@@ -23,6 +23,7 @@ import Login from "views/examples/Login.js";
 // import Tables from "views/examples/Tables.js";
 import Icons from "views/examples/Icons.js";
 import LabInventory from "views/examples/LabInventory";
+import Reset from "views/examples/Reset";
 // import App from "App";
 
 var routes = [
@@ -77,6 +78,14 @@ var routes = [
     name: "Register",
     icon: "ni ni-circle-08 text-pink",
     component: Register,
+    layout: "/auth",
+    invisible: true
+  },
+  {
+    path: "/reset",
+    name: "Reset",
+    icon: "ni ni-circle-08 text-pink",
+    component: Reset,
     layout: "/auth",
     invisible: true
   }

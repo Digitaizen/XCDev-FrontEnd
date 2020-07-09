@@ -74,15 +74,12 @@ const Register = () => {
     fetch(`${apiServer}/register`, requestOptions)
       .then(response => response.json())
       .then(response => {
-        console.log(response); //debugging
         // If backend API returns an object with 'success' flag then login user
         // otherwise display error message on the login screen
         if (response.success) {
-          console.log(response.message); //debugging
           setAuthTokens(response.token);
           setRegistered(true);
         } else {
-          console.log(response.message); //debugging
           setErrMessage(response.message);
           setIsError(true);
           setRegistered(false);
