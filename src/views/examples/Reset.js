@@ -17,17 +17,6 @@
 */
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  AvForm,
-  AvField,
-  AvGroup,
-  AvInput,
-  AvFeedback,
-  AvRadioGroup,
-  AvRadio,
-  AvCheckboxGroup,
-  AvCheckbox
-} from "availity-reactstrap-validation";
 
 // reactstrap components
 import {
@@ -148,6 +137,7 @@ const Reset = () => {
                     value={userName}
                     onChange={e => setUserName(e.target.value)}
                     placeholder="Username"
+                    required
                   />
                 </InputGroup>
               </FormGroup>
@@ -165,6 +155,7 @@ const Reset = () => {
                       setPassword(e.target.value);
                     }}
                     placeholder="Password - minimum 6 characters"
+                    required
                   />
                 </InputGroup>
               </FormGroup>
@@ -182,6 +173,7 @@ const Reset = () => {
                       setPassword2(e.target.value);
                     }}
                     placeholder="Confirm Password"
+                    required
                   />
                 </InputGroup>
               </FormGroup>
