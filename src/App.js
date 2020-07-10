@@ -42,7 +42,6 @@ const App = () => {
               path="/auth/reset"
               render={props => <AuthLayout {...props} />}
             />
-
             <Redirect from="/" to="/auth/login" />
           </Switch>
         </Router>

@@ -81,7 +81,7 @@ class Sidebar extends React.Component {
   // creates the links that appear in the left menu / Sidebar
   createLinks = routes => {
     return routes.map((prop, key) => {
-      if(prop.invisible) return null;
+      if (prop.invisible) return null;
       return (
         <NavItem key={key}>
           <NavLink
@@ -240,8 +240,23 @@ class Sidebar extends React.Component {
             </Form>
             {/* Navigation */}
             <Nav navbar>{this.createLinks(routes)}</Nav>
+
+            {/* Custom Navigation Link */}
+            <Nav navbar>
+              <NavItem>
+                <NavLink
+                  className="nav-link"
+                  href="http://100.80.149.97/DellReServer/search-inventory.php"
+                  target="_blank"
+                >
+                  <i className="ni ni-spaceship" />
+                  Search Inventory
+                </NavLink>
+              </NavItem>
+            </Nav>
+
             {/* Divider */}
-            <hr className="my-3" />
+            {/* <hr className="my-3" /> */}
             {/* Heading */}
             {/* <h6 className="navbar-heading text-muted">Documentation</h6> */}
             {/* Navigation */}
