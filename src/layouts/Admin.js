@@ -66,7 +66,7 @@ class Admin extends React.Component {
           {...this.props}
           routes={routes}
           logo={{
-            innerLink: "/admin/index",
+            // innerLink: "/admin/index",
             imgSrc: require("assets/img/brand/DellTech_Logo_Prm_Blue_Gry_rgb.jpg"),
             imgAlt: "..."
           }}
