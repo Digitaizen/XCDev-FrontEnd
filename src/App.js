@@ -38,6 +38,10 @@ const App = () => {
               path="/auth/register"
               render={props => <AuthLayout {...props} />}
             />
+            <Route
+              path="/auth/reset"
+              render={props => <AuthLayout {...props} />}
+            />
 
             <Redirect from="/" to="/auth/login" />
           </Switch>
