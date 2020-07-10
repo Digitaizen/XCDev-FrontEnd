@@ -55,12 +55,15 @@ const AdminNavbar = props => {
     <>
       <Navbar className="navbar-top navbar-dark" expand="md" id="navbar-main">
         <Container fluid>
-          <Link
+          <h4 className="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block">
+            {props.brandText}
+          </h4>
+          {/* <Link
             className="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block"
             to="/"
           >
             {props.brandText}
-          </Link>
+          </Link> */}
           {/* Disabling the Search Bar on the Header of every page */}
           {/* <Form className="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto">
             <FormGroup className="mb-0">
