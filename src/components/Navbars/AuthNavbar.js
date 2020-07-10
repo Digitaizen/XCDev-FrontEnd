@@ -39,7 +39,8 @@ class AdminNavbar extends React.Component {
           expand="md"
         >
           <Container className="px-4">
-            <NavbarBrand to="/" tag={Link}>
+            {/* <NavbarBrand to="/" tag={Link}> */}
+            <NavbarBrand>
               <img
                 alt="..."
                 src={require("assets/img/brand/DellTech_Logo_Prm_Blue_Wht_rgb.png")}
