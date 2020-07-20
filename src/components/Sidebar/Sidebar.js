@@ -249,19 +249,37 @@ class Sidebar extends React.Component {
                   href="http://100.80.149.97/DellReServer/search-inventory.php"
                   target="_blank"
                 >
-                  <i className="ni ni-spaceship" />
+                  <i className="ni ni-spaceship text-blue" />
                   Search Inventory
                 </NavLink>
               </NavItem>
             </Nav>
 
             {/* Divider */}
-            {/* <hr className="my-3" /> */}
+            <hr className="my-3" />
             {/* Heading */}
             {/* <h6 className="navbar-heading text-muted">Documentation</h6> */}
             {/* Navigation */}
-            {/* <Nav className="mb-md-3" navbar>
+            <Nav className="mb-md-3" navbar>
               <NavItem>
+                <NavLink
+                  href="https://confluence.gtie.dell.com/display/XC/XC+Web-App+Documentation"
+                  target="_blank"
+                >
+                  <i className="ni ni-single-copy-04 text-orange" />
+                  Documentation
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  href="https://jira.gtie.dell.com/projects/DELLXCDEV/issues"
+                  target="_blank"
+                >
+                  <i className="ni ni-archive-2 text-purple" />
+                  File JIRA Request
+                </NavLink>
+              </NavItem>
+              {/* <NavItem>
                 <NavLink href="https://demos.creative-tim.com/argon-dashboard-react/#/documentation/overview?ref=adr-admin-sidebar">
                   <i className="ni ni-spaceship" />
                   Getting started
@@ -286,8 +304,8 @@ class Sidebar extends React.Component {
                   <i className="ni ni-spaceship" />
                   Upgrade to PRO
                 </NavLink>
-              </NavItem>
-            </Nav> */}
+              </NavItem> */}
+            </Nav>
           </Collapse>
         </Container>
       </Navbar>
