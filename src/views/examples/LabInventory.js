@@ -327,6 +327,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                     bordered
                     hover
                     responsive
+                    size="sm"
                     {...getTableProps()}
                   >
                     <thead>
@@ -566,9 +567,10 @@ function LabInventory() {
           // Build the action button for each row with the props set above
           return (
             <Button
+              size="sm"
               style={{
-                minWidth: 118, // set button's width so they are uniform in size
-                minHeight: 30,
+                minWidth: 80, // set button's width so they are uniform in size
+                // minHeight: 30,
                 backgroundColor: btnBkgdColor
               }}
               id={btnId}

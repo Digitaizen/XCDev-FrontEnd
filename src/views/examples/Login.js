@@ -144,7 +144,7 @@ const Login = () => {
                     value={userName}
                     onChange={e => {
                       setUserName(e.target.value);
-                      setIsError(false);  //reset error message upon new value entry
+                      setIsError(false); //reset error message upon new value entry
                     }}
                   />
                 </InputGroup>
@@ -161,7 +161,7 @@ const Login = () => {
                     value={password}
                     onChange={e => {
                       setPassword(e.target.value);
-                      setIsError(false);  //reset error message upon new value entry
+                      setIsError(false); //reset error message upon new value entry
                     }}
                     placeholder="Password"
                   />
@@ -203,8 +203,8 @@ const Login = () => {
                   Log in
                 </Button>
               </div>
-              <Link to="/auth/register">
-                <small>Dont have an account? Click here to Sign Up</small>
+              <Link to="/auth/reset">
+                <small>Forgot Password? Click here to Reset Password</small>
               </Link>
             </Form>
           </CardBody>
