@@ -24,6 +24,7 @@ import Login from "views/examples/Login.js";
 // import Icons from "views/examples/Icons.js";
 import LabInventory from "views/examples/LabInventory";
 import Reset from "views/examples/Reset";
+import FactoryImaging from "views/examples/FactoryImaging";
 // import App from "App";
 
 var routes = [
@@ -88,6 +89,13 @@ var routes = [
     component: Reset,
     layout: "/auth",
     invisible: true
+  },
+  {
+    path: "/factoryImaging",
+    name: "Factory Imaging",
+    icon: "ni ni-bullet-list-67 text-red",
+    component: FactoryImaging,
+    layout: "/admin"
   }
 ];
 export default routes;
