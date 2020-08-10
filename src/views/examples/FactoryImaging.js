@@ -209,6 +209,23 @@ const IP_Hyperlink = props => {
   );
 };
 
+const IndeterminateCheckbox = React.forwardRef(
+  ({ indeterminate, ...rest }, ref) => {
+    const defaultRef = React.useRef();
+    const resolvedRef = ref || defaultRef;
+
+    React.useEffect(() => {
+      resolvedRef.current.indeterminate = indeterminate;
+    }, [resolvedRef, indeterminate]);
+
+    return (
+      <>
+        <input type="checkbox" ref={resolvedRef} {...rest} />
+      </>
+    );
+  }
+);
+
 function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   //Dropdown Menu State
   // const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -259,6 +276,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     headerGroups,
     // rows,
     prepareRow,
+    selectedFlatRows,
     pageOptions,
     page,
     state,
@@ -272,7 +290,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     visibleColumns,
     preGlobalFilteredRows,
     setGlobalFilter,
-    state: { pageIndex, pageSize }
+    state: { pageIndex, pageSize, selectedRowIds }
   } = useTable(
     {
       columns,
@@ -292,8 +310,36 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     useGlobalFilter,
     useSortBy,
     useRowSelect,
-    usePagination
+    usePagination,
+    hooks => {
+      hooks.visibleColumns.push(columns => [
+        // Let's make a column for selection
+        {
+          id: "selection",
+          // The header can use the table's getToggleAllRowsSelectedProps method
+          // to render a checkbox
+          Header: ({ getToggleAllRowsSelectedProps }) => (
+            <div>
+              <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
+            </div>
+          ),
+          // The cell can use the individual row's getToggleRowSelectedProps method
+          // to the render a checkbox
+          Cell: ({ row }) => (
+            <div>
+              <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
+            </div>
+          )
+        },
+        ...columns
+      ]);
+    }
   );
+
+  const selectedRowData = selectedFlatRows.map(d => d.original);
+
+  // eslint-disable-next-line no-console
+  console.log(selectedRowData.map(d => d.ip));
 
   return (
     <>
@@ -305,7 +351,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
           <div className="col">
             <Card className="shadow">
               <CardHeader className="border-0">
-                <h3 className="mb-0">Lab Inventory</h3>
+                <h3 className="mb-0">Factory Imaging</h3>
               </CardHeader>
               {!loading.done ? (
                 <FadeIn>
@@ -396,6 +442,23 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                       })}
                     </tbody>
                   </Table>
+                  {/* Placeholder Code START - to show the selected Row ID and the Row Data in an Array */}
+                  <p>Selected Rows: {Object.keys(selectedRowIds).length}</p>
+                  <pre>
+                    <code>
+                      {JSON.stringify(
+                        {
+                          selectedRowIds: selectedRowIds,
+                          "selectedFlatRows[].original": selectedFlatRows.map(
+                            d => d.original
+                          )
+                        },
+                        null,
+                        2
+                      )}
+                    </code>
+                  </pre>
+                  {/* Placeholder Code END - to show the selected Row ID and the Row Data in an Array */}
                   <CardFooter className="py-4">
                     <nav aria-label="...">
                       <Pagination
