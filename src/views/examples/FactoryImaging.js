@@ -30,6 +30,9 @@ import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
 // import { UserInfoContext } from "../../context/UserInfoContext";
 import matchSorter from "match-sorter";
+import AsyncSelect from "react-select/async";
+import Select from "react-select";
+import axios from "axios";
 // import PropTypes from "prop-types";
 
 // reactstrap components
@@ -39,6 +42,7 @@ import {
   CardHeader,
   Table,
   Container,
+  Col,
   Row,
   CardFooter,
   Pagination,
@@ -227,9 +231,25 @@ const IndeterminateCheckbox = React.forwardRef(
 );
 
 function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
-  //Dropdown Menu State
-  // const [dropdownOpen, setDropdownOpen] = useState(false);
-  // const toggle = () => setDropdownOpen(prevState => !prevState);
+  const [bmrOptions, setBmrOptions] = useState([]);
+
+  useEffect(() => {
+    let config = {
+      method: "get",
+      url: "http://localhost:8080/getIsoFiles",
+      headers: {}
+    };
+
+    axios(config)
+      .then(function(response) {
+        // console.log(JSON.stringify(response.data.results));
+        setBmrOptions(response.data.results);
+      })
+      .catch(function(error) {
+        // eslint-disable-next-line no-console
+        console.log(error);
+      });
+  }, []);
 
   //default options defined for the lottie file loading animation
   const defaultOptions = {
@@ -339,7 +359,15 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   const selectedRowData = selectedFlatRows.map(d => d.original);
 
   // eslint-disable-next-line no-console
-  console.log(selectedRowData.map(d => d.ip));
+  // console.log(selectedRowData.map(d => d.ip));
+  // eslint-disable-next-line no-console
+  console.log(selectedRowData.length);
+
+  // const options = [
+  //   { value: "chocolate", label: "Chocolate" },
+  //   { value: "strawberry", label: "Strawberry" },
+  //   { value: "vanilla", label: "Vanilla" }
+  // ];
 
   return (
     <>
@@ -368,6 +396,16 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                 </FadeIn>
               ) : (
                 <React.Fragment>
+                  {selectedRowData.length !== 0 ? (
+                    <Col md="4">
+                      <Select
+                        className="mt-4 col-md-12 col-offset-4"
+                        placeholder="Select BMR Image..."
+                        options={bmrOptions}
+                      />
+                    </Col>
+                  ) : null}
+                  <br />
                   <Table
                     className="align-items-center"
                     bordered
