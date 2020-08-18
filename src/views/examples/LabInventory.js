@@ -23,7 +23,7 @@ import {
   useFilters,
   useGlobalFilter,
   useAsyncDebounce,
-  usePagination
+  usePagination,
 } from "react-table";
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
@@ -42,7 +42,7 @@ import {
   Row,
   CardFooter,
   Pagination,
-  Input
+  Input,
 } from "reactstrap";
 
 import Form from "react-bootstrap/Form";
@@ -57,11 +57,11 @@ const apiServer = process.env.REACT_APP_API_SERVER;
 function GlobalFilter({
   preGlobalFilteredRows,
   globalFilter,
-  setGlobalFilter
+  setGlobalFilter,
 }) {
   const count = preGlobalFilteredRows.length;
   const [value, setValue] = React.useState(globalFilter);
-  const onChange = useAsyncDebounce(value => {
+  const onChange = useAsyncDebounce((value) => {
     setGlobalFilter(value || undefined);
   }, 200);
 
@@ -70,14 +70,14 @@ function GlobalFilter({
       Search:{" "}
       <input
         value={value || ""}
-        onChange={e => {
+        onChange={(e) => {
           setValue(e.target.value);
           onChange(e.target.value);
         }}
         placeholder={`${count} records...`}
         style={{
           fontSize: "1.1rem",
-          border: "0"
+          border: "0",
         }}
       />
     </span>
@@ -86,14 +86,14 @@ function GlobalFilter({
 
 // Define a default filtering method
 function DefaultColumnFilter({
-  column: { filterValue, preFilteredRows, setFilter }
+  column: { filterValue, preFilteredRows, setFilter },
 }) {
   const count = preFilteredRows.length;
 
   return (
     <input
       value={filterValue || ""}
-      onChange={e => {
+      onChange={(e) => {
         setFilter(e.target.value || undefined); // Set undefined to remove the filter entirely
       }}
       placeholder={`Search ${count} records...`}
@@ -102,11 +102,11 @@ function DefaultColumnFilter({
 }
 
 function fuzzyTextFilterFn(rows, id, filterValue) {
-  return matchSorter(rows, filterValue, { keys: [row => row.values[id]] });
+  return matchSorter(rows, filterValue, { keys: [(row) => row.values[id]] });
 }
 
 // Let the table remove the filter if the string is empty
-fuzzyTextFilterFn.autoRemove = val => !val;
+fuzzyTextFilterFn.autoRemove = (val) => !val;
 
 // Function to resize a textarea box to match its content size
 function ResizeTextArea(id) {
@@ -120,20 +120,20 @@ const EditableComments = ({
   value: initialValue,
   row,
   column: { id },
-  updateMyData
+  updateMyData,
 }) => {
   // We need to keep and update the state of the cell normally
   const [value, setValue] = useState(initialValue);
 
   // Set 'initialValue' to value read upon cell focus event
-  const onFocus = e => {
+  const onFocus = (e) => {
     initialValue = e.target.value;
     // set height of textarea to display the full comment
     e.target.style.height = e.target.scrollHeight + "px";
   };
 
   // Set table cell's value upon input
-  const onChange = e => {
+  const onChange = (e) => {
     setValue(e.target.value);
     // reset height of textarea to match display of the full comment being entered
     e.target.style.height = "";
@@ -159,14 +159,14 @@ const EditableComments = ({
         body: JSON.stringify({ comments: value }),
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json"
-        }
+          Accept: "application/json",
+        },
       };
 
       // Now fetch it to the backend API
       fetch(`${apiServer}/patchComments/${row.original._id}`, requestOptions)
-        .then(response => response.json())
-        .catch(e => {
+        .then((response) => response.json())
+        .catch((e) => {
           console.error(e.message);
         });
       // console.log(`Updated row ${row.index} with new comment: ${value}`); //Leaving here for logging and troubleshooting
@@ -183,7 +183,7 @@ const EditableComments = ({
           width: "250px",
           height: "100%",
           resize: "none",
-          overflow: "hidden"
+          overflow: "hidden",
         }}
         id={"ta" + row.id}
         type="textarea"
@@ -197,7 +197,7 @@ const EditableComments = ({
 };
 
 // Turn table IPs into hyperlinks that open a new tab to an iDRAC page on click
-const IP_Hyperlink = props => {
+const IP_Hyperlink = (props) => {
   let iDRAC_IP = props.cell.row.original.ip;
   let iDRAC_link = "http://" + iDRAC_IP;
   return (
@@ -220,8 +220,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     autoplay: true,
     animationData: dotLoading.default,
     rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice"
-    }
+      preserveAspectRatio: "xMidYMid slice",
+    },
   };
 
   //Fuzzy text filtering
@@ -232,7 +232,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       // Or, override the default text filter to use
       // "startWith"
       text: (rows, id, filterValue) => {
-        return rows.filter(row => {
+        return rows.filter((row) => {
           const rowValue = row.values[id];
           return rowValue !== undefined
             ? String(rowValue)
@@ -240,7 +240,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                 .startsWith(String(filterValue).toLowerCase())
             : true;
         });
-      }
+      },
     }),
     []
   );
@@ -248,7 +248,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   const defaultColumn = React.useMemo(
     () => ({
       // Let's set up our default Filter UI
-      Filter: DefaultColumnFilter
+      Filter: DefaultColumnFilter,
     }),
     []
   );
@@ -272,7 +272,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     visibleColumns,
     preGlobalFilteredRows,
     setGlobalFilter,
-    state: { pageIndex, pageSize }
+    state: { pageIndex, pageSize },
   } = useTable(
     {
       columns,
@@ -286,13 +286,13 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       autoResetRowState: !skipPageResetRef.current,
       updateMyData,
       defaultColumn,
-      filterTypes
+      filterTypes,
     },
     useFilters,
     useGlobalFilter,
     useSortBy,
-    useRowSelect,
-    usePagination
+    usePagination,
+    useRowSelect
   );
 
   return (
@@ -331,12 +331,12 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                     {...getTableProps()}
                   >
                     <thead>
-                      {headerGroups.map(headerGroup => (
+                      {headerGroups.map((headerGroup) => (
                         <tr
                           key={headerGroup.id}
                           {...headerGroup.getHeaderGroupProps()}
                         >
-                          {headerGroup.headers.map(column => (
+                          {headerGroup.headers.map((column) => (
                             <th key={column.id} {...column.getHeaderProps()}>
                               <div>
                                 <span {...column.getSortByToggleProps()}>
@@ -364,7 +364,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                         <th
                           colSpan={visibleColumns.length}
                           style={{
-                            textAlign: "left"
+                            textAlign: "left",
                           }}
                         >
                           <GlobalFilter
@@ -376,11 +376,11 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                       </tr>
                     </thead>
                     <tbody {...getTableBodyProps()}>
-                      {page.map(row => {
+                      {page.map((row) => {
                         prepareRow(row);
                         return (
                           <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                            {row.cells.map(cell => {
+                            {row.cells.map((cell) => {
                               return (
                                 <td
                                   key={cell.id}
@@ -482,14 +482,14 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                           as="select"
                           custom
                           value={pageSize}
-                          onChange={e => {
+                          onChange={(e) => {
                             setPageSize(Number(e.target.value));
                           }}
-                          onBlur={e => {
+                          onBlur={(e) => {
                             setPageSize(Number(e.target.value));
                           }}
                         >
-                          {[10, 20, 30, 40, 50].map(pageSize => (
+                          {[10, 20, 30, 40, 50].map((pageSize) => (
                             <option key={pageSize} value={pageSize}>
                               Show {pageSize}
                             </option>
@@ -510,7 +510,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
 
 // Define a custom filter filter function!
 function filterGreaterThan(rows, id, filterValue) {
-  return rows.filter(row => {
+  return rows.filter((row) => {
     const rowValue = row.values[id];
     return rowValue >= filterValue;
   });
@@ -520,7 +520,7 @@ function filterGreaterThan(rows, id, filterValue) {
 // when given the new filter value and returns true, the filter
 // will be automatically removed. Normally this is just an undefined
 // check, but here, we want to remove the filter if it's not a number
-filterGreaterThan.autoRemove = val => typeof val !== "number";
+filterGreaterThan.autoRemove = (val) => typeof val !== "number";
 
 function LabInventory() {
   // const { userInfo } = useContext(UserInfoContext);
@@ -537,7 +537,7 @@ function LabInventory() {
       {
         Header: "Action",
         // eslint-disable-next-line
-        Cell: props => {
+        Cell: (props) => {
           // Pull data for each row and save it into temp variables
           let dbRowIdx = props.cell.row.original._id;
           let tblRowIdx = props.row.index;
@@ -571,7 +571,7 @@ function LabInventory() {
               style={{
                 minWidth: 80, // set button's width so they are uniform in size
                 // minHeight: 30,
-                backgroundColor: btnBkgdColor
+                backgroundColor: btnBkgdColor,
               }}
               id={btnId}
               value={btnVal}
@@ -596,7 +596,7 @@ function LabInventory() {
                 if (btnVal === "Check-Out") {
                   // Run db check to see if this server is still available
                   fetch(`${apiServer}/status/${dbRowIdx}`)
-                    .then(res => res.json())
+                    .then((res) => res.json())
                     .then(({ status }) => {
                       checkStatus = status;
 
@@ -608,13 +608,13 @@ function LabInventory() {
                         // Set the payload with user's name and current timestamp
                         payload = {
                           status: userInfo.name,
-                          timestamp: currentDateAndTime
+                          timestamp: currentDateAndTime,
                         };
                         // Specify req options based on the current availability status
                         const requestOptions = {
                           method: "PATCH",
                           body: JSON.stringify(payload),
-                          headers: { "Content-Type": "application/json" }
+                          headers: { "Content-Type": "application/json" },
                         };
 
                         // console.log(
@@ -634,7 +634,7 @@ function LabInventory() {
                         fetch(
                           `${apiServer}/patchStatus/${dbRowIdx}`,
                           requestOptions
-                        ).then(response => response.json());
+                        ).then((response) => response.json());
                         // .then(response => console.log(response));
 
                         // Update row's 'Status' to the currently logged-in username
@@ -664,13 +664,13 @@ function LabInventory() {
                   // Set the payload with 'available' status and current timestamp
                   payload = {
                     status: "available",
-                    timestamp: currentDateAndTime
+                    timestamp: currentDateAndTime,
                   };
                   // Specify req options based on the current availability status
                   const requestOptions = {
                     method: "PATCH",
                     body: JSON.stringify(payload),
-                    headers: { "Content-Type": "application/json" }
+                    headers: { "Content-Type": "application/json" },
                   };
 
                   // console.log(
@@ -690,7 +690,7 @@ function LabInventory() {
                   fetch(
                     `${apiServer}/patchStatus/${dbRowIdx}`,
                     requestOptions
-                  ).then(response => response.json());
+                  ).then((response) => response.json());
                   // .then(response => console.log(response));
 
                   // Update row's 'Status' to "available"
@@ -704,21 +704,21 @@ function LabInventory() {
               {btnVal}
             </Button>
           );
-        }
+        },
       },
 
       {
         Header: "Service Tag",
-        accessor: "serviceTag"
+        accessor: "serviceTag",
       },
       {
         Header: "System",
-        accessor: "system"
+        accessor: "system",
       },
       {
         Header: "IP Address",
         accessor: "ip",
-        Cell: IP_Hyperlink
+        Cell: IP_Hyperlink,
       },
       // {
       //   Header: "Host Name",
@@ -726,11 +726,11 @@ function LabInventory() {
       // },
       {
         Header: "Model",
-        accessor: "model"
+        accessor: "model",
       },
       {
         Header: "Location",
-        accessor: "location"
+        accessor: "location",
         //
       },
       // {
@@ -739,20 +739,20 @@ function LabInventory() {
       // },
       {
         Header: "Status",
-        accessor: "status"
+        accessor: "status",
       },
       {
         Header: "TimeStamp",
         accessor: "timestamp",
-        sortType: "basic"
+        sortType: "basic",
         // filter: "fuzzyText"
       },
       {
         Header: "Comments",
         accessor: "comments",
         Cell: EditableComments,
-        disableFilters: true
-      }
+        disableFilters: true,
+      },
     ],
     [userInfo.name]
   );
@@ -764,12 +764,12 @@ function LabInventory() {
     // When data gets updated with this function, set a flag
     // to disable all of the auto resetting
     skipPageResetRef.current = true;
-    setData(old =>
+    setData((old) =>
       old.map((row, index) => {
         if (index === rowIndex) {
           return {
             ...old[rowIndex],
-            [columnId]: value
+            [columnId]: value,
           };
         }
         return row;
@@ -787,10 +787,10 @@ function LabInventory() {
 
   useEffect(() => {
     fetch(`${apiServer}/getServers`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setData(
-          data.map(item => {
+          data.map((item) => {
             return item;
           })
         );

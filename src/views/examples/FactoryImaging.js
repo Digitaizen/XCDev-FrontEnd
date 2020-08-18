@@ -23,20 +23,21 @@ import {
   useFilters,
   useGlobalFilter,
   useAsyncDebounce,
-  usePagination
+  usePagination,
 } from "react-table";
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
 // import { UserInfoContext } from "../../context/UserInfoContext";
 import matchSorter from "match-sorter";
-import AsyncSelect from "react-select/async";
+// import AsyncSelect from "react-select/async";
 import Select from "react-select";
 import axios from "axios";
 // import PropTypes from "prop-types";
 
 // reactstrap components
 import {
+  UncontrolledAlert,
   Button,
   Card,
   CardHeader,
@@ -46,7 +47,7 @@ import {
   Row,
   CardFooter,
   Pagination,
-  Input
+  Input,
 } from "reactstrap";
 
 import Form from "react-bootstrap/Form";
@@ -61,11 +62,11 @@ const apiServer = process.env.REACT_APP_API_SERVER;
 function GlobalFilter({
   preGlobalFilteredRows,
   globalFilter,
-  setGlobalFilter
+  setGlobalFilter,
 }) {
   const count = preGlobalFilteredRows.length;
   const [value, setValue] = React.useState(globalFilter);
-  const onChange = useAsyncDebounce(value => {
+  const onChange = useAsyncDebounce((value) => {
     setGlobalFilter(value || undefined);
   }, 200);
 
@@ -74,14 +75,14 @@ function GlobalFilter({
       Search:{" "}
       <input
         value={value || ""}
-        onChange={e => {
+        onChange={(e) => {
           setValue(e.target.value);
           onChange(e.target.value);
         }}
         placeholder={`${count} records...`}
         style={{
           fontSize: "1.1rem",
-          border: "0"
+          border: "0",
         }}
       />
     </span>
@@ -90,14 +91,14 @@ function GlobalFilter({
 
 // Define a default filtering method
 function DefaultColumnFilter({
-  column: { filterValue, preFilteredRows, setFilter }
+  column: { filterValue, preFilteredRows, setFilter },
 }) {
   const count = preFilteredRows.length;
 
   return (
     <input
       value={filterValue || ""}
-      onChange={e => {
+      onChange={(e) => {
         setFilter(e.target.value || undefined); // Set undefined to remove the filter entirely
       }}
       placeholder={`Search ${count} records...`}
@@ -106,11 +107,11 @@ function DefaultColumnFilter({
 }
 
 function fuzzyTextFilterFn(rows, id, filterValue) {
-  return matchSorter(rows, filterValue, { keys: [row => row.values[id]] });
+  return matchSorter(rows, filterValue, { keys: [(row) => row.values[id]] });
 }
 
 // Let the table remove the filter if the string is empty
-fuzzyTextFilterFn.autoRemove = val => !val;
+fuzzyTextFilterFn.autoRemove = (val) => !val;
 
 // Function to resize a textarea box to match its content size
 function ResizeTextArea(id) {
@@ -124,20 +125,20 @@ const EditableComments = ({
   value: initialValue,
   row,
   column: { id },
-  updateMyData
+  updateMyData,
 }) => {
   // We need to keep and update the state of the cell normally
   const [value, setValue] = useState(initialValue);
 
   // Set 'initialValue' to value read upon cell focus event
-  const onFocus = e => {
+  const onFocus = (e) => {
     initialValue = e.target.value;
     // set height of textarea to display the full comment
     e.target.style.height = e.target.scrollHeight + "px";
   };
 
   // Set table cell's value upon input
-  const onChange = e => {
+  const onChange = (e) => {
     setValue(e.target.value);
     // reset height of textarea to match display of the full comment being entered
     e.target.style.height = "";
@@ -163,14 +164,15 @@ const EditableComments = ({
         body: JSON.stringify({ comments: value }),
         headers: {
           "Content-Type": "application/json",
-          Accept: "application/json"
-        }
+          Accept: "application/json",
+        },
       };
 
       // Now fetch it to the backend API
       fetch(`${apiServer}/patchComments/${row.original._id}`, requestOptions)
-        .then(response => response.json())
-        .catch(e => {
+        .then((response) => response.json())
+        .catch((e) => {
+          // eslint-disable-next-line no-console
           console.error(e.message);
         });
       // console.log(`Updated row ${row.index} with new comment: ${value}`); //Leaving here for logging and troubleshooting
@@ -187,7 +189,7 @@ const EditableComments = ({
           width: "250px",
           height: "100%",
           resize: "none",
-          overflow: "hidden"
+          overflow: "hidden",
         }}
         id={"ta" + row.id}
         type="textarea"
@@ -201,7 +203,7 @@ const EditableComments = ({
 };
 
 // Turn table IPs into hyperlinks that open a new tab to an iDRAC page on click
-const IP_Hyperlink = props => {
+const IP_Hyperlink = (props) => {
   let iDRAC_IP = props.cell.row.original.ip;
   let iDRAC_link = "http://" + iDRAC_IP;
   return (
@@ -232,20 +234,55 @@ const IndeterminateCheckbox = React.forwardRef(
 
 function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   const [bmrOptions, setBmrOptions] = useState([]);
+  const [factoryblockOptions, setFactoryblockOptions] = useState([]);
+  const [selectedBmrIsoOption, setSelectedBmrIsoOption] = useState("");
+  const [selectedFactoryBlockOption, setSelectedFactoryBlockOption] = useState(
+    ""
+  );
+  const [selectedHypervisorOption, setSelectedHypervisorOption] = useState("");
 
+  const hypervisorOptions = [
+    { value: "AHV", label: "AHV" },
+    { value: "ESXi_65", label: "ESXi_65" },
+    { value: "ESXi_67", label: "ESXi_67" },
+    { value: "ESXi_70", label: "ESXi_70" },
+  ];
+
+  // API request for getting Factory Block Folder List
   useEffect(() => {
     let config = {
       method: "get",
-      url: "http://localhost:8080/getIsoFiles",
-      headers: {}
+      // url: "http://localhost:8080/getIsoFiles",
+      url: "http://100.80.149.97:8080/getFactoryBlock",
+      headers: {},
     };
 
     axios(config)
-      .then(function(response) {
+      .then(function (response) {
+        // console.log(JSON.stringify(response.data.results));
+        setFactoryblockOptions(response.data.results);
+      })
+      .catch(function (error) {
+        // eslint-disable-next-line no-console
+        console.log(error);
+      });
+  }, []);
+
+  // API request for getting BMR ISO File List
+  useEffect(() => {
+    let config = {
+      method: "get",
+      // url: "http://localhost:8080/getIsoFiles",
+      url: "http://100.80.149.97:8080/getBmrIso",
+      headers: {},
+    };
+
+    axios(config)
+      .then(function (response) {
         // console.log(JSON.stringify(response.data.results));
         setBmrOptions(response.data.results);
       })
-      .catch(function(error) {
+      .catch(function (error) {
         // eslint-disable-next-line no-console
         console.log(error);
       });
@@ -257,8 +294,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     autoplay: true,
     animationData: dotLoading.default,
     rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice"
-    }
+      preserveAspectRatio: "xMidYMid slice",
+    },
   };
 
   //Fuzzy text filtering
@@ -269,7 +306,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       // Or, override the default text filter to use
       // "startWith"
       text: (rows, id, filterValue) => {
-        return rows.filter(row => {
+        return rows.filter((row) => {
           const rowValue = row.values[id];
           return rowValue !== undefined
             ? String(rowValue)
@@ -277,7 +314,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                 .startsWith(String(filterValue).toLowerCase())
             : true;
         });
-      }
+      },
     }),
     []
   );
@@ -285,7 +322,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   const defaultColumn = React.useMemo(
     () => ({
       // Let's set up our default Filter UI
-      Filter: DefaultColumnFilter
+      Filter: DefaultColumnFilter,
     }),
     []
   );
@@ -310,7 +347,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     visibleColumns,
     preGlobalFilteredRows,
     setGlobalFilter,
-    state: { pageIndex, pageSize, selectedRowIds }
+    state: { pageIndex, pageSize, selectedRowIds },
   } = useTable(
     {
       columns,
@@ -324,15 +361,15 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       autoResetRowState: !skipPageResetRef.current,
       updateMyData,
       defaultColumn,
-      filterTypes
+      filterTypes,
     },
     useFilters,
     useGlobalFilter,
     useSortBy,
-    useRowSelect,
     usePagination,
-    hooks => {
-      hooks.visibleColumns.push(columns => [
+    useRowSelect,
+    (hooks) => {
+      hooks.visibleColumns.push((columns) => [
         // Let's make a column for selection
         {
           id: "selection",
@@ -349,25 +386,52 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
             <div>
               <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
             </div>
-          )
+          ),
         },
-        ...columns
+        ...columns,
       ]);
     }
   );
 
-  const selectedRowData = selectedFlatRows.map(d => d.original);
+  const selectedRowData = selectedFlatRows.map((d) => d.original);
 
   // eslint-disable-next-line no-console
   // console.log(selectedRowData.map(d => d.ip));
-  // eslint-disable-next-line no-console
-  console.log(selectedRowData.length);
 
-  // const options = [
-  //   { value: "chocolate", label: "Chocolate" },
-  //   { value: "strawberry", label: "Strawberry" },
-  //   { value: "vanilla", label: "Vanilla" }
-  // ];
+  // // Selecting the value from the react-select Selection Dropdown
+  // const handleChange = (selectedOption) => {
+  //   setSelectedIsoOption(selectedOption.value);
+  //   // eslint-disable-next-line no-console
+  //   // console.log(`Option selected:`, selectedOption.value);
+  // };
+
+  const handleClick = () => {
+    // eslint-disable-next-line no-console
+    console.log({
+      selectedBmrIsoOption,
+      selectedFactoryBlockOption,
+      selectedHypervisorOption,
+      selectedRowData,
+    });
+
+    async function makePostRequest() {
+      let params = {
+        selectedBmrIsoOption: selectedBmrIsoOption,
+        selectedFactoryBlockOption: selectedFactoryBlockOption,
+        selectedHypervisorOption: selectedHypervisorOption,
+        selectedRowData: selectedRowData,
+      };
+
+      let res = await axios.post(
+        "http://100.80.149.97:8080/bmrFactoryImaging",
+        params
+      );
+
+      console.log(res.data);
+    }
+
+    makePostRequest();
+  };
 
   return (
     <>
@@ -396,14 +460,69 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                 </FadeIn>
               ) : (
                 <React.Fragment>
-                  {selectedRowData.length !== 0 ? (
-                    <Col md="4">
-                      <Select
-                        className="mt-4 col-md-12 col-offset-4"
-                        placeholder="Select BMR Image..."
-                        options={bmrOptions}
-                      />
+                  <Row>
+                    <Col md="12">
+                      <UncontrolledAlert className="alert-default" fade={false}>
+                        <span className="alert-inner--icon">
+                          <i className="ni ni-air-baloon" />
+                        </span>{" "}
+                        <span className="alert-inner--text">
+                          <strong>INFO!</strong> Only iDRAC version 4.0.0
+                          systems and higher are supported for Factory Imaging
+                          Automation
+                        </span>
+                      </UncontrolledAlert>
                     </Col>
+                  </Row>
+                  {selectedRowData.length !== 0 ? (
+                    <div>
+                      <Row>
+                        <Col md="4">
+                          <Select
+                            className="mt-2 col-md-12 col-offset-4"
+                            placeholder="Select BMR ISO File..."
+                            options={bmrOptions}
+                            onChange={(selectedOption) =>
+                              setSelectedBmrIsoOption(selectedOption.value)
+                            }
+                          />
+                        </Col>
+                        <Col md="4">
+                          <Select
+                            className="mt-2 col-md-12 col-offset-4"
+                            placeholder="Select Factory Block..."
+                            options={factoryblockOptions}
+                            onChange={(selectedOption) =>
+                              setSelectedFactoryBlockOption(
+                                selectedOption.value
+                              )
+                            }
+                          />
+                        </Col>
+                        <Col md="4">
+                          <Select
+                            className="mt-2 col-md-12 col-offset-4"
+                            placeholder="Select Hypervisor..."
+                            options={hypervisorOptions}
+                            onChange={(selectedOption) =>
+                              setSelectedHypervisorOption(selectedOption.value)
+                            }
+                          />
+                        </Col>
+                      </Row>
+                      &nbsp;
+                      <Row>
+                        <Col md="4">
+                          <Button
+                            color="primary"
+                            style={{ "margin-left": "15px" }}
+                            onClick={handleClick}
+                          >
+                            Start Imaging
+                          </Button>{" "}
+                        </Col>
+                      </Row>
+                    </div>
                   ) : null}
                   <br />
                   <Table
@@ -415,12 +534,12 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                     {...getTableProps()}
                   >
                     <thead>
-                      {headerGroups.map(headerGroup => (
+                      {headerGroups.map((headerGroup) => (
                         <tr
                           key={headerGroup.id}
                           {...headerGroup.getHeaderGroupProps()}
                         >
-                          {headerGroup.headers.map(column => (
+                          {headerGroup.headers.map((column) => (
                             <th key={column.id} {...column.getHeaderProps()}>
                               <div>
                                 <span {...column.getSortByToggleProps()}>
@@ -448,7 +567,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                         <th
                           colSpan={visibleColumns.length}
                           style={{
-                            textAlign: "left"
+                            textAlign: "left",
                           }}
                         >
                           <GlobalFilter
@@ -460,11 +579,11 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                       </tr>
                     </thead>
                     <tbody {...getTableBodyProps()}>
-                      {page.map(row => {
+                      {page.map((row) => {
                         prepareRow(row);
                         return (
                           <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                            {row.cells.map(cell => {
+                            {row.cells.map((cell) => {
                               return (
                                 <td
                                   key={cell.id}
@@ -488,8 +607,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                         {
                           selectedRowIds: selectedRowIds,
                           "selectedFlatRows[].original": selectedFlatRows.map(
-                            d => d.original
-                          )
+                            (d) => d.original
+                          ),
                         },
                         null,
                         2
@@ -557,14 +676,14 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                           as="select"
                           custom
                           value={pageSize}
-                          onChange={e => {
+                          onChange={(e) => {
                             setPageSize(Number(e.target.value));
                           }}
-                          onBlur={e => {
+                          onBlur={(e) => {
                             setPageSize(Number(e.target.value));
                           }}
                         >
-                          {[10, 20, 30, 40, 50].map(pageSize => (
+                          {[10, 20, 30, 40, 50].map((pageSize) => (
                             <option key={pageSize} value={pageSize}>
                               Show {pageSize}
                             </option>
@@ -585,7 +704,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
 
 // Define a custom filter filter function!
 function filterGreaterThan(rows, id, filterValue) {
-  return rows.filter(row => {
+  return rows.filter((row) => {
     const rowValue = row.values[id];
     return rowValue >= filterValue;
   });
@@ -595,7 +714,7 @@ function filterGreaterThan(rows, id, filterValue) {
 // when given the new filter value and returns true, the filter
 // will be automatically removed. Normally this is just an undefined
 // check, but here, we want to remove the filter if it's not a number
-filterGreaterThan.autoRemove = val => typeof val !== "number";
+filterGreaterThan.autoRemove = (val) => typeof val !== "number";
 
 function FactoryImaging() {
   // const { userInfo } = useContext(UserInfoContext);
@@ -611,35 +730,35 @@ function FactoryImaging() {
     () => [
       {
         Header: "Service Tag",
-        accessor: "serviceTag"
+        accessor: "serviceTag",
       },
       {
         Header: "System",
-        accessor: "system"
+        accessor: "system",
       },
       {
         Header: "IP Address",
         accessor: "ip",
-        Cell: IP_Hyperlink
+        Cell: IP_Hyperlink,
       },
       {
         Header: "Model",
-        accessor: "model"
+        accessor: "model",
       },
       {
         Header: "Location",
-        accessor: "location"
+        accessor: "location",
       },
       {
         Header: "Status",
-        accessor: "status"
+        accessor: "status",
       },
       {
         Header: "Comments",
         accessor: "comments",
         Cell: EditableComments,
-        disableFilters: true
-      }
+        disableFilters: true,
+      },
     ],
     []
   );
@@ -651,12 +770,12 @@ function FactoryImaging() {
     // When data gets updated with this function, set a flag
     // to disable all of the auto resetting
     skipPageResetRef.current = true;
-    setData(old =>
+    setData((old) =>
       old.map((row, index) => {
         if (index === rowIndex) {
           return {
             ...old[rowIndex],
-            [columnId]: value
+            [columnId]: value,
           };
         }
         return row;
@@ -674,10 +793,10 @@ function FactoryImaging() {
 
   useEffect(() => {
     fetch(`${apiServer}/getUserServers/${userInfo.name}`)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setData(
-          data.results.map(item => {
+          data.results.map((item) => {
             return item;
           })
         );
