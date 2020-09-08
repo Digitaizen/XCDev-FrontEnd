@@ -24,6 +24,7 @@ import Login from "views/examples/Login.js";
 // import Icons from "views/examples/Icons.js";
 import LabInventory from "views/examples/LabInventory";
 import Reset from "views/examples/Reset";
+import FactoryImaging from "views/examples/FactoryImaging";
 // import App from "App";
 
 var routes = [
@@ -56,14 +57,14 @@ var routes = [
     name: "User Profile",
     icon: "ni ni-single-02 text-yellow",
     component: Profile,
-    layout: "/admin"
+    layout: "/admin",
   },
   {
     path: "/tables",
     name: "Lab Inventory",
     icon: "ni ni-bullet-list-67 text-red",
     component: LabInventory,
-    layout: "/admin"
+    layout: "/admin",
   },
   {
     path: "/login",
@@ -71,7 +72,7 @@ var routes = [
     icon: "ni ni-key-25 text-info",
     component: Login,
     layout: "/auth",
-    invisible: true
+    invisible: true,
   },
   {
     path: "/register",
@@ -79,7 +80,7 @@ var routes = [
     icon: "ni ni-circle-08 text-pink",
     component: Register,
     layout: "/auth",
-    invisible: true
+    invisible: true,
   },
   {
     path: "/reset",
@@ -87,7 +88,14 @@ var routes = [
     icon: "ni ni-circle-08 text-pink",
     component: Reset,
     layout: "/auth",
-    invisible: true
-  }
+    invisible: true,
+  },
+  {
+    path: "/factoryImaging",
+    name: "Factory Imaging",
+    icon: "ni ni-settings-gear-65 text-green",
+    component: FactoryImaging,
+    layout: "/admin",
+  },
 ];
 export default routes;

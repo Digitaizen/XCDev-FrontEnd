@@ -30,15 +30,20 @@ import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
 // import { UserInfoContext } from "../../context/UserInfoContext";
 import matchSorter from "match-sorter";
+// import AsyncSelect from "react-select/async";
+import Select from "react-select";
+import axios from "axios";
 // import PropTypes from "prop-types";
 
 // reactstrap components
 import {
+  UncontrolledAlert,
   Button,
   Card,
   CardHeader,
   Table,
   Container,
+  Col,
   Row,
   CardFooter,
   Pagination,
@@ -167,6 +172,7 @@ const EditableComments = ({
       fetch(`${apiServer}/patchComments/${row.original._id}`, requestOptions)
         .then((response) => response.json())
         .catch((e) => {
+          // eslint-disable-next-line no-console
           console.error(e.message);
         });
       // console.log(`Updated row ${row.index} with new comment: ${value}`); //Leaving here for logging and troubleshooting
@@ -209,10 +215,78 @@ const IP_Hyperlink = (props) => {
   );
 };
 
+const IndeterminateCheckbox = React.forwardRef(
+  ({ indeterminate, ...rest }, ref) => {
+    const defaultRef = React.useRef();
+    const resolvedRef = ref || defaultRef;
+
+    React.useEffect(() => {
+      resolvedRef.current.indeterminate = indeterminate;
+    }, [resolvedRef, indeterminate]);
+
+    return (
+      <>
+        <input type="checkbox" ref={resolvedRef} {...rest} />
+      </>
+    );
+  }
+);
+
 function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
-  //Dropdown Menu State
-  // const [dropdownOpen, setDropdownOpen] = useState(false);
-  // const toggle = () => setDropdownOpen(prevState => !prevState);
+  const [bmrOptions, setBmrOptions] = useState([]);
+  const [factoryblockOptions, setFactoryblockOptions] = useState([]);
+  const [selectedBmrIsoOption, setSelectedBmrIsoOption] = useState("");
+  const [selectedFactoryBlockOption, setSelectedFactoryBlockOption] = useState(
+    ""
+  );
+  const [selectedHypervisorOption, setSelectedHypervisorOption] = useState("");
+
+  const hypervisorOptions = [
+    { value: "AHV", label: "AHV" },
+    { value: "ESXi_65", label: "ESXi_65" },
+    { value: "ESXi_67", label: "ESXi_67" },
+    { value: "ESXi_70", label: "ESXi_70" },
+  ];
+
+  // API request for getting Factory Block Folder List
+  useEffect(() => {
+    let config = {
+      method: "get",
+      // url: "http://localhost:8080/getIsoFiles",
+      url: "http://100.80.149.97:8080/getFactoryBlock",
+      headers: {},
+    };
+
+    axios(config)
+      .then(function (response) {
+        // console.log(JSON.stringify(response.data.results));
+        setFactoryblockOptions(response.data.results);
+      })
+      .catch(function (error) {
+        // eslint-disable-next-line no-console
+        console.log(error);
+      });
+  }, []);
+
+  // API request for getting BMR ISO File List
+  useEffect(() => {
+    let config = {
+      method: "get",
+      // url: "http://localhost:8080/getIsoFiles",
+      url: "http://100.80.149.97:8080/getBmrIso",
+      headers: {},
+    };
+
+    axios(config)
+      .then(function (response) {
+        // console.log(JSON.stringify(response.data.results));
+        setBmrOptions(response.data.results);
+      })
+      .catch(function (error) {
+        // eslint-disable-next-line no-console
+        console.log(error);
+      });
+  }, []);
 
   //default options defined for the lottie file loading animation
   const defaultOptions = {
@@ -259,6 +333,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     headerGroups,
     // rows,
     prepareRow,
+    selectedFlatRows,
     pageOptions,
     page,
     state,
@@ -272,7 +347,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     visibleColumns,
     preGlobalFilteredRows,
     setGlobalFilter,
-    state: { pageIndex, pageSize },
+    state: { pageIndex, pageSize, selectedRowIds },
   } = useTable(
     {
       columns,
@@ -292,8 +367,71 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     useGlobalFilter,
     useSortBy,
     usePagination,
-    useRowSelect
+    useRowSelect,
+    (hooks) => {
+      hooks.visibleColumns.push((columns) => [
+        // Let's make a column for selection
+        {
+          id: "selection",
+          // The header can use the table's getToggleAllRowsSelectedProps method
+          // to render a checkbox
+          Header: ({ getToggleAllRowsSelectedProps }) => (
+            <div>
+              <IndeterminateCheckbox {...getToggleAllRowsSelectedProps()} />
+            </div>
+          ),
+          // The cell can use the individual row's getToggleRowSelectedProps method
+          // to the render a checkbox
+          Cell: ({ row }) => (
+            <div>
+              <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />
+            </div>
+          ),
+        },
+        ...columns,
+      ]);
+    }
   );
+
+  const selectedRowData = selectedFlatRows.map((d) => d.original);
+
+  // eslint-disable-next-line no-console
+  // console.log(selectedRowData.map(d => d.ip));
+
+  // // Selecting the value from the react-select Selection Dropdown
+  // const handleChange = (selectedOption) => {
+  //   setSelectedIsoOption(selectedOption.value);
+  //   // eslint-disable-next-line no-console
+  //   // console.log(`Option selected:`, selectedOption.value);
+  // };
+
+  const handleClick = () => {
+    // eslint-disable-next-line no-console
+    console.log({
+      selectedBmrIsoOption,
+      selectedFactoryBlockOption,
+      selectedHypervisorOption,
+      selectedRowData,
+    });
+
+    async function makePostRequest() {
+      let params = {
+        selectedBmrIsoOption: selectedBmrIsoOption,
+        selectedFactoryBlockOption: selectedFactoryBlockOption,
+        selectedHypervisorOption: selectedHypervisorOption,
+        selectedRowData: selectedRowData,
+      };
+
+      let res = await axios.post(
+        "http://100.80.149.97:8080/bmrFactoryImaging",
+        params
+      );
+
+      console.log(res.data);
+    }
+
+    makePostRequest();
+  };
 
   return (
     <>
@@ -305,7 +443,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
           <div className="col">
             <Card className="shadow">
               <CardHeader className="border-0">
-                <h3 className="mb-0">Lab Inventory</h3>
+                <h3 className="mb-0">Factory Imaging</h3>
               </CardHeader>
               {!loading.done ? (
                 <FadeIn>
@@ -322,6 +460,71 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                 </FadeIn>
               ) : (
                 <React.Fragment>
+                  <Row>
+                    <Col md="12">
+                      <UncontrolledAlert className="alert-default" fade={false}>
+                        <span className="alert-inner--icon">
+                          <i className="ni ni-air-baloon" />
+                        </span>{" "}
+                        <span className="alert-inner--text">
+                          <strong>INFO!</strong> Only iDRAC version 4.0.0
+                          systems and higher are supported for Factory Imaging
+                          Automation
+                        </span>
+                      </UncontrolledAlert>
+                    </Col>
+                  </Row>
+                  {selectedRowData.length !== 0 ? (
+                    <div>
+                      <Row>
+                        <Col md="4">
+                          <Select
+                            className="mt-2 col-md-12 col-offset-4"
+                            placeholder="Select BMR ISO File..."
+                            options={bmrOptions}
+                            onChange={(selectedOption) =>
+                              setSelectedBmrIsoOption(selectedOption.value)
+                            }
+                          />
+                        </Col>
+                        <Col md="4">
+                          <Select
+                            className="mt-2 col-md-12 col-offset-4"
+                            placeholder="Select Factory Block..."
+                            options={factoryblockOptions}
+                            onChange={(selectedOption) =>
+                              setSelectedFactoryBlockOption(
+                                selectedOption.value
+                              )
+                            }
+                          />
+                        </Col>
+                        <Col md="4">
+                          <Select
+                            className="mt-2 col-md-12 col-offset-4"
+                            placeholder="Select Hypervisor..."
+                            options={hypervisorOptions}
+                            onChange={(selectedOption) =>
+                              setSelectedHypervisorOption(selectedOption.value)
+                            }
+                          />
+                        </Col>
+                      </Row>
+                      &nbsp;
+                      <Row>
+                        <Col md="4">
+                          <Button
+                            color="primary"
+                            style={{ "margin-left": "15px" }}
+                            onClick={handleClick}
+                          >
+                            Start Imaging
+                          </Button>{" "}
+                        </Col>
+                      </Row>
+                    </div>
+                  ) : null}
+                  <br />
                   <Table
                     className="align-items-center"
                     bordered
@@ -396,6 +599,23 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                       })}
                     </tbody>
                   </Table>
+                  {/* Placeholder Code START - to show the selected Row ID and the Row Data in an Array */}
+                  <p>Selected Rows: {Object.keys(selectedRowIds).length}</p>
+                  <pre>
+                    <code>
+                      {JSON.stringify(
+                        {
+                          selectedRowIds: selectedRowIds,
+                          "selectedFlatRows[].original": selectedFlatRows.map(
+                            (d) => d.original
+                          ),
+                        },
+                        null,
+                        2
+                      )}
+                    </code>
+                  </pre>
+                  {/* Placeholder Code END - to show the selected Row ID and the Row Data in an Array */}
                   <CardFooter className="py-4">
                     <nav aria-label="...">
                       <Pagination
@@ -452,32 +672,6 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                             <i className="fas fa-angle-double-right"></i>
                           </span>
                         </Button>{" "}
-                        {/* <button
-                          onClick={() => gotoPage(pageCount - 1)}
-                          disabled={!canNextPage}
-                        >
-                          {">>"}
-                        </button>{" "} */}
-                        {/* <span>
-                          Page{" "}
-                          <strong>
-                            {pageIndex + 1} of {pageOptions.length}
-                          </strong>{" "}
-                        </span> */}
-                        {/* <span>
-                          | Go to page:{" "}
-                          <input
-                            type="number"
-                            defaultValue={pageIndex + 1}
-                            onChange={e => {
-                              const page = e.target.value
-                                ? Number(e.target.value) - 1
-                                : 0;
-                              gotoPage(page);
-                            }}
-                            style={{ width: "100px" }}
-                          />
-                        </span>{" "} */}
                         <Form.Control
                           as="select"
                           custom
@@ -522,7 +716,7 @@ function filterGreaterThan(rows, id, filterValue) {
 // check, but here, we want to remove the filter if it's not a number
 filterGreaterThan.autoRemove = (val) => typeof val !== "number";
 
-function LabInventory() {
+function FactoryImaging() {
   // const { userInfo } = useContext(UserInfoContext);
   const userInfo = JSON.parse(localStorage.getItem("user"));
   const [data, setData] = React.useState([]);
@@ -534,179 +728,6 @@ function LabInventory() {
 
   const columns = React.useMemo(
     () => [
-      {
-        Header: "Action",
-        // eslint-disable-next-line
-        Cell: (props) => {
-          // Pull data for each row and save it into temp variables
-          let dbRowIdx = props.cell.row.original._id;
-          let tblRowIdx = props.row.index;
-          let rowStatus = props.cell.row.original.status;
-          let rowTag = props.cell.row.original.serviceTag;
-          let btnId = "btn" + tblRowIdx;
-          let btnVal = "";
-          let btnBkgdColor = "white";
-          let ColorCheckOut = "lightgreen";
-          let ColorCheckIn = "#fb6340";
-          let ColorTaken = "lightgray";
-
-          // console.log("dbRowIdx: ", dbRowIdx, " and tblRowIdx: ", tblRowIdx); // debugging
-
-          // Set action button props based on db's 'Status' value for each row
-          if (rowStatus === "available") {
-            btnVal = "Check-Out";
-            btnBkgdColor = ColorCheckOut;
-          } else if (rowStatus === userInfo.name) {
-            btnVal = "Check-In";
-            btnBkgdColor = ColorCheckIn;
-          } else if (rowStatus !== userInfo.name) {
-            btnVal = "taken";
-            btnBkgdColor = ColorTaken;
-          }
-
-          // Build the action button for each row with the props set above
-          return (
-            <Button
-              size="sm"
-              style={{
-                minWidth: 80, // set button's width so they are uniform in size
-                // minHeight: 30,
-                backgroundColor: btnBkgdColor,
-              }}
-              id={btnId}
-              value={btnVal}
-              disabled={
-                rowStatus === "available" || rowStatus === userInfo.name
-                  ? false
-                  : true
-              }
-              onClick={() => {
-                // Get current timestamp
-                let currentDateAndTime = new Date().toLocaleString();
-
-                // Declare var 'payload' for PATCH req to db
-                let payload;
-
-                // Declare var 'checkStatus' for status req to db
-                let checkStatus = "";
-
-                // console.log("onClick btnVal: ", btnVal); //debugging
-
-                // Set action logic based on button's Action value
-                if (btnVal === "Check-Out") {
-                  // Run db check to see if this server is still available
-                  fetch(`${apiServer}/status/${dbRowIdx}`)
-                    .then((res) => res.json())
-                    .then(({ status }) => {
-                      checkStatus = status;
-
-                      // console.log("Check status: ", checkStatus); //debugging
-
-                      // Based on the db check above either check-out the server into user's name or
-                      // notify the user that it has already been checked-out
-                      if (checkStatus === "available") {
-                        // Set the payload with user's name and current timestamp
-                        payload = {
-                          status: userInfo.name,
-                          timestamp: currentDateAndTime,
-                        };
-                        // Specify req options based on the current availability status
-                        const requestOptions = {
-                          method: "PATCH",
-                          body: JSON.stringify(payload),
-                          headers: { "Content-Type": "application/json" },
-                        };
-
-                        // console.log(
-                        //   "Checking-out ",
-                        //   serviceTag,
-                        //   " out of db with these values: ",
-                        //   payload.status,
-                        //   " and ",
-                        //   payload.timestamp,
-                        //   " for dbRowIdx ",
-                        //   dbRowIdx,
-                        //   " and tblRowIdx ",
-                        //   tblRowIdx
-                        // ); //debugging
-
-                        // Fetch it to the backend API with a new status
-                        fetch(
-                          `${apiServer}/patchStatus/${dbRowIdx}`,
-                          requestOptions
-                        ).then((response) => response.json());
-                        // .then(response => console.log(response));
-
-                        // Update row's 'Status' to the currently logged-in username
-                        updateMyData(tblRowIdx, "status", payload.status);
-
-                        // Update the row's 'Timestamp' to the current time
-                        updateMyData(
-                          tblRowIdx,
-                          "timestamp",
-                          currentDateAndTime
-                        );
-                      } else {
-                        // Here, let the user know that this server has already been taken
-                        // console.log(
-                        //   "Sorry, the server ",
-                        //   rowTag,
-                        //   " has already been checked-out by: ",
-                        //   checkStatus
-                        // ); //debugging
-                        alert(
-                          `Sorry, the server ${rowTag} has already been checked-out by: ${checkStatus}. Please, refresh the page to see the updates.`
-                        );
-                        return;
-                      }
-                    });
-                } else {
-                  // Set the payload with 'available' status and current timestamp
-                  payload = {
-                    status: "available",
-                    timestamp: currentDateAndTime,
-                  };
-                  // Specify req options based on the current availability status
-                  const requestOptions = {
-                    method: "PATCH",
-                    body: JSON.stringify(payload),
-                    headers: { "Content-Type": "application/json" },
-                  };
-
-                  // console.log(
-                  //   "Checking-in ",
-                  //   rowTag,
-                  //   " into db with these values: ",
-                  //   payload.status,
-                  //   " and ",
-                  //   payload.timestamp,
-                  //   " for dbRowIdx ",
-                  //   dbRowIdx,
-                  //   " and tblRowIdx ",
-                  //   tblRowIdx
-                  // ); //debugging
-
-                  // Fetch it to the backend API with a new status
-                  fetch(
-                    `${apiServer}/patchStatus/${dbRowIdx}`,
-                    requestOptions
-                  ).then((response) => response.json());
-                  // .then(response => console.log(response));
-
-                  // Update row's 'Status' to "available"
-                  updateMyData(tblRowIdx, "status", payload.status);
-
-                  // Update the row's 'Timestamp' to the current time
-                  updateMyData(tblRowIdx, "timestamp", currentDateAndTime);
-                }
-              }}
-            >
-              {btnVal}
-            </Button>
-          );
-        },
-      },
-
       {
         Header: "Service Tag",
         accessor: "serviceTag",
@@ -720,10 +741,6 @@ function LabInventory() {
         accessor: "ip",
         Cell: IP_Hyperlink,
       },
-      // {
-      //   Header: "Host Name",
-      //   accessor: "hostname",
-      // },
       {
         Header: "Model",
         accessor: "model",
@@ -731,21 +748,10 @@ function LabInventory() {
       {
         Header: "Location",
         accessor: "location",
-        //
       },
-      // {
-      //   Header: "Generation",
-      //   accessor: "generation",
-      // },
       {
         Header: "Status",
         accessor: "status",
-      },
-      {
-        Header: "TimeStamp",
-        accessor: "timestamp",
-        sortType: "basic",
-        // filter: "fuzzyText"
       },
       {
         Header: "Comments",
@@ -754,7 +760,7 @@ function LabInventory() {
         disableFilters: true,
       },
     ],
-    [userInfo.name]
+    []
   );
 
   // When our cell renderer calls updateMyData, we'll use
@@ -786,17 +792,17 @@ function LabInventory() {
   });
 
   useEffect(() => {
-    fetch(`${apiServer}/getServers`)
+    fetch(`${apiServer}/getUserServers/${userInfo.name}`)
       .then((res) => res.json())
       .then((data) => {
         setData(
-          data.map((item) => {
+          data.results.map((item) => {
             return item;
           })
         );
         setLoading({ done: true });
       });
-  }, []);
+  }, [userInfo.name]);
 
   return (
     <React.Fragment>
@@ -811,4 +817,4 @@ function LabInventory() {
   );
 }
 
-export default LabInventory;
+export default FactoryImaging;
