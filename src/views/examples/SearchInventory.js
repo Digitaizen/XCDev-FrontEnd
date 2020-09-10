@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Component } from "react";
 import Select from 'react-select';
 import jsonInv from 'assets/hw_inventory_3_nodes.json';
 import {
@@ -14,9 +13,7 @@ import {
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
-// import { UserInfoContext } from "../../context/UserInfoContext";
 import matchSorter from "match-sorter";
-// import PropTypes from "prop-types";
 
 // reactstrap components
 import {
@@ -30,7 +27,6 @@ import {
   CardFooter,
   Pagination,
   Input,
-  Dropdown, DropdownToggle, DropdownMenu, DropdownItem,
   FormGroup,
   Label
 } from "reactstrap";
@@ -39,9 +35,20 @@ import Form from "react-bootstrap/Form";
 
 // core components
 import Header from "../../components/Headers/Header.js";
-// const apiServer = "http://100.80.149.19:8080"; // for production build
+
 const apiServer = process.env.REACT_APP_API_SERVER;
-// const apiServer = ""; // for local dev work
+
+// Create top level object with subitem objects for each component
+let allData = {
+  SystemInfo: {},
+  ProcessorInfo: {},
+  MemoryInfo: {},
+  StorageDisksInfo: {},
+  StorageControllersInfo: {},
+  NetworkDevicesInfo: {},
+  PowerSuppliesInfo: {},
+  BackplaneInfo: {}
+};
 
 // Define a default UI for filtering
 function GlobalFilter({
@@ -98,7 +105,7 @@ function fuzzyTextFilterFn(rows, id, filterValue) {
 // Let the table remove the filter if the string is empty
 fuzzyTextFilterFn.autoRemove = (val) => !val;
 
-// Function that returns data size in short, human-readable format
+// Function that returns data size in short, human-readable format. Input: data size in bytes.
 function formatSize(x) {
   const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
   let l = 0, n = parseInt(x, 10) || 0;
@@ -211,7 +218,7 @@ const IP_Hyperlink = (props) => {
   let iDRAC_link = "http://" + iDRAC_IP;
   return (
     <div>
-      <a target="_blank" href={iDRAC_link}>
+      <a target="_blank" href={iDRAC_link} rel="noopener noreferrer">
         {iDRAC_IP}
       </a>
     </div>
@@ -226,7 +233,7 @@ const Server_Inventory = (props) => {
   let server_info = "http://100.80.149.97/DellReServer/inventory/Latest/" + server;
   return (
     <div>
-      <a target="_blank" href={server_info}>
+      <a target="_blank" href={server_info} rel="noopener noreferrer">
         {server_tag}
       </a>
     </div>
@@ -235,19 +242,7 @@ const Server_Inventory = (props) => {
 
 // Get data for all Search Inventory dropdown lists
 function getDropdownData(jsonData) {
-  // Create top level object with subitem objects for each component
-  let allData = {
-    SystemInfo: {},
-    ProcessorInfo: {},
-    MemoryInfo: {},
-    StorageDisksInfo: {},
-    StorageControllersInfo: {},
-    NetworkDevicesInfo: {},
-    PowerSuppliesInfo: {},
-    BackplaneInfo: {}
-  };
-
-  // Create arrays for each dropdown
+  // Create arrays for each dropdown and set default value to empty
   const arrSysBios = [];
   const arrDriveMakes = [];
   const arrDriveModels = [];
@@ -333,7 +328,7 @@ function getDropdownData(jsonData) {
       if (!mapDriveSizes.has(server.StorageDisksInformation[driveName].CapacityBytes)) {
         mapDriveSizes.set(server.StorageDisksInformation[driveName].CapacityBytes, true);    // set any value to Map
 
-        // Add this unique value to its array
+        // Re-format data and add this unique value to its array
         let formValue = formatSize(server.StorageDisksInformation[driveName].CapacityBytes);
         arrDriveSizes.push({
           value: formValue,
@@ -500,7 +495,7 @@ function getDropdownData(jsonData) {
       if (!mapDimmSizes.has(server.MemoryInformation[dimmSocket].CapacityMiB)) {
         mapDimmSizes.set(server.MemoryInformation[dimmSocket].CapacityMiB, true);    // set any value to Map
 
-        // Add this unique value to its array
+        // Re-format data and add this unique value to its array
         let formValue = formatSize((server.MemoryInformation[dimmSocket].CapacityMiB) * 1000);
         arrDimmSizes.push({
           value: formValue,
@@ -530,7 +525,6 @@ function getDropdownData(jsonData) {
         label: server.NetworkDeviceInformation.Manufacturer
       });
     };
-    // console.log(arrNicMakes);
 
     if (!mapNicModels.has(server.NetworkDeviceInformation.Model)) {
       mapNicModels.set(server.NetworkDeviceInformation.Model, true);    // set any value to Map
@@ -576,6 +570,7 @@ function getDropdownData(jsonData) {
   allData["NetworkDevicesInfo"]["FWs"] = arrNicFWs;
 
   // Debugging
+  console.log("Printing dropdown data arrays:")
   console.log(arrSysBios);
   console.log(arrDriveMakes);
   console.log(arrDriveModels);
@@ -601,10 +596,51 @@ function getDropdownData(jsonData) {
   return allData;
 };
 
+// Function that checks whether an object contains key-value pair passed-in
+function containsKV(obj, key, value) {
+  return obj.hasOwnProperty(key) && obj[key] == value;
+}
 
-function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
-  // Set hooks for dropdowns
-  const [biosOptions, setSelectedBiosOption] = useState([]);
+// Function that looks for all key-values to match
+function matchAll(serverObj, searchVals) {
+  let result;
+  let kvCheck;
+
+  return result;
+}
+
+// Function that returns an array of Service Tags of those servers that match 
+// the search criteria
+function searchServers(criteriaArr, jsonData) {
+  console.log("Printing the search values array:")
+  console.log(criteriaArr);
+
+  let match;
+  let matchCount = 0;
+  let matchingServers = [];
+  let result = { found: matchCount, servers: matchingServers };
+
+  // Loop through each server's json data in the array
+  jsonData.forEach((server) => {
+    // Call function to check ALL criteria against node's data
+    match = matchAll(server, criteriaArr);
+    if (match) {
+      matchCount++;
+      console.log(`${server.SystemInformation.SKU} is a match. Total count is ${matchCount}`);
+      matchingServers.push(server.SystemInformation.SKU);
+    };
+  });
+  // Shove results into the return object
+  result.found = matchCount;
+  result.servers = matchingServers;
+
+  return result;
+}
+
+// Search Card with all dropdowns -----------------------------------------------------------------
+function SearchCard() {
+  // Store dropdowns' selections via state hooks
+  const [biosOptions, setSelectedBiosOptions] = useState([]);
   const [driveMakers, setSelectedDriveMakers] = useState([]);
   const [driveModels, setSelectedDriveModels] = useState([]);
   const [driveSizes, setSelectedDriveSizes] = useState([]);
@@ -625,32 +661,514 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   const [nicModels, setSelectedNicModels] = useState([]);
   const [nicFWs, setSelectedNicFWs] = useState([]);
 
-
-  // Populate dropdown lists upon load
+  // Upon initial load get the dropdown data
   useEffect(() => {
-    let ddData = getDropdownData(jsonInv);
-    setSelectedBiosOption(ddData.SystemInfo.Bios);
-    setSelectedDriveMakers(ddData.StorageDisksInfo.Manufacturers);
-    setSelectedDriveModels(ddData.StorageDisksInfo.Models);
-    setSelectedDriveSizes(ddData.StorageDisksInfo.Sizes);
-    setSelectedDriveWear(ddData.StorageDisksInfo.Wear);
-    setSelectedProcessorMakes(ddData.ProcessorInfo.Manufacturers);
-    setSelectedProcessorModels(ddData.ProcessorInfo.Models);
-    setSelectedProcessorSpeeds(ddData.ProcessorInfo.Speeds);
-    setSelectedProcessorCores(ddData.ProcessorInfo.Cores);
-    setSelectedControllerNames(ddData.StorageControllersInfo.Names);
-    setSelectedControllerFWs(ddData.StorageControllersInfo.FWs);
-    setSelectedControllerPCIslots(ddData.StorageControllersInfo.PCISlots);
-    setSelectedMemoryMakers(ddData.MemoryInfo.Manufacturers);
-    setSelectedMemoryModels(ddData.MemoryInfo.Models);
-    setSelectedMemoryRanks(ddData.MemoryInfo.Ranks);
-    setSelectedMemorySizes(ddData.MemoryInfo.Sizes);
-    setSelectedMemorySpeeds(ddData.MemoryInfo.Speeds);
-    setSelectedNicMakers(ddData.NetworkDevicesInfo.Manufacturers);
-    setSelectedNicModels(ddData.NetworkDevicesInfo.Models);
-    setSelectedNicFWs(ddData.NetworkDevicesInfo.FWs);
+    console.log("Getting dropdown data..");
+    // Get the data from database JSON
+    getDropdownData(jsonInv);
   }, []);
 
+  // Upon user dropdown selections run db search
+  useEffect(() => {
+    // Store chosen dropdown values to run a search
+    let searchValues = [
+      biosOptions,
+      driveMakers,
+      driveModels,
+      driveSizes,
+      driveWear,
+      processorMakes,
+      processorModels,
+      processorSpeeds,
+      processorCores,
+      controllerNames,
+      controllerFWs,
+      controllerPCIslots,
+      memoryMakers,
+      memoryModels,
+      memoryRanks,
+      memorySizes,
+      memorySpeeds,
+      nicMakers,
+      nicModels,
+      nicFWs];
+
+    // If any of the values are added then run a search
+    if (
+      biosOptions.length > 0 ||
+      driveMakers.length > 0 ||
+      driveModels.length > 0 ||
+      driveSizes.length > 0 ||
+      driveWear.length > 0 ||
+      processorMakes.length > 0 ||
+      processorModels.length > 0 ||
+      processorSpeeds.length > 0 ||
+      processorCores.length > 0 ||
+      controllerNames.length > 0 ||
+      controllerFWs.length > 0 ||
+      controllerPCIslots.length > 0 ||
+      memoryMakers.length > 0 ||
+      memoryModels.length > 0 ||
+      memoryRanks.length > 0 ||
+      memorySizes.length > 0 ||
+      memorySpeeds.length > 0 ||
+      nicMakers.length > 0 ||
+      nicModels.length > 0 ||
+      nicFWs.length > 0)
+      searchServers(searchValues, jsonInv);
+  }, [
+    biosOptions,
+    driveMakers,
+    driveModels,
+    driveSizes,
+    driveWear,
+    processorMakes,
+    processorModels,
+    processorSpeeds,
+    processorCores,
+    controllerNames,
+    controllerFWs,
+    controllerPCIslots,
+    memoryMakers,
+    memoryModels,
+    memoryRanks,
+    memorySizes,
+    memorySpeeds,
+    nicMakers,
+    nicModels,
+    nicFWs]
+  );
+
+  return (
+    <>
+      <Header />
+      {/* Page content */}
+      <div className="header bg-gradient-info">
+        <Container className="mt--9" fluid={true} >
+          {/* style={{border: "none", margin: "1px", padding: "25px", width: "auto", height: "100%", resize: "none" }} */}
+          <div className="col">
+            <row>
+              <Card className="shadow">
+                <CardHeader className="border-0">
+                  <h3 className="mb-0">Search Components</h3>
+                  <Form>
+                    <br></br>
+                    <Row>
+                      <Col sm={1}>
+                        {/* <br></br> */}
+                        <Label>System Information</Label>
+                      </Col>
+                      <Col xs={1}></Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Bios</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select BIOS.."
+                            options={allData.SystemInfo.Bios}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedBiosOptions}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">iDRAC Firmware</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select firmware.."
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedSysFWs}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">CPLD</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select CPLD.."
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedSysCPLDs}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">DIMMs</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select DIMMs.."
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedSysDIMMs}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Type of Memory</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select type.."
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedSysMemTypes}
+                          />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col sm={1}>
+                        {/* <br></br> */}
+                        <Label>Drive Information</Label>
+                      </Col>
+                      <Col xs={1}></Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Make</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select make.."
+                            options={allData.StorageDisksInfo.Manufacturers}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedDriveMakers}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Model</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select model.."
+                            options={allData.StorageDisksInfo.Models}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedDriveModels}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={1}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Size</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="size.."
+                            options={allData.StorageDisksInfo.Sizes}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedDriveSizes}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={1}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Wear Level</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="life%.."
+                            options={allData.StorageDisksInfo.Wear}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedDriveWear}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Firmware</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select firmware.."
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedDriveFWs}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Serial Number</Label> */}
+                          <Input type="text" name="search" id="exampleText" placeholder="Enter serial #" />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+
+                    <Row>
+                      <Col sm={1}>
+                        {/* <br></br> */}
+                        <Label>Processor Information</Label>
+                      </Col>
+                      <Col xs={1}></Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Make</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select make.."
+                            options={allData.ProcessorInfo.Manufacturers}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedProcessorMakes}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Model</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select model.."
+                            options={allData.ProcessorInfo.Models}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedProcessorModels}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Clock Speed</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select speed.."
+                            options={allData.ProcessorInfo.Speeds}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedProcessorSpeeds}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Core Count</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select core count.."
+                            options={allData.ProcessorInfo.Cores}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedProcessorCores}
+                          />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+
+                    <Row>
+                      <Col sm={1}>
+                        {/* <br></br> */}
+                        <Label>Controllers Information</Label>
+                      </Col>
+                      <Col xs={1}></Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Name</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select name..."
+                            options={allData.StorageControllersInfo.Names}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedControllerNames}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Firmware</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select firmware.."
+                            options={allData.StorageControllersInfo.FWs}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedControllerFWs}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">PCI Slot</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select PCI slot.."
+                            options={allData.StorageControllersInfo.PCISlots}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedControllerPCIslots}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">SAS Address</Label> */}
+                          <Input type="text" name="search" id="exampleText" placeholder="Enter SAS address.." />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Serial Number</Label> */}
+                          <Input type="text" name="search" id="exampleText" placeholder="Enter serial #.." />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+
+                    <Row>
+                      <Col sm={1}>
+                        {/* <br></br> */}
+                        <Label>DIMMs Information</Label>
+                      </Col>
+                      <Col xs={1}></Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Manufacturer</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select make.."
+                            options={allData.MemoryInfo.Manufacturers}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedMemoryMakers}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Model</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select model.."
+                            options={allData.MemoryInfo.Models}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedMemoryModels}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={1}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Rank</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="rank.."
+                            options={allData.MemoryInfo.Ranks}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedMemoryRanks}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={1}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Size</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="size.."
+                            options={allData.MemoryInfo.Sizes}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedMemorySizes}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Speed</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select speed.."
+                            options={allData.MemoryInfo.Speeds}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedMemorySpeeds}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Part Number</Label> */}
+                          <Input type="text" name="search" id="exampleText" placeholder="Enter part #" />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+
+                    <Row>
+                      <Col sm={1}>
+                        {/* <br></br> */}
+                        <Label>NICs Information</Label>
+                      </Col>
+                      <Col xs={1}></Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Manufacturer</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select make.."
+                            options={allData.NetworkDevicesInfo.Manufacturers}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedNicMakers}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Model</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select model.."
+                            options={allData.NetworkDevicesInfo.Models}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedNicModels}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Firmware</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select firmware.."
+                            options={allData.NetworkDevicesInfo.FWs}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedNicFWs}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Port Number</Label> */}
+                          <Input type="text" name="search" id="exampleText" placeholder="Enter port #" />
+                        </FormGroup>
+                      </Col>
+                    </Row>
+                  </Form>
+                </CardHeader>
+              </Card>
+            </row>
+          </div>
+        </Container>
+        {/* Table */}
+      </div>
+      {/* Page content */}
+    </>
+  );
+}
+
+// Tables Card with the server table --------------------------------------------------------------
+function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   //default options defined for the lottie file loading animation
   const defaultOptions = {
     loop: true,
@@ -735,601 +1253,173 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   return (
     <>
       <Header />
-      {/* Page content */}
-      <div className="header bg-gradient-info pb-8 pt-3 pt-md-10">
+      <div className="header pb-1 pt-1 pt-sm-1">
         <Container className="mt--9" fluid={true} >
-          {/* style={{border: "none", margin: "1px", padding: "25px", width: "auto", height: "100%", resize: "none" }} */}
-          <div className="col">
-            <row>
+          {/* Table */}
+          <Row>
+            <div className="col">
               <Card className="shadow">
                 <CardHeader className="border-0">
-                  <h3 className="mb-0">Search Components</h3>
-                  <Form>
-                    <br></br>
-                    <Row>
-                      <Col sm={1}>
-                        {/* <br></br> */}
-                        <Label>System Information</Label>
-                      </Col>
-                      <Col xs={1}></Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Bios</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select BIOS Version..."
-                            options={biosOptions}
-                            onChange={(selectedOption) =>
-                              setSelectedBiosOption(selectedOption.value)
-                            }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">iDRAC Firmware</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware..."
-                          // options={}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedSysFW(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">CPLD</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select CPLD..."
-                          // options={}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedSysCPLD(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">DIMMs</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select DIMMs..."
-                          // options={}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedSysDIMM(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Type of Memory</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select type..."
-                          // options={biosOptions}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedSysMemType(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col sm={1}>
-                        {/* <br></br> */}
-                        <Label>Drive Information</Label>
-                      </Col>
-                      <Col xs={1}></Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Make</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make..."
-                            options={driveMakers}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedDriveMakers(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Model</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model..."
-                            options={driveModels}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedDriveModels(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={1}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Size</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select size..."
-                            options={driveSizes}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedDriveSizes(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={1}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Wear Level</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select wear level..."
-                            options={driveWear}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedDriveWear(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Firmware</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware..."
-                          // options={}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedDriveFW(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter serial #" />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-
-                    <Row>
-                      <Col sm={1}>
-                        {/* <br></br> */}
-                        <Label>Processor Information</Label>
-                      </Col>
-                      <Col xs={1}></Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Make</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make..."
-                            options={processorMakes}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedProcessorMakes(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Model</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model..."
-                            options={processorModels}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedProcessorModels(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Clock Speed</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select speed.."
-                            options={processorSpeeds}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedProcessorSpeeds(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Core Count</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select core count.."
-                            options={processorCores}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedProcessorCores(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-
-                    <Row>
-                      <Col sm={1}>
-                        {/* <br></br> */}
-                        <Label>Controllers Information</Label>
-                      </Col>
-                      <Col xs={1}></Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Name</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select Name..."
-                            options={controllerNames}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedControllerNames(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Firmware</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware..."
-                            options={controllerFWs}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedControllerFWs(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">PCI Slot</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select PCI slot..."
-                            options={controllerPCIslots}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedControllerPCIslots(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">SAS Address</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter SAS address.." />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter serial #.." />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-
-                    <Row>
-                      <Col sm={1}>
-                        {/* <br></br> */}
-                        <Label>DIMMs Information</Label>
-                      </Col>
-                      <Col xs={1}></Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Manufacturer</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
-                            options={memoryMakers}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedMemoryMakers(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Model</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model..."
-                            options={memoryModels}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedMemoryModels(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={1}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Rank</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select rank..."
-                            options={memoryRanks}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedMemoryRanks(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={1}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Size</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select size..."
-                            options={memorySizes}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedMemorySizes(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Speed</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select speed..."
-                            options={memorySpeeds}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedMemorySpeeds(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Part Number</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter part #" />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-
-                    <Row>
-                      <Col sm={1}>
-                        {/* <br></br> */}
-                        <Label>NICs Information</Label>
-                      </Col>
-                      <Col xs={1}></Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Manufacturer</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
-                            options={nicMakers}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedNicMakers(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Model</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model..."
-                            options={nicModels}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedNicModels(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Firmware</Label> */}
-                          <Select
-                            className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware..."
-                            options={nicFWs}
-                          // onChange={(selectedOption) =>
-                          //   setSelectedNicFWs(selectedOption.value)
-                          // }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col sm={2}>
-                        <FormGroup>
-                          {/* <Label for="exampleSelect">Port Number</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter port #" />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                  </Form>
+                  <h3 className="mb-0">Search Results</h3>
                 </CardHeader>
-              </Card>
-            </row>
-          </div>
-        </Container>
-        {/* Table */}
-      </div>
-      {/* Page content */}
-      <Container className="mt--7" fluid={true} style={{
-        border: "none",
-        margin: "1px",
-        padding: "1px",
-        width: "100%",
-        height: "100%",
-        resize: "none",
-        alignSelf: true
-      }}>
-        {/* Table */}
-        <Row>
-          <div className="col">
-            <Card className="shadow">
-              <CardHeader className="border-0">
-                <h3 className="mb-0">Search Results</h3>
-              </CardHeader>
-              {!loading.done ? (
-                <FadeIn>
-                  <Row className="d-flex justify-content-center align-items-center ">
-                    <div>
-                      <h1>Loading Data</h1>
-                      <Lottie
-                        options={defaultOptions}
-                        height={120}
-                        width={120}
-                      />
-                    </div>
-                  </Row>
-                </FadeIn>
-              ) : (
-                  <React.Fragment>
-                    <Table
-                      className="align-items-center"
-                      bordered
-                      hover
-                      responsive
-                      size="sm"
-                      {...getTableProps()}
-                    >
-                      <thead>
-                        {headerGroups.map((headerGroup) => (
-                          <tr
-                            key={headerGroup.id}
-                            {...headerGroup.getHeaderGroupProps()}
-                          >
-                            {headerGroup.headers.map((column) => (
-                              <th key={column.id} {...column.getHeaderProps()}>
-                                <div>
-                                  <span {...column.getSortByToggleProps()}>
-                                    {column.render("Header")}
-                                    {/* Add a sort direction indicator */}
-                                    {column.isSorted
-                                      ? column.isSortedDesc
-                                        ? " 🔽"
-                                        : " 🔼"
-                                      : ""}
-                                  </span>
-                                </div>
-                                <br />
-                                {/* Render the columns filter UI */}
-                                <div>
-                                  {column.canFilter
-                                    ? column.render("Filter")
-                                    : null}
-                                </div>
-                              </th>
-                            ))}
-                          </tr>
-                        ))}
-                        <tr>
-                          <th
-                            colSpan={visibleColumns.length}
-                            style={{
-                              textAlign: "left",
-                            }}
-                          >
-                            <GlobalFilter
-                              preGlobalFilteredRows={preGlobalFilteredRows}
-                              globalFilter={state.globalFilter}
-                              setGlobalFilter={setGlobalFilter}
-                            />
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody {...getTableBodyProps()}>
-                        {page.map((row) => {
-                          prepareRow(row);
-                          return (
-                            <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                              {row.cells.map((cell) => {
-                                return (
-                                  <td
-                                    key={cell.id}
-                                    id={cell.id}
-                                    {...cell.getCellProps()}
-                                  >
-                                    {cell.render("Cell")}
-                                  </td>
-                                );
-                              })}
+                {!loading.done ? (
+                  <FadeIn>
+                    <Row className="d-flex justify-content-center align-items-center ">
+                      <div>
+                        <h1>Loading Data</h1>
+                        <Lottie
+                          options={defaultOptions}
+                          height={120}
+                          width={120}
+                        />
+                      </div>
+                    </Row>
+                  </FadeIn>
+                ) : (
+                    <React.Fragment>
+                      <Table
+                        className="align-items-center"
+                        bordered
+                        hover
+                        responsive
+                        size="sm"
+                        {...getTableProps()}
+                      >
+                        <thead>
+                          {headerGroups.map((headerGroup) => (
+                            <tr
+                              key={headerGroup.id}
+                              {...headerGroup.getHeaderGroupProps()}
+                            >
+                              {headerGroup.headers.map((column) => (
+                                <th key={column.id} {...column.getHeaderProps()}>
+                                  <div>
+                                    <span {...column.getSortByToggleProps()}>
+                                      {column.render("Header")}
+                                      {/* Add a sort direction indicator */}
+                                      {column.isSorted
+                                        ? column.isSortedDesc
+                                          ? " 🔽"
+                                          : " 🔼"
+                                        : ""}
+                                    </span>
+                                  </div>
+                                  <br />
+                                  {/* Render the columns filter UI */}
+                                  <div>
+                                    {column.canFilter
+                                      ? column.render("Filter")
+                                      : null}
+                                  </div>
+                                </th>
+                              ))}
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </Table>
-                    <CardFooter className="py-4">
-                      <nav aria-label="...">
-                        <Pagination
-                          className="pagination justify-content-end mb-0"
-                          listClassName="justify-content-end mb-0"
-                        >
-                          <Button color="info">
-                            Page {pageIndex + 1} of {pageOptions.length}
-                            <span className="sr-only">unread messages</span>
-                          </Button>
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => gotoPage(0)}
-                            disabled={!canPreviousPage}
+                          ))}
+                          <tr>
+                            <th
+                              colSpan={visibleColumns.length}
+                              style={{
+                                textAlign: "left",
+                              }}
+                            >
+                              <GlobalFilter
+                                preGlobalFilteredRows={preGlobalFilteredRows}
+                                globalFilter={state.globalFilter}
+                                setGlobalFilter={setGlobalFilter}
+                              />
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody {...getTableBodyProps()}>
+                          {page.map((row) => {
+                            prepareRow(row);
+                            return (
+                              <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                                {row.cells.map((cell) => {
+                                  return (
+                                    <td
+                                      key={cell.id}
+                                      id={cell.id}
+                                      {...cell.getCellProps()}
+                                    >
+                                      {cell.render("Cell")}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </Table>
+                      <CardFooter className="py-4">
+                        <nav aria-label="...">
+                          <Pagination
+                            className="pagination justify-content-end mb-0"
+                            listClassName="justify-content-end mb-0"
                           >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-double-left"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* Previous Page */}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => previousPage()}
-                            disabled={!canPreviousPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-left"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* Next Page */}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => nextPage()}
-                            disabled={!canNextPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-right"></i>
-                            </span>
-                          </Button>{" "}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => gotoPage(pageCount - 1)}
-                            disabled={!canNextPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-double-right"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* <button
+                            <Button color="info">
+                              Page {pageIndex + 1} of {pageOptions.length}
+                              <span className="sr-only">unread messages</span>
+                            </Button>
+                            <Button
+                              className="btn-icon btn-2"
+                              color="primary"
+                              type="button"
+                              onClick={() => gotoPage(0)}
+                              disabled={!canPreviousPage}
+                            >
+                              <span className="btn-inner--icon">
+                                <i className="fas fa-angle-double-left"></i>
+                              </span>
+                            </Button>{" "}
+                            {/* Previous Page */}
+                            <Button
+                              className="btn-icon btn-2"
+                              color="primary"
+                              type="button"
+                              onClick={() => previousPage()}
+                              disabled={!canPreviousPage}
+                            >
+                              <span className="btn-inner--icon">
+                                <i className="fas fa-angle-left"></i>
+                              </span>
+                            </Button>{" "}
+                            {/* Next Page */}
+                            <Button
+                              className="btn-icon btn-2"
+                              color="primary"
+                              type="button"
+                              onClick={() => nextPage()}
+                              disabled={!canNextPage}
+                            >
+                              <span className="btn-inner--icon">
+                                <i className="fas fa-angle-right"></i>
+                              </span>
+                            </Button>{" "}
+                            <Button
+                              className="btn-icon btn-2"
+                              color="primary"
+                              type="button"
+                              onClick={() => gotoPage(pageCount - 1)}
+                              disabled={!canNextPage}
+                            >
+                              <span className="btn-inner--icon">
+                                <i className="fas fa-angle-double-right"></i>
+                              </span>
+                            </Button>{" "}
+                            {/* <button
                           onClick={() => gotoPage(pageCount - 1)}
                           disabled={!canNextPage}
                         >
                           {">>"}
                         </button>{" "} */}
-                          {/* <span>
+                            {/* <span>
                           Page{" "}
                           <strong>
                             {pageIndex + 1} of {pageOptions.length}
                           </strong>{" "}
                         </span> */}
-                          {/* <span>
+                            {/* <span>
                           | Go to page:{" "}
                           <input
                             type="number"
@@ -1343,33 +1433,34 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                             style={{ width: "100px" }}
                           />
                         </span>{" "} */}
-                          <Form.Control
-                            as="select"
-                            custom
-                            value={pageSize}
-                            onChange={(e) => {
-                              setPageSize(Number(e.target.value));
-                            }}
-                            onBlur={(e) => {
-                              setPageSize(Number(e.target.value));
-                            }}
-                          >
-                            {[10, 20, 30, 40, 50].map((pageSize) => (
-                              <option key={pageSize} value={pageSize}>
-                                Show {pageSize}
-                              </option>
-                            ))}
-                          </Form.Control>
-                        </Pagination>
-                      </nav>
-                    </CardFooter>
-                  </React.Fragment>
-                )}
-            </Card>
-          </div>
-        </Row>
+                            <Form.Control
+                              as="select"
+                              custom
+                              value={pageSize}
+                              onChange={(e) => {
+                                setPageSize(Number(e.target.value));
+                              }}
+                              onBlur={(e) => {
+                                setPageSize(Number(e.target.value));
+                              }}
+                            >
+                              {[10, 20, 30, 40, 50].map((pageSize) => (
+                                <option key={pageSize} value={pageSize}>
+                                  Show {pageSize}
+                                </option>
+                              ))}
+                            </Form.Control>
+                          </Pagination>
+                        </nav>
+                      </CardFooter>
+                    </React.Fragment>
+                  )}
+              </Card>
+            </div>
+          </Row>
 
-      </Container>
+        </Container>
+      </div>
     </>
   );
 }
@@ -1653,6 +1744,7 @@ function SearchInventory() {
 
   return (
     <React.Fragment>
+      <SearchCard />
       <Tables
         columns={columns}
         data={data}
