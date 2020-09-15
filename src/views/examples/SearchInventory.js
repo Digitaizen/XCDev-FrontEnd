@@ -782,145 +782,150 @@ function getDropdownData(jsonData) {
 
 // Function that looks for all key-values to match
 function matchAll(serverObj, searchVals) {
-  let result;
+  try {
+    let result;
 
-  console.log(serverObj); // debugging
-  // console.log(searchVals); // debugging
+    console.log(serverObj); // debugging
+    // console.log(searchVals); // debugging
 
-  // Get key-value pairs of search criteria
-  let svKVs = Object.entries(searchVals[0]);
+    // Get key-value pairs of search criteria
+    let svKVs = Object.entries(searchVals[0]);
 
-  // Initialize match and criteria counters
-  let matchCounter = 0;
-  let criteriaCounter = 0;
+    // Initialize match and criteria counters
+    let matchCounter = 0;
+    let criteriaCounter = 0;
 
-  // Loop through search criteria key-value pairs and check them
-  // against each server's object data; count the matches.
-  svKVs.forEach((kv) => {
-    if (kv[1].length > 0) {
-      // console.log(kv);
-      criteriaCounter++;
-      switch (kv[0]) {
-        case "BiosOptions":
-          // console.log(serverObj.SystemInfo.BiosVersion);
-          // console.log(kv[1]);
-          if (kv[1].includes(serverObj.SystemInfo.BiosVersion)) {
-            matchCounter++;
-            // console.log("Bios matched!");
-          } else {
-            // console.log("Bios do not match!");
-          };
-          break;
-        case "DriveMakers":
-          if ((serverObj.StorageDisksInfo.Manufacturers).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "DriveModels":
-          if ((serverObj.StorageDisksInfo.Models).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "DriveSizes":
-          if ((serverObj.StorageDisksInfo.Sizes).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "DriveWear":
-          if ((serverObj.StorageDisksInfo.Wear).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "ProcessorMakes":
-          if ((serverObj.ProcessorInfo.Manufacturers).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "ProcessorModels":
-          if ((serverObj.ProcessorInfo.Models).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "ProcessorSpeeds":
-          if ((serverObj.ProcessorInfo.Speeds).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "ProcessorCores":
-          if ((serverObj.ProcessorInfo.Cores).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "ControllerNames":
-          if ((serverObj.StorageControllersInfo.Names).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "ControllerFWs":
-          if ((serverObj.StorageControllersInfo.FirmwareVersions).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "ControllerPCIslots":
-          if ((serverObj.StorageControllersInfo.ControllerPCIslots).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "MemoryMakers":
-          if ((serverObj.MemoryInfo.Manufacturers).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "MemoryModels":
-          if ((serverObj.MemoryInfo.Models).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "MemoryRanks":
-          if ((serverObj.MemoryInfo.Ranks).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "MemorySizes":
-          if ((serverObj.MemoryInfo.Sizes).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "MemorySpeeds":
-          if ((serverObj.MemoryInfo.Speeds).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "NicMakers":
-          if ((serverObj.NetworkDevicesInfo.Manufacturers).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "NicModels":
-          if ((serverObj.NetworkDevicesInfo.Models).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "NicFWs":
-          if ((serverObj.NetworkDevicesInfo.FirmwareVersions).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
-        case "NicPorts":
-          if ((serverObj.NetworkDevicesInfo.PortNumbers).some(s => kv[1].includes(s))) {
-            matchCounter++;
-          };
-          break;
+    // Loop through search criteria key-value pairs and check them
+    // against each server's object data; count the matches.
+    svKVs.forEach((kv) => {
+      if (kv[1].length > 0) {
+        // console.log(kv);
+        criteriaCounter++;
+        switch (kv[0]) {
+          case "BiosOptions":
+            // console.log(serverObj.SystemInfo.BiosVersion);
+            // console.log(kv[1]);
+            if (kv[1].includes(serverObj.SystemInfo.BiosVersion)) {
+              matchCounter++;
+              // console.log("Bios matched!");
+            } else {
+              // console.log("Bios do not match!");
+            };
+            break;
+          case "DriveMakers":
+            if ((serverObj.StorageDisksInfo.Manufacturers).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "DriveModels":
+            if ((serverObj.StorageDisksInfo.Models).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "DriveSizes":
+            if ((serverObj.StorageDisksInfo.Sizes).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "DriveWear":
+            if ((serverObj.StorageDisksInfo.Wear).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "ProcessorMakes":
+            if ((serverObj.ProcessorInfo.Manufacturers).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "ProcessorModels":
+            if ((serverObj.ProcessorInfo.Models).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "ProcessorSpeeds":
+            if ((serverObj.ProcessorInfo.Speeds).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "ProcessorCores":
+            if ((serverObj.ProcessorInfo.Cores).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "ControllerNames":
+            if ((serverObj.StorageControllersInfo.Names).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "ControllerFWs":
+            if ((serverObj.StorageControllersInfo.FirmwareVersions).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "ControllerPCIslots":
+            if ((serverObj.StorageControllersInfo.PCISlots).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "MemoryMakers":
+            if ((serverObj.MemoryInfo.Manufacturers).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "MemoryModels":
+            if ((serverObj.MemoryInfo.Models).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "MemoryRanks":
+            if ((serverObj.MemoryInfo.Ranks).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "MemorySizes":
+            if ((serverObj.MemoryInfo.Sizes).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "MemorySpeeds":
+            if ((serverObj.MemoryInfo.Speeds).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "NicMakers":
+            if ((serverObj.NetworkDevicesInfo.Manufacturers).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "NicModels":
+            if ((serverObj.NetworkDevicesInfo.Models).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "NicFWs":
+            if ((serverObj.NetworkDevicesInfo.FirmwareVersions).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+          case "NicPorts":
+            if ((serverObj.NetworkDevicesInfo.PortNumbers).some(s => kv[1].includes(s))) {
+              matchCounter++;
+            };
+            break;
+        };
       };
-    };
-  });
-  // debugging
-  // console.log(matchCounter);
-  // console.log(criteriaCounter);
+    });
+    // debugging
+    // console.log(matchCounter);
+    // console.log(criteriaCounter);
 
-  // Return boolean based on count of matches vs count of criteria
-  matchCounter == criteriaCounter ? result = true : result = false;
-  return result;
+    // Return boolean based on count of matches vs count of criteria
+    matchCounter == criteriaCounter ? result = true : result = false;
+    return result;
+  } catch (e) {
+    console.log("Error in matchAll function:");
+    console.log(e);
+  };
 }
 
 // Function that returns an array of Service Tags of those servers that match 
