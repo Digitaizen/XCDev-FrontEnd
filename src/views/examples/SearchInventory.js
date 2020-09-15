@@ -35,10 +35,11 @@ import Form from "react-bootstrap/Form";
 
 // core components
 import Header from "../../components/Headers/Header.js";
+import { getNameOfDeclaration } from "typescript";
 
 const apiServer = process.env.REACT_APP_API_SERVER;
 
-// Create top level object with subitem objects for each component
+// Create top level object with subitem objects for each component's options
 let allData = {
   SystemInfo: {},
   ProcessorInfo: {},
@@ -49,6 +50,9 @@ let allData = {
   PowerSuppliesInfo: {},
   BackplaneInfo: {}
 };
+
+// Create main array to store server objects data
+let allServerObj = [];
 
 // Define a default UI for filtering
 function GlobalFilter({
@@ -263,6 +267,7 @@ function getDropdownData(jsonData) {
   const arrNicMakes = [];
   const arrNicModels = [];
   const arrNicFWs = [];
+  const arrNicPortNums = [];
 
   // Create maps to store only unique values for each key
   const mapSysBios = new Map();
@@ -285,14 +290,86 @@ function getDropdownData(jsonData) {
   const mapNicMakes = new Map();
   const mapNicModels = new Map();
   const mapNicFWs = new Map();
-
+  const mapNicPortNums = new Map();
 
   // Loop through each server's json data in the array
   jsonData.forEach((server) => {
+    // Create a server object to store key-value data to be searched
+    let serverObj = {
+      ServiceTag: "",
+      SystemInfo: {
+        BiosVersion: "",
+        FirmwareVersion: "",
+        CPLD: "",
+        DIMMs: [],
+        Types: []
+      },
+      ProcessorInfo: {
+        Manufacturers: [],
+        Models: [],
+        Speeds: [],
+        CoreCounts: []
+      },
+      MemoryInfo: {
+        Manufacturers: [],
+        Models: [],
+        Ranks: [],
+        Sizes: [],
+        Speeds: []
+      },
+      StorageDisksInfo: {
+        Manufacturers: [],
+        Models: [],
+        Sizes: [],
+        Wear: [],
+        FirmwareVersions: [],
+        SerialNumbers: []
+      },
+      StorageControllersInfo: {
+        Names: [],
+        FirmwareVersions: [],
+        PCISlots: [],
+        SASAddresses: [],
+        SerialNumbers: []
+      },
+      NetworkDevicesInfo: {
+        Manufacturers: [],
+        Models: [],
+        FirmwareVersions: [],
+        PortNumbers: []
+      }
+    };
+
+    // Create a set for each of server components' searchable data
+    let driveMakersSet = new Set();
+    let driveModelsSet = new Set();
+    let driveSizesSet = new Set();
+    let driveWearSet = new Set();
+    // let driveFWsSet = new Set();
+    let processorMakesSet = new Set();
+    let processorModelsSet = new Set();
+    let processorSpeedsSet = new Set();
+    let processorCoresSet = new Set();
+    let controllerNamesSet = new Set();
+    let controllerFWsSet = new Set();
+    let controllerPCISlotsSet = new Set();
+    let controllerSASaddressesSet = new Set();
+    let controllerSerialNumsSet = new Set();
+    let memoryMakersSet = new Set();
+    let memoryModelsSet = new Set();
+    let memoryRanksSet = new Set();
+    let memorySizesSet = new Set();
+    let memorySpeedsSet = new Set();
+    let memoryPartNumsSet = new Set();
+    let nicMakersSet = new Set();
+    let nicModelsSet = new Set();
+    let nicFWsSet = new Set();
+    let nicPortNumsSet = new Set();
+
     // System Information -------------------------------------------------------------------------
     // Check if the value already on the list and if not then add it
     if (!mapSysBios.has(server.SystemInformation.BiosVersion)) {
-      mapSysBios.set(server.SystemInformation.BiosVersion, true);    // set any value to Map
+      mapSysBios.set(server.SystemInformation.BiosVersion, true);
 
       // Add this unique value to its array
       arrSysBios.push({
@@ -300,6 +377,9 @@ function getDropdownData(jsonData) {
         label: server.SystemInformation.BiosVersion
       });
     };
+    // Push data into the server object
+    serverObj.ServiceTag = server.SystemInformation.SKU;
+    serverObj.SystemInfo.BiosVersion = server.SystemInformation.BiosVersion;
 
     // Storage Disks Information ------------------------------------------------------------------
     // Get the names of the drives
@@ -308,7 +388,7 @@ function getDropdownData(jsonData) {
     // Loop through drives, get then add unique data to array
     sdiKeys.forEach((driveName) => {
       if (!mapDriveMakers.has(server.StorageDisksInformation[driveName].Manufacturer)) {
-        mapDriveMakers.set(server.StorageDisksInformation[driveName].Manufacturer, true);    // set any value to Map
+        mapDriveMakers.set(server.StorageDisksInformation[driveName].Manufacturer, true);
 
         // Add this unique value to its array
         arrDriveMakes.push({
@@ -316,8 +396,12 @@ function getDropdownData(jsonData) {
           label: server.StorageDisksInformation[driveName].Manufacturer
         });
       };
+      // Add it to the drive's set
+      driveMakersSet.add(server.StorageDisksInformation[driveName].Manufacturer);
+
+
       if (!mapDriveModels.has(server.StorageDisksInformation[driveName].Model)) {
-        mapDriveModels.set(server.StorageDisksInformation[driveName].Model, true);    // set any value to Map
+        mapDriveModels.set(server.StorageDisksInformation[driveName].Model, true);
 
         // Add this unique value to its array
         arrDriveModels.push({
@@ -325,8 +409,11 @@ function getDropdownData(jsonData) {
           label: server.StorageDisksInformation[driveName].Model
         });
       };
+      // Add it to the drive's set
+      driveModelsSet.add(server.StorageDisksInformation[driveName].Model);
+
       if (!mapDriveSizes.has(server.StorageDisksInformation[driveName].CapacityBytes)) {
-        mapDriveSizes.set(server.StorageDisksInformation[driveName].CapacityBytes, true);    // set any value to Map
+        mapDriveSizes.set(server.StorageDisksInformation[driveName].CapacityBytes, true);
 
         // Re-format data and add this unique value to its array
         let formValue = formatSize(server.StorageDisksInformation[driveName].CapacityBytes);
@@ -335,8 +422,11 @@ function getDropdownData(jsonData) {
           label: formValue
         });
       };
+      // Add it to the drive's set
+      driveSizesSet.add(formatSize(server.StorageDisksInformation[driveName].CapacityBytes));
+
       if (!mapDriveWear.has(server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent)) {
-        mapDriveWear.set(server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent, true);    // set any value to Map
+        mapDriveWear.set(server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent, true);
 
         // Add this unique value to its array
         arrDriveWear.push({
@@ -344,7 +434,17 @@ function getDropdownData(jsonData) {
           label: server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent
         });
       };
+      // Add it to the drive's set
+      driveWearSet.add(server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent);
+      serverObj.StorageDisksInfo.SerialNumbers.push(server.StorageDisksInformation[driveName].SerialNumber);
     });
+    // Push data into the server object
+    serverObj.StorageDisksInfo.Manufacturers = [...driveMakersSet];
+    serverObj.StorageDisksInfo.Models = [...driveModelsSet];
+    serverObj.StorageDisksInfo.Sizes = [...driveSizesSet];
+    serverObj.StorageDisksInfo.Wear = [...driveWearSet];
+    // add FirmwareVersions here later
+
 
     // Processors Information ---------------------------------------------------------------------
     // Get the names of the processors
@@ -353,7 +453,7 @@ function getDropdownData(jsonData) {
     // Loop through processors, get then add unique data to array
     piKeys.forEach((processorName) => {
       if (!mapProcessorMakes.has(server.ProcessorInformation[processorName].Manufacturer)) {
-        mapProcessorMakes.set(server.ProcessorInformation[processorName].Manufacturer, true);    // set any value to Map
+        mapProcessorMakes.set(server.ProcessorInformation[processorName].Manufacturer, true);
 
         // Add this unique value to its array
         arrProcessorMakes.push({
@@ -361,8 +461,11 @@ function getDropdownData(jsonData) {
           label: server.ProcessorInformation[processorName].Manufacturer
         });
       };
+      // Add it to the processors' set
+      processorMakesSet.add(server.ProcessorInformation[processorName].Manufacturer);
+
       if (!mapProcessorModels.has(server.ProcessorInformation[processorName].Model)) {
-        mapProcessorModels.set(server.ProcessorInformation[processorName].Model, true);    // set any value to Map
+        mapProcessorModels.set(server.ProcessorInformation[processorName].Model, true);
 
         // Add this unique value to its array
         arrProcessorModels.push({
@@ -370,8 +473,11 @@ function getDropdownData(jsonData) {
           label: server.ProcessorInformation[processorName].Model
         });
       };
+      // Add it to the processors' set
+      processorModelsSet.add(server.ProcessorInformation[processorName].Model);
+
       if (!mapProcessorSpeeds.has(server.ProcessorInformation[processorName].MaxSpeedMhz)) {
-        mapProcessorSpeeds.set(server.ProcessorInformation[processorName].MaxSpeedMhz, true);    // set any value to Map
+        mapProcessorSpeeds.set(server.ProcessorInformation[processorName].MaxSpeedMhz, true);
 
         // Add this unique value to its array
         arrProcessorSpeeds.push({
@@ -379,8 +485,11 @@ function getDropdownData(jsonData) {
           label: server.ProcessorInformation[processorName].MaxSpeedMHz
         });
       };
+      // Add it to the processors' set
+      processorSpeedsSet.add(server.ProcessorInformation[processorName].MaxSpeedMHz);
+
       if (!mapProcessorCores.has(server.ProcessorInformation[processorName].TotalCores)) {
-        mapProcessorCores.set(server.ProcessorInformation[processorName].TotalCores, true);    // set any value to Map
+        mapProcessorCores.set(server.ProcessorInformation[processorName].TotalCores, true);
 
         // Add this unique value to its array
         arrProcessorCores.push({
@@ -388,7 +497,14 @@ function getDropdownData(jsonData) {
           label: server.ProcessorInformation[processorName].TotalCores
         });
       };
+      // Add it to the processors' set
+      processorCoresSet.add(server.ProcessorInformation[processorName].TotalCores);
     });
+    // Push data into the server object
+    serverObj.ProcessorInfo.Manufacturers = [...processorMakesSet];
+    serverObj.ProcessorInfo.Models = [...processorModelsSet];
+    serverObj.ProcessorInfo.Speeds = [...processorSpeedsSet];
+    serverObj.ProcessorInfo.CoreCounts = [...processorCoresSet];
 
     // Storage Controllers Information ------------------------------------------------------------
     // Get the names of the controllers
@@ -397,7 +513,7 @@ function getDropdownData(jsonData) {
     // Loop through controllers, get then add unique data to array
     ciKeys.forEach((controllerName) => {
       if (!mapControllerNames.has(server.StorageControllerInformation[controllerName].Name)) {
-        mapControllerNames.set(server.StorageControllerInformation[controllerName].Name, true);    // set any value to Map
+        mapControllerNames.set(server.StorageControllerInformation[controllerName].Name, true);
 
         // Add this unique value to its array
         arrControllerNames.push({
@@ -405,6 +521,8 @@ function getDropdownData(jsonData) {
           label: server.StorageControllerInformation[controllerName].Name
         });
       };
+      // Add it to the controllers' set
+      controllerNamesSet.add(server.StorageControllerInformation[controllerName].Name);
 
       // 1st check if the key exists then add it to a new key array
       let newSCkeyArr = [];
@@ -419,7 +537,7 @@ function getDropdownData(jsonData) {
           console.log(`System '${server.SystemInformation.SKU}' controller ${cName} does not have the 'Firmware Version' data`);
         else {
           if (!mapControllerFWs.has(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0])) {
-            mapControllerFWs.set(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0], true);    // set any value to Map
+            mapControllerFWs.set(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0], true);
 
             // Add this unique value to its array
             arrControllerFWs.push({
@@ -427,6 +545,8 @@ function getDropdownData(jsonData) {
               label: server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0]
             });
           };
+          // Add it to the controllers' set
+          controllerFWsSet.add(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0]);
         }
       });
 
@@ -444,7 +564,7 @@ function getDropdownData(jsonData) {
           console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`);
         } else {
           if (!mapControllerPCIslots.has(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot)) {
-            mapControllerPCIslots.set(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot, true);    // set any value to Map
+            mapControllerPCIslots.set(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot, true);
 
             // Add this unique value to its array
             arrControllerPCIslots.push({
@@ -452,9 +572,15 @@ function getDropdownData(jsonData) {
               label: server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot
             });
           };
+          // Add it to the controllers' set
+          controllerPCISlotsSet.add(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot);
         };
       });
     });
+    // Push data into the server object
+    serverObj.StorageControllersInfo.Names = [...controllerNamesSet];
+    serverObj.StorageControllersInfo.FirmwareVersions = [...controllerFWsSet];
+    serverObj.StorageControllersInfo.PCISlots = [...controllerPCISlotsSet];
 
     // Memory Information -------------------------------------------------------------------------
     // Get the names of the DIMMs
@@ -463,7 +589,7 @@ function getDropdownData(jsonData) {
     // Loop through keys and store unique data
     miKeys.forEach((dimmSocket) => {
       if (!mapDimmMakes.has(server.MemoryInformation[dimmSocket].Manufacturer)) {
-        mapDimmMakes.set(server.MemoryInformation[dimmSocket].Manufacturer, true);    // set any value to Map
+        mapDimmMakes.set(server.MemoryInformation[dimmSocket].Manufacturer, true);
 
         // Add this unique value to its array
         arrDimmMakes.push({
@@ -471,9 +597,11 @@ function getDropdownData(jsonData) {
           label: server.MemoryInformation[dimmSocket].Manufacturer
         });
       };
+      // Add it to the memory set
+      memoryMakersSet.add(server.MemoryInformation[dimmSocket].Manufacturer);
 
       if (!mapDimmModels.has(server.MemoryInformation[dimmSocket].MemoryDeviceType)) {
-        mapDimmModels.set(server.MemoryInformation[dimmSocket].MemoryDeviceType, true);    // set any value to Map
+        mapDimmModels.set(server.MemoryInformation[dimmSocket].MemoryDeviceType, true);
 
         // Add this unique value to its array
         arrDimmModels.push({
@@ -481,9 +609,11 @@ function getDropdownData(jsonData) {
           label: server.MemoryInformation[dimmSocket].MemoryDeviceType
         });
       };
+      // Add it to the memory set
+      memoryModelsSet.add(server.MemoryInformation[dimmSocket].MemoryDeviceType);
 
       if (!mapDimmRanks.has(server.MemoryInformation[dimmSocket].RankCount)) {
-        mapDimmRanks.set(server.MemoryInformation[dimmSocket].RankCount, true);    // set any value to Map
+        mapDimmRanks.set(server.MemoryInformation[dimmSocket].RankCount, true);
 
         // Add this unique value to its array
         arrDimmRanks.push({
@@ -491,9 +621,11 @@ function getDropdownData(jsonData) {
           label: server.MemoryInformation[dimmSocket].RankCount
         });
       };
+      // Add it to the memory set
+      memoryRanksSet.add(server.MemoryInformation[dimmSocket].RankCount);
 
       if (!mapDimmSizes.has(server.MemoryInformation[dimmSocket].CapacityMiB)) {
-        mapDimmSizes.set(server.MemoryInformation[dimmSocket].CapacityMiB, true);    // set any value to Map
+        mapDimmSizes.set(server.MemoryInformation[dimmSocket].CapacityMiB, true);
 
         // Re-format data and add this unique value to its array
         let formValue = formatSize((server.MemoryInformation[dimmSocket].CapacityMiB) * 1000);
@@ -502,9 +634,11 @@ function getDropdownData(jsonData) {
           label: formValue
         });
       };
+      // Add it to the memory set
+      memorySizesSet.add(formatSize((server.MemoryInformation[dimmSocket].CapacityMiB) * 1000));
 
       if (!mapDimmSpeeds.has(server.MemoryInformation[dimmSocket].OperatingSpeedMhz)) {
-        mapDimmSpeeds.set(server.MemoryInformation[dimmSocket].OperatingSpeedMhz, true);    // set any value to Map
+        mapDimmSpeeds.set(server.MemoryInformation[dimmSocket].OperatingSpeedMhz, true);
 
         // Add this unique value to its array
         arrDimmSpeeds.push({
@@ -512,12 +646,20 @@ function getDropdownData(jsonData) {
           label: server.MemoryInformation[dimmSocket].OperatingSpeedMhz
         });
       };
+      // Add it to the memory set
+      memorySpeedsSet.add(server.MemoryInformation[dimmSocket].OperatingSpeedMhz);
     });
+    // Push data into the server object
+    serverObj.MemoryInfo.Manufacturers = [...memoryMakersSet];
+    serverObj.MemoryInfo.Models = [...memoryModelsSet];
+    serverObj.MemoryInfo.Ranks = [...memoryRanksSet];
+    serverObj.MemoryInfo.Sizes = [...memorySizesSet];
+    serverObj.MemoryInfo.Speeds = [...memorySpeedsSet];
 
     // Network Device Information -----------------------------------------------------------------
     // Store unique data
     if (!mapNicMakes.has(server.NetworkDeviceInformation.Manufacturer)) {
-      mapNicMakes.set(server.NetworkDeviceInformation.Manufacturer, true);    // set any value to Map
+      mapNicMakes.set(server.NetworkDeviceInformation.Manufacturer, true);
 
       // Add this unique value to its array
       arrNicMakes.push({
@@ -525,9 +667,11 @@ function getDropdownData(jsonData) {
         label: server.NetworkDeviceInformation.Manufacturer
       });
     };
+    // Add it to NICs set
+    nicMakersSet.add(server.NetworkDeviceInformation.Manufacturer);
 
     if (!mapNicModels.has(server.NetworkDeviceInformation.Model)) {
-      mapNicModels.set(server.NetworkDeviceInformation.Model, true);    // set any value to Map
+      mapNicModels.set(server.NetworkDeviceInformation.Model, true);
 
       // Add this unique value to its array
       arrNicModels.push({
@@ -535,9 +679,11 @@ function getDropdownData(jsonData) {
         label: server.NetworkDeviceInformation.Model
       });
     };
+    // Add it to NICs set
+    nicModelsSet.add(server.NetworkDeviceInformation.Model);
 
     if (!mapNicFWs.has(server.NetworkDeviceInformation.FirmwarePackageVersion)) {
-      mapNicFWs.set(server.NetworkDeviceInformation.FirmwarePackageVersion, true);    // set any value to Map
+      mapNicFWs.set(server.NetworkDeviceInformation.FirmwarePackageVersion, true);
 
       // Add this unique value to its array
       arrNicFWs.push({
@@ -545,6 +691,38 @@ function getDropdownData(jsonData) {
         label: server.NetworkDeviceInformation.FirmwarePackageVersion
       });
     };
+    // Add it to NICs set
+    nicFWsSet.add(server.NetworkDeviceInformation.FirmwarePackageVersion);
+
+    let ndiKeys = Object.keys(server.NetworkDeviceInformation);
+
+    ndiKeys.forEach((ndiKey) => {
+      if (ndiKey.includes("NIC")) {
+        let nicKeys = Object.keys(server.NetworkDeviceInformation[ndiKey]);
+
+        nicKeys.forEach((nicKey) => {
+          if (!mapNicPortNums.has(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber)) {
+            mapNicPortNums.set(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber, true);
+
+            // Add this unique value to its array
+            arrNicPortNums.push({
+              value: server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber,
+              label: server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber
+            });
+          };
+          // Add it to NICs set
+          nicPortNumsSet.add(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber);
+        });
+      };
+    });
+    // Push data into the server object
+    serverObj.NetworkDevicesInfo.Manufacturers = [...nicMakersSet];
+    serverObj.NetworkDevicesInfo.Models = [...nicModelsSet];
+    serverObj.NetworkDevicesInfo.FirmwareVersions = [...nicFWsSet];
+    serverObj.NetworkDevicesInfo.PortNumbers = [...nicPortNumsSet];
+
+    // Add server object's data to the main array
+    allServerObj.push(serverObj);
   });
 
   // Store data in the top-level object
@@ -568,52 +746,188 @@ function getDropdownData(jsonData) {
   allData["NetworkDevicesInfo"]["Manufacturers"] = arrNicMakes;
   allData["NetworkDevicesInfo"]["Models"] = arrNicModels;
   allData["NetworkDevicesInfo"]["FWs"] = arrNicFWs;
+  allData["NetworkDevicesInfo"]["PortNumbers"] = arrNicPortNums;
 
   // Debugging
-  console.log("Printing dropdown data arrays:")
-  console.log(arrSysBios);
-  console.log(arrDriveMakes);
-  console.log(arrDriveModels);
-  console.log(arrDriveSizes);
-  console.log(arrDriveWear);
-  console.log(arrProcessorMakes);
-  console.log(arrProcessorModels);
-  console.log(arrProcessorSpeeds);
-  console.log(arrProcessorCores);
-  console.log(arrControllerNames);
-  console.log(arrControllerFWs);
-  console.log(arrControllerPCIslots);
-  console.log(arrDimmMakes);
-  console.log(arrDimmModels);
-  console.log(arrDimmRanks);
-  console.log(arrDimmSizes);
-  console.log(arrDimmSpeeds);
-  console.log(arrNicMakes);
-  console.log(arrNicModels);
-  console.log(arrNicFWs);
+  // console.log("Printing dropdown data arrays:")
+  // console.log(arrSysBios);
+  // console.log(arrDriveMakes);
+  // console.log(arrDriveModels);
+  // console.log(arrDriveSizes);
+  // console.log(arrDriveWear);
+  // console.log(arrProcessorMakes);
+  // console.log(arrProcessorModels);
+  // console.log(arrProcessorSpeeds);
+  // console.log(arrProcessorCores);
+  // console.log(arrControllerNames);
+  // console.log(arrControllerFWs);
+  // console.log(arrControllerPCIslots);
+  // console.log(arrDimmMakes);
+  // console.log(arrDimmModels);
+  // console.log(arrDimmRanks);
+  // console.log(arrDimmSizes);
+  // console.log(arrDimmSpeeds);
+  // console.log(arrNicMakes);
+  // console.log(arrNicModels);
+  // console.log(arrNicFWs);
+  // console.log(arrNicPortNums);
+
+  // Debugging 
+  console.log("Printing all server objects data: ");
+  console.log(allServerObj);
 
   // Return object with data for all dropdowns
   return allData;
 };
 
-// Function that checks whether an object contains key-value pair passed-in
-function containsKV(obj, key, value) {
-  return obj.hasOwnProperty(key) && obj[key] == value;
-}
-
 // Function that looks for all key-values to match
 function matchAll(serverObj, searchVals) {
   let result;
-  let kvCheck;
 
+  console.log(serverObj); // debugging
+  // console.log(searchVals); // debugging
+
+  // Get key-value pairs of search criteria
+  let svKVs = Object.entries(searchVals[0]);
+
+  // Initialize match and criteria counters
+  let matchCounter = 0;
+  let criteriaCounter = 0;
+
+  // Loop through search criteria key-value pairs and check them
+  // against each server's object data; count the matches.
+  svKVs.forEach((kv) => {
+    if (kv[1].length > 0) {
+      // console.log(kv);
+      criteriaCounter++;
+      switch (kv[0]) {
+        case "BiosOptions":
+          // console.log(serverObj.SystemInfo.BiosVersion);
+          // console.log(kv[1]);
+          if (kv[1].includes(serverObj.SystemInfo.BiosVersion)) {
+            matchCounter++;
+            // console.log("Bios matched!");
+          } else {
+            // console.log("Bios do not match!");
+          };
+          break;
+        case "DriveMakers":
+          if ((serverObj.StorageDisksInfo.Manufacturers).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "DriveModels":
+          if ((serverObj.StorageDisksInfo.Models).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "DriveSizes":
+          if ((serverObj.StorageDisksInfo.Sizes).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "DriveWear":
+          if ((serverObj.StorageDisksInfo.Wear).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "ProcessorMakes":
+          if ((serverObj.ProcessorInfo.Manufacturers).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "ProcessorModels":
+          if ((serverObj.ProcessorInfo.Models).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "ProcessorSpeeds":
+          if ((serverObj.ProcessorInfo.Speeds).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "ProcessorCores":
+          if ((serverObj.ProcessorInfo.Cores).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "ControllerNames":
+          if ((serverObj.StorageControllersInfo.Names).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "ControllerFWs":
+          if ((serverObj.StorageControllersInfo.FirmwareVersions).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "ControllerPCIslots":
+          if ((serverObj.StorageControllersInfo.ControllerPCIslots).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "MemoryMakers":
+          if ((serverObj.MemoryInfo.Manufacturers).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "MemoryModels":
+          if ((serverObj.MemoryInfo.Models).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "MemoryRanks":
+          if ((serverObj.MemoryInfo.Ranks).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "MemorySizes":
+          if ((serverObj.MemoryInfo.Sizes).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "MemorySpeeds":
+          if ((serverObj.MemoryInfo.Speeds).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "NicMakers":
+          if ((serverObj.NetworkDevicesInfo.Manufacturers).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "NicModels":
+          if ((serverObj.NetworkDevicesInfo.Models).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "NicFWs":
+          if ((serverObj.NetworkDevicesInfo.FirmwareVersions).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+        case "NicPorts":
+          if ((serverObj.NetworkDevicesInfo.PortNumbers).some(s => kv[1].includes(s))) {
+            matchCounter++;
+          };
+          break;
+      };
+    };
+  });
+  // debugging
+  // console.log(matchCounter);
+  // console.log(criteriaCounter);
+
+  // Return boolean based on count of matches vs count of criteria
+  matchCounter == criteriaCounter ? result = true : result = false;
   return result;
 }
 
 // Function that returns an array of Service Tags of those servers that match 
 // the search criteria
-function searchServers(criteriaArr, jsonData) {
-  console.log("Printing the search values array:")
-  console.log(criteriaArr);
+function searchServers(criteria, jsonData) {
+  // console.log("Printing the search values array:")
+  // console.log(criteria);
 
   let match;
   let matchCount = 0;
@@ -623,11 +937,12 @@ function searchServers(criteriaArr, jsonData) {
   // Loop through each server's json data in the array
   jsonData.forEach((server) => {
     // Call function to check ALL criteria against node's data
-    match = matchAll(server, criteriaArr);
+    match = matchAll(server, criteria);
     if (match) {
       matchCount++;
-      console.log(`${server.SystemInformation.SKU} is a match. Total count is ${matchCount}`);
-      matchingServers.push(server.SystemInformation.SKU);
+      // console.log(server);
+      console.log(`${server.ServiceTag} is a match. Total count is ${matchCount}`);
+      matchingServers.push(server.ServiceTag);
     };
   });
   // Shove results into the return object
@@ -635,6 +950,17 @@ function searchServers(criteriaArr, jsonData) {
   result.servers = matchingServers;
 
   return result;
+}
+
+// Function to save object's values to an array
+function saveToArr(data) {
+  let dataInArray = [];
+  if (data) {
+    data.forEach((obj) => {
+      dataInArray.push(obj.value);
+    });
+  };
+  return dataInArray;
 }
 
 // Search Card with all dropdowns -----------------------------------------------------------------
@@ -660,6 +986,7 @@ function SearchCard() {
   const [nicMakers, setSelectedNicMakers] = useState([]);
   const [nicModels, setSelectedNicModels] = useState([]);
   const [nicFWs, setSelectedNicFWs] = useState([]);
+  const [nicPorts, setSelectedNicPorts] = useState([]);
 
   // Upon initial load get the dropdown data
   useEffect(() => {
@@ -668,54 +995,79 @@ function SearchCard() {
     getDropdownData(jsonInv);
   }, []);
 
-  // Upon user dropdown selections run db search
+  // Upon any selection from a dropdown run a search against cached JSON
   useEffect(() => {
     // Store chosen dropdown values to run a search
-    let searchValues = [
-      biosOptions,
-      driveMakers,
-      driveModels,
-      driveSizes,
-      driveWear,
-      processorMakes,
-      processorModels,
-      processorSpeeds,
-      processorCores,
-      controllerNames,
-      controllerFWs,
-      controllerPCIslots,
-      memoryMakers,
-      memoryModels,
-      memoryRanks,
-      memorySizes,
-      memorySpeeds,
-      nicMakers,
-      nicModels,
-      nicFWs];
+    let searchValues = [{
+      "BiosOptions": saveToArr(biosOptions),
+      "DriveMakers": saveToArr(driveMakers),
+      "DriveModels": saveToArr(driveModels),
+      "DriveSizes": saveToArr(driveSizes),
+      "DriveWear": saveToArr(driveWear),
+      "ProcessorMakes": saveToArr(processorMakes),
+      "ProcessorModels": saveToArr(processorModels),
+      "ProcessorSpeeds": saveToArr(processorSpeeds),
+      "ProcessorCores": saveToArr(processorCores),
+      "ControllerNames": saveToArr(controllerNames),
+      "ControllerFWs": saveToArr(controllerFWs),
+      "ControllerPCIslots": saveToArr(controllerPCIslots),
+      "MemoryMakers": saveToArr(memoryMakers),
+      "MemoryModels": saveToArr(memoryModels),
+      "MemoryRanks": saveToArr(memoryRanks),
+      "MemorySizes": saveToArr(memorySizes),
+      "MemorySpeeds": saveToArr(memorySpeeds),
+      "NicMakers": saveToArr(nicMakers),
+      "NicModels": saveToArr(nicModels),
+      "NicFWs": saveToArr(nicFWs),
+      "NicPorts": saveToArr(nicPorts)
+    }];
 
-    // If any of the values are added then run a search
-    if (
-      biosOptions.length > 0 ||
-      driveMakers.length > 0 ||
-      driveModels.length > 0 ||
-      driveSizes.length > 0 ||
-      driveWear.length > 0 ||
-      processorMakes.length > 0 ||
-      processorModels.length > 0 ||
-      processorSpeeds.length > 0 ||
-      processorCores.length > 0 ||
-      controllerNames.length > 0 ||
-      controllerFWs.length > 0 ||
-      controllerPCIslots.length > 0 ||
-      memoryMakers.length > 0 ||
-      memoryModels.length > 0 ||
-      memoryRanks.length > 0 ||
-      memorySizes.length > 0 ||
-      memorySpeeds.length > 0 ||
-      nicMakers.length > 0 ||
-      nicModels.length > 0 ||
-      nicFWs.length > 0)
-      searchServers(searchValues, jsonInv);
+    // Get all key-value pairs from the dropdowns
+    let svKVs = Object.entries(searchValues[0]);
+
+    // If any of the dropdown choices have a value then run a search
+    // and display result of it
+    svKVs.forEach((kv) => {
+      if (kv[1].length > 0) {
+        // console.log(kv);
+        console.log("Calling search..");
+        let searchRes = searchServers(searchValues, allServerObj);
+        if (searchRes.found > 0) {
+          console.log(`Search found ${searchRes.found} machine(s) matching your criteria: ${searchRes.servers}`);
+        } else {
+          console.log("Search did not find matches with the selected criteria. Change criteria and try again!");
+        };
+      } else {
+        // display all or none
+      };
+    });
+
+
+    // If any of the values are added/removed then run a search
+    // if (
+    //   biosOptions.length > 0 ||
+    //   driveMakers.length > 0 ||
+    //   driveModels.length > 0 ||
+    //   driveSizes.length > 0 ||
+    //   driveWear.length > 0 ||
+    //   processorMakes.length > 0 ||
+    //   processorModels.length > 0 ||
+    //   processorSpeeds.length > 0 ||
+    //   processorCores.length > 0 ||
+    //   controllerNames.length > 0 ||
+    //   controllerFWs.length > 0 ||
+    //   controllerPCIslots.length > 0 ||
+    //   memoryMakers.length > 0 ||
+    //   memoryModels.length > 0 ||
+    //   memoryRanks.length > 0 ||
+    //   memorySizes.length > 0 ||
+    //   memorySpeeds.length > 0 ||
+    //   nicMakers.length > 0 ||
+    //   nicModels.length > 0 ||
+    //   nicFWs.length > 0 ||
+    //   nicPorts.length > 0)
+    // console.log("Calling search..");
+    // searchServers(searchValues, allServerObj);
   }, [
     biosOptions,
     driveMakers,
@@ -736,7 +1088,8 @@ function SearchCard() {
     memorySpeeds,
     nicMakers,
     nicModels,
-    nicFWs]
+    nicFWs,
+    nicPorts]
   );
 
   return (
@@ -1150,7 +1503,15 @@ function SearchCard() {
                       <Col sm={2}>
                         <FormGroup>
                           {/* <Label for="exampleSelect">Port Number</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter port #" />
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Select port.."
+                            options={allData.NetworkDevicesInfo.PortNumbers}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedNicPorts}
+                          />
+                          {/* <Input type="text" name="search" id="exampleText" placeholder="Enter port #" /> */}
                         </FormGroup>
                       </Col>
                     </Row>
