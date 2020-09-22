@@ -35,14 +35,10 @@ import Form from "react-bootstrap/Form";
 
 // core components
 import Header from "../../components/Headers/Header.js";
-import { useRecoilValue, useRecoilState, atom } from "recoil";
+import { useRecoilValue, useRecoilState } from "recoil";
+import { searchState } from "./Atoms";
 
 const apiServer = process.env.REACT_APP_API_SERVER;
-
-const searchState = atom({
-  key: "searchState",
-  default: [],
-});
 
 // Flag that indicates if Search Values are empty or not
 let searchEmpty = true;
