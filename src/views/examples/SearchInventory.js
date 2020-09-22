@@ -30,8 +30,8 @@ import {
   FormGroup,
   Label,
 } from "reactstrap";
-
 import Form from "react-bootstrap/Form";
+import axios from "axios";
 
 // core components
 import Header from "../../components/Headers/Header.js";
@@ -42,31 +42,6 @@ const apiServer = process.env.REACT_APP_API_SERVER;
 
 // Flag that indicates if Search Values are empty or not
 let searchEmpty = true;
-
-// Initialize the search state with an empty array
-// const initialSearchState = []; //["1W1CN23", "4C9ZWK2"];
-
-// Function using useReducer hook to share state among components
-// function  (state, action) {
-//   switch (action.type) {
-//     case "readState":
-//       console.log(`Reading state: ${state}`);
-//       return state;
-
-//     case "writeState":
-//       console.log("Writing state: " + action.payload);
-//       state = action.payload;
-//       return state;
-
-//     case "resetState":
-//       console.log("Reseting state to: " + initialSearchState);
-//       return initialSearchState;
-
-//     default:
-//       console.log(`Default state of ${state} is returned.`);
-//       return state;
-//   }
-// }
 
 // Create top level object with subitem objects for each component's options
 let allData = {
@@ -321,8 +296,10 @@ function getDropdownData(jsonData) {
   const mapNicFWs = new Map();
   const mapNicPortNums = new Map();
 
+  const server = jsonData.resultArray.map((item) => item.data);
+
   // Loop through each server's json data in the array
-  jsonData.forEach((server) => {
+  server.forEach((server) => {
     // Create a server object to store key-value data to be searched
     let serverObj = {
       ServiceTag: "",
@@ -1262,7 +1239,15 @@ function SearchCard() {
   useEffect(() => {
     console.log("Getting dropdown data..");
     // Get the data from database JSON
-    getDropdownData(jsonInv);
+    axios
+      .get("http://localhost:8080/getHardwareInventory")
+      .then((response) => {
+        getDropdownData(response.data);
+        // console.log(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }, []);
 
   // Upon any selection from a dropdown run a search
