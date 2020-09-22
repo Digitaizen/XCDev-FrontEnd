@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import Select from 'react-select';
-import jsonInv from 'assets/hw_inventory_3_nodes.json';
+import React, { useState, useEffect, useReducer } from "react";
+import Select from "react-select";
+import jsonInv from "assets/hw_inventory_3_nodes.json";
 import {
   useTable,
   useRowSelect,
@@ -28,16 +28,49 @@ import {
   Pagination,
   Input,
   FormGroup,
-  Label
+  Label,
 } from "reactstrap";
 
 import Form from "react-bootstrap/Form";
 
 // core components
 import Header from "../../components/Headers/Header.js";
-import { getNameOfDeclaration } from "typescript";
+import { useRecoilValue, useRecoilState, atom } from "recoil";
 
 const apiServer = process.env.REACT_APP_API_SERVER;
+
+const searchState = atom({
+  key: "searchState",
+  default: [],
+});
+
+// Flag that indicates if Search Values are empty or not
+let searchEmpty = true;
+
+// Initialize the search state with an empty array
+// const initialSearchState = []; //["1W1CN23", "4C9ZWK2"];
+
+// Function using useReducer hook to share state among components
+// function  (state, action) {
+//   switch (action.type) {
+//     case "readState":
+//       console.log(`Reading state: ${state}`);
+//       return state;
+
+//     case "writeState":
+//       console.log("Writing state: " + action.payload);
+//       state = action.payload;
+//       return state;
+
+//     case "resetState":
+//       console.log("Reseting state to: " + initialSearchState);
+//       return initialSearchState;
+
+//     default:
+//       console.log(`Default state of ${state} is returned.`);
+//       return state;
+//   }
+// }
 
 // Create top level object with subitem objects for each component's options
 let allData = {
@@ -48,7 +81,7 @@ let allData = {
   StorageControllersInfo: {},
   NetworkDevicesInfo: {},
   PowerSuppliesInfo: {},
-  BackplaneInfo: {}
+  BackplaneInfo: {},
 };
 
 // Create main array to store server objects data
@@ -111,19 +144,20 @@ fuzzyTextFilterFn.autoRemove = (val) => !val;
 
 // Function that returns data size in short, human-readable format. Input: data size in bytes.
 function formatSize(x) {
-  const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  let l = 0, n = parseInt(x, 10) || 0;
+  const units = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+  let l = 0,
+    n = parseInt(x, 10) || 0;
   while (n >= 1024 && ++l) {
     n = n / 1024;
   }
-  return (n.toFixed(n < 10 && l > 0 ? 1 : 0) + ' ' + units[l]);
+  return n.toFixed(n < 10 && l > 0 ? 1 : 0) + " " + units[l];
 }
 
 // Function to check the existence of a key in an object
 function keyExists(obj, key) {
   let val;
   let objKeys = Object.keys(obj);
-  objKeys.includes(key) ? val = true : val = false;
+  objKeys.includes(key) ? (val = true) : (val = false);
   return val;
 }
 
@@ -215,7 +249,6 @@ const EditableComments = ({
   );
 };
 
-
 // Turn table IPs into hyperlinks that open a new tab to an iDRAC page on click
 const IP_Hyperlink = (props) => {
   let iDRAC_IP = props.cell.row.original.ip;
@@ -229,12 +262,12 @@ const IP_Hyperlink = (props) => {
   );
 };
 
-
 // Turn server 'Service Tag' into a hyperlink to its inventory text file (temp)
 const Server_Inventory = (props) => {
   let server_tag = props.cell.row.original.serviceTag;
   let server = `${props.cell.row.original.ip}.txt`;
-  let server_info = "http://100.80.149.97/DellReServer/inventory/Latest/" + server;
+  let server_info =
+    "http://100.80.149.97/DellReServer/inventory/Latest/" + server;
   return (
     <div>
       <a target="_blank" href={server_info} rel="noopener noreferrer">
@@ -302,20 +335,20 @@ function getDropdownData(jsonData) {
         FirmwareVersion: "",
         CPLD: "",
         DIMMs: [],
-        Types: []
+        Types: [],
       },
       ProcessorInfo: {
         Manufacturers: [],
         Models: [],
         Speeds: [],
-        CoreCounts: []
+        CoreCounts: [],
       },
       MemoryInfo: {
         Manufacturers: [],
         Models: [],
         Ranks: [],
         Sizes: [],
-        Speeds: []
+        Speeds: [],
       },
       StorageDisksInfo: {
         Manufacturers: [],
@@ -323,21 +356,21 @@ function getDropdownData(jsonData) {
         Sizes: [],
         Wear: [],
         FirmwareVersions: [],
-        SerialNumbers: []
+        SerialNumbers: [],
       },
       StorageControllersInfo: {
         Names: [],
         FirmwareVersions: [],
         PCISlots: [],
         SASAddresses: [],
-        SerialNumbers: []
+        SerialNumbers: [],
       },
       NetworkDevicesInfo: {
         Manufacturers: [],
         Models: [],
         FirmwareVersions: [],
-        PortNumbers: []
-      }
+        PortNumbers: [],
+      },
     };
 
     // Create a set for each of server components' searchable data
@@ -374,9 +407,9 @@ function getDropdownData(jsonData) {
       // Add this unique value to its array
       arrSysBios.push({
         value: server.SystemInformation.BiosVersion,
-        label: server.SystemInformation.BiosVersion
+        label: server.SystemInformation.BiosVersion,
       });
-    };
+    }
     // Push data into the server object
     serverObj.ServiceTag = server.SystemInformation.SKU;
     serverObj.SystemInfo.BiosVersion = server.SystemInformation.BiosVersion;
@@ -387,56 +420,97 @@ function getDropdownData(jsonData) {
 
     // Loop through drives, get then add unique data to array
     sdiKeys.forEach((driveName) => {
-      if (!mapDriveMakers.has(server.StorageDisksInformation[driveName].Manufacturer)) {
-        mapDriveMakers.set(server.StorageDisksInformation[driveName].Manufacturer, true);
+      if (
+        !mapDriveMakers.has(
+          server.StorageDisksInformation[driveName].Manufacturer
+        )
+      ) {
+        mapDriveMakers.set(
+          server.StorageDisksInformation[driveName].Manufacturer,
+          true
+        );
 
         // Add this unique value to its array
         arrDriveMakes.push({
           value: server.StorageDisksInformation[driveName].Manufacturer,
-          label: server.StorageDisksInformation[driveName].Manufacturer
+          label: server.StorageDisksInformation[driveName].Manufacturer,
         });
-      };
+      }
       // Add it to the drive's set
-      driveMakersSet.add(server.StorageDisksInformation[driveName].Manufacturer);
+      driveMakersSet.add(
+        server.StorageDisksInformation[driveName].Manufacturer
+      );
 
-
-      if (!mapDriveModels.has(server.StorageDisksInformation[driveName].Model)) {
-        mapDriveModels.set(server.StorageDisksInformation[driveName].Model, true);
+      if (
+        !mapDriveModels.has(server.StorageDisksInformation[driveName].Model)
+      ) {
+        mapDriveModels.set(
+          server.StorageDisksInformation[driveName].Model,
+          true
+        );
 
         // Add this unique value to its array
         arrDriveModels.push({
           value: server.StorageDisksInformation[driveName].Model,
-          label: server.StorageDisksInformation[driveName].Model
+          label: server.StorageDisksInformation[driveName].Model,
         });
-      };
+      }
       // Add it to the drive's set
       driveModelsSet.add(server.StorageDisksInformation[driveName].Model);
 
-      if (!mapDriveSizes.has(server.StorageDisksInformation[driveName].CapacityBytes)) {
-        mapDriveSizes.set(server.StorageDisksInformation[driveName].CapacityBytes, true);
+      if (
+        !mapDriveSizes.has(
+          server.StorageDisksInformation[driveName].CapacityBytes
+        )
+      ) {
+        mapDriveSizes.set(
+          server.StorageDisksInformation[driveName].CapacityBytes,
+          true
+        );
 
         // Re-format data and add this unique value to its array
-        let formValue = formatSize(server.StorageDisksInformation[driveName].CapacityBytes);
+        let formValue = formatSize(
+          server.StorageDisksInformation[driveName].CapacityBytes
+        );
         arrDriveSizes.push({
           value: formValue,
-          label: formValue
+          label: formValue,
         });
-      };
+      }
       // Add it to the drive's set
-      driveSizesSet.add(formatSize(server.StorageDisksInformation[driveName].CapacityBytes));
+      driveSizesSet.add(
+        formatSize(server.StorageDisksInformation[driveName].CapacityBytes)
+      );
 
-      if (!mapDriveWear.has(server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent)) {
-        mapDriveWear.set(server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent, true);
+      if (
+        !mapDriveWear.has(
+          server.StorageDisksInformation[driveName]
+            .PredictedMediaLifeLeftPercent
+        )
+      ) {
+        mapDriveWear.set(
+          server.StorageDisksInformation[driveName]
+            .PredictedMediaLifeLeftPercent,
+          true
+        );
 
         // Add this unique value to its array
         arrDriveWear.push({
-          value: server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent,
-          label: server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent
+          value:
+            server.StorageDisksInformation[driveName]
+              .PredictedMediaLifeLeftPercent,
+          label:
+            server.StorageDisksInformation[driveName]
+              .PredictedMediaLifeLeftPercent,
         });
-      };
+      }
       // Add it to the drive's set
-      driveWearSet.add(server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent);
-      serverObj.StorageDisksInfo.SerialNumbers.push(server.StorageDisksInformation[driveName].SerialNumber);
+      driveWearSet.add(
+        server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent
+      );
+      serverObj.StorageDisksInfo.SerialNumbers.push(
+        server.StorageDisksInformation[driveName].SerialNumber
+      );
     });
     // Push data into the server object
     serverObj.StorageDisksInfo.Manufacturers = [...driveMakersSet];
@@ -445,60 +519,93 @@ function getDropdownData(jsonData) {
     serverObj.StorageDisksInfo.Wear = [...driveWearSet];
     // add FirmwareVersions here later
 
-
     // Processors Information ---------------------------------------------------------------------
     // Get the names of the processors
     let piKeys = Object.keys(server.ProcessorInformation);
 
     // Loop through processors, get then add unique data to array
     piKeys.forEach((processorName) => {
-      if (!mapProcessorMakes.has(server.ProcessorInformation[processorName].Manufacturer)) {
-        mapProcessorMakes.set(server.ProcessorInformation[processorName].Manufacturer, true);
+      if (
+        !mapProcessorMakes.has(
+          server.ProcessorInformation[processorName].Manufacturer
+        )
+      ) {
+        mapProcessorMakes.set(
+          server.ProcessorInformation[processorName].Manufacturer,
+          true
+        );
 
         // Add this unique value to its array
         arrProcessorMakes.push({
           value: server.ProcessorInformation[processorName].Manufacturer,
-          label: server.ProcessorInformation[processorName].Manufacturer
+          label: server.ProcessorInformation[processorName].Manufacturer,
         });
-      };
+      }
       // Add it to the processors' set
-      processorMakesSet.add(server.ProcessorInformation[processorName].Manufacturer);
+      processorMakesSet.add(
+        server.ProcessorInformation[processorName].Manufacturer
+      );
 
-      if (!mapProcessorModels.has(server.ProcessorInformation[processorName].Model)) {
-        mapProcessorModels.set(server.ProcessorInformation[processorName].Model, true);
+      if (
+        !mapProcessorModels.has(
+          server.ProcessorInformation[processorName].Model
+        )
+      ) {
+        mapProcessorModels.set(
+          server.ProcessorInformation[processorName].Model,
+          true
+        );
 
         // Add this unique value to its array
         arrProcessorModels.push({
           value: server.ProcessorInformation[processorName].Model,
-          label: server.ProcessorInformation[processorName].Model
+          label: server.ProcessorInformation[processorName].Model,
         });
-      };
+      }
       // Add it to the processors' set
       processorModelsSet.add(server.ProcessorInformation[processorName].Model);
 
-      if (!mapProcessorSpeeds.has(server.ProcessorInformation[processorName].MaxSpeedMhz)) {
-        mapProcessorSpeeds.set(server.ProcessorInformation[processorName].MaxSpeedMhz, true);
+      if (
+        !mapProcessorSpeeds.has(
+          server.ProcessorInformation[processorName].MaxSpeedMhz
+        )
+      ) {
+        mapProcessorSpeeds.set(
+          server.ProcessorInformation[processorName].MaxSpeedMhz,
+          true
+        );
 
         // Add this unique value to its array
         arrProcessorSpeeds.push({
           value: server.ProcessorInformation[processorName].MaxSpeedMHz,
-          label: server.ProcessorInformation[processorName].MaxSpeedMHz
+          label: server.ProcessorInformation[processorName].MaxSpeedMHz,
         });
-      };
+      }
       // Add it to the processors' set
-      processorSpeedsSet.add(server.ProcessorInformation[processorName].MaxSpeedMHz);
+      processorSpeedsSet.add(
+        server.ProcessorInformation[processorName].MaxSpeedMHz
+      );
 
-      if (!mapProcessorCores.has(server.ProcessorInformation[processorName].TotalCores)) {
-        mapProcessorCores.set(server.ProcessorInformation[processorName].TotalCores, true);
+      if (
+        !mapProcessorCores.has(
+          server.ProcessorInformation[processorName].TotalCores
+        )
+      ) {
+        mapProcessorCores.set(
+          server.ProcessorInformation[processorName].TotalCores,
+          true
+        );
 
         // Add this unique value to its array
         arrProcessorCores.push({
           value: server.ProcessorInformation[processorName].TotalCores,
-          label: server.ProcessorInformation[processorName].TotalCores
+          label: server.ProcessorInformation[processorName].TotalCores,
         });
-      };
+      }
       // Add it to the processors' set
-      processorCoresSet.add(server.ProcessorInformation[processorName].TotalCores);
+      processorCoresSet.add(
+        server.ProcessorInformation[processorName].TotalCores
+      );
     });
     // Push data into the server object
     serverObj.ProcessorInfo.Manufacturers = [...processorMakesSet];
@@ -512,69 +619,131 @@ function getDropdownData(jsonData) {
 
     // Loop through controllers, get then add unique data to array
     ciKeys.forEach((controllerName) => {
-      if (!mapControllerNames.has(server.StorageControllerInformation[controllerName].Name)) {
-        mapControllerNames.set(server.StorageControllerInformation[controllerName].Name, true);
+      if (
+        !mapControllerNames.has(
+          server.StorageControllerInformation[controllerName].Name
+        )
+      ) {
+        mapControllerNames.set(
+          server.StorageControllerInformation[controllerName].Name,
+          true
+        );
 
         // Add this unique value to its array
         arrControllerNames.push({
           value: server.StorageControllerInformation[controllerName].Name,
-          label: server.StorageControllerInformation[controllerName].Name
+          label: server.StorageControllerInformation[controllerName].Name,
         });
-      };
+      }
       // Add it to the controllers' set
-      controllerNamesSet.add(server.StorageControllerInformation[controllerName].Name);
+      controllerNamesSet.add(
+        server.StorageControllerInformation[controllerName].Name
+      );
 
       // 1st check if the key exists then add it to a new key array
       let newSCkeyArr = [];
-      if (keyExists(server.StorageControllerInformation[controllerName], "StorageControllers"))
+      if (
+        keyExists(
+          server.StorageControllerInformation[controllerName],
+          "StorageControllers"
+        )
+      )
         newSCkeyArr.push(controllerName);
       else
-        console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'StorageControllers' key`);
+        console.log(
+          `System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'StorageControllers' key`
+        );
 
       // Now, loop through the new key array to find the data seeked
-      newSCkeyArr.forEach(cName => {
-        if (server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0] === "")
-          console.log(`System '${server.SystemInformation.SKU}' controller ${cName} does not have the 'Firmware Version' data`);
+      newSCkeyArr.forEach((cName) => {
+        if (
+          server.StorageControllerInformation[cName].StorageControllers
+            .FirmwareVersion[0] === ""
+        )
+          console.log(
+            `System '${server.SystemInformation.SKU}' controller ${cName} does not have the 'Firmware Version' data`
+          );
         else {
-          if (!mapControllerFWs.has(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0])) {
-            mapControllerFWs.set(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0], true);
+          if (
+            !mapControllerFWs.has(
+              server.StorageControllerInformation[cName].StorageControllers
+                .FirmwareVersion[0]
+            )
+          ) {
+            mapControllerFWs.set(
+              server.StorageControllerInformation[cName].StorageControllers
+                .FirmwareVersion[0],
+              true
+            );
 
             // Add this unique value to its array
             arrControllerFWs.push({
-              value: server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0],
-              label: server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0]
+              value:
+                server.StorageControllerInformation[cName].StorageControllers
+                  .FirmwareVersion[0],
+              label:
+                server.StorageControllerInformation[cName].StorageControllers
+                  .FirmwareVersion[0],
             });
-          };
+          }
           // Add it to the controllers' set
-          controllerFWsSet.add(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0]);
+          controllerFWsSet.add(
+            server.StorageControllerInformation[cName].StorageControllers
+              .FirmwareVersion[0]
+          );
         }
       });
 
       // 1st check if the key exists then add it to a new key array
       let newOEMkeyArr = [];
-      if (keyExists(server.StorageControllerInformation[controllerName], "Oem")) {
+      if (
+        keyExists(server.StorageControllerInformation[controllerName], "Oem")
+      ) {
         newOEMkeyArr.push(controllerName);
       } else {
-        console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'Oem' key`);
-      };
+        console.log(
+          `System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'Oem' key`
+        );
+      }
 
       // Now, loop through the new key array to find the data seeked
-      newOEMkeyArr.forEach(cName => {
-        if (server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot === null) {
-          console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`);
+      newOEMkeyArr.forEach((cName) => {
+        if (
+          server.StorageControllerInformation[cName].Oem.Dell.DellController
+            .PCISlot === null
+        ) {
+          console.log(
+            `System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`
+          );
         } else {
-          if (!mapControllerPCIslots.has(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot)) {
-            mapControllerPCIslots.set(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot, true);
+          if (
+            !mapControllerPCIslots.has(
+              server.StorageControllerInformation[cName].Oem.Dell.DellController
+                .PCISlot
+            )
+          ) {
+            mapControllerPCIslots.set(
+              server.StorageControllerInformation[cName].Oem.Dell.DellController
+                .PCISlot,
+              true
+            );
 
             // Add this unique value to its array
             arrControllerPCIslots.push({
-              value: server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot,
-              label: server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot
+              value:
+                server.StorageControllerInformation[cName].Oem.Dell
+                  .DellController.PCISlot,
+              label:
+                server.StorageControllerInformation[cName].Oem.Dell
+                  .DellController.PCISlot,
             });
-          };
+          }
           // Add it to the controllers' set
-          controllerPCISlotsSet.add(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot);
-        };
+          controllerPCISlotsSet.add(
+            server.StorageControllerInformation[cName].Oem.Dell.DellController
+              .PCISlot
+          );
+        }
       });
     });
     // Push data into the server object
@@ -588,29 +757,43 @@ function getDropdownData(jsonData) {
 
     // Loop through keys and store unique data
     miKeys.forEach((dimmSocket) => {
-      if (!mapDimmMakes.has(server.MemoryInformation[dimmSocket].Manufacturer)) {
-        mapDimmMakes.set(server.MemoryInformation[dimmSocket].Manufacturer, true);
+      if (
+        !mapDimmMakes.has(server.MemoryInformation[dimmSocket].Manufacturer)
+      ) {
+        mapDimmMakes.set(
+          server.MemoryInformation[dimmSocket].Manufacturer,
+          true
+        );
 
         // Add this unique value to its array
         arrDimmMakes.push({
           value: server.MemoryInformation[dimmSocket].Manufacturer,
-          label: server.MemoryInformation[dimmSocket].Manufacturer
+          label: server.MemoryInformation[dimmSocket].Manufacturer,
         });
-      };
+      }
       // Add it to the memory set
       memoryMakersSet.add(server.MemoryInformation[dimmSocket].Manufacturer);
 
-      if (!mapDimmModels.has(server.MemoryInformation[dimmSocket].MemoryDeviceType)) {
-        mapDimmModels.set(server.MemoryInformation[dimmSocket].MemoryDeviceType, true);
+      if (
+        !mapDimmModels.has(
+          server.MemoryInformation[dimmSocket].MemoryDeviceType
+        )
+      ) {
+        mapDimmModels.set(
+          server.MemoryInformation[dimmSocket].MemoryDeviceType,
+          true
+        );
 
         // Add this unique value to its array
         arrDimmModels.push({
           value: server.MemoryInformation[dimmSocket].MemoryDeviceType,
-          label: server.MemoryInformation[dimmSocket].MemoryDeviceType
+          label: server.MemoryInformation[dimmSocket].MemoryDeviceType,
         });
-      };
+      }
       // Add it to the memory set
-      memoryModelsSet.add(server.MemoryInformation[dimmSocket].MemoryDeviceType);
+      memoryModelsSet.add(
+        server.MemoryInformation[dimmSocket].MemoryDeviceType
+      );
 
       if (!mapDimmRanks.has(server.MemoryInformation[dimmSocket].RankCount)) {
         mapDimmRanks.set(server.MemoryInformation[dimmSocket].RankCount, true);
@@ -618,36 +801,52 @@ function getDropdownData(jsonData) {
         // Add this unique value to its array
         arrDimmRanks.push({
           value: server.MemoryInformation[dimmSocket].RankCount,
-          label: server.MemoryInformation[dimmSocket].RankCount
+          label: server.MemoryInformation[dimmSocket].RankCount,
         });
-      };
+      }
       // Add it to the memory set
       memoryRanksSet.add(server.MemoryInformation[dimmSocket].RankCount);
 
       if (!mapDimmSizes.has(server.MemoryInformation[dimmSocket].CapacityMiB)) {
-        mapDimmSizes.set(server.MemoryInformation[dimmSocket].CapacityMiB, true);
+        mapDimmSizes.set(
+          server.MemoryInformation[dimmSocket].CapacityMiB,
+          true
+        );
 
         // Re-format data and add this unique value to its array
-        let formValue = formatSize((server.MemoryInformation[dimmSocket].CapacityMiB) * 1000);
+        let formValue = formatSize(
+          server.MemoryInformation[dimmSocket].CapacityMiB * 1000
+        );
         arrDimmSizes.push({
           value: formValue,
-          label: formValue
+          label: formValue,
         });
-      };
+      }
       // Add it to the memory set
-      memorySizesSet.add(formatSize((server.MemoryInformation[dimmSocket].CapacityMiB) * 1000));
+      memorySizesSet.add(
+        formatSize(server.MemoryInformation[dimmSocket].CapacityMiB * 1000)
+      );
 
-      if (!mapDimmSpeeds.has(server.MemoryInformation[dimmSocket].OperatingSpeedMhz)) {
-        mapDimmSpeeds.set(server.MemoryInformation[dimmSocket].OperatingSpeedMhz, true);
+      if (
+        !mapDimmSpeeds.has(
+          server.MemoryInformation[dimmSocket].OperatingSpeedMhz
+        )
+      ) {
+        mapDimmSpeeds.set(
+          server.MemoryInformation[dimmSocket].OperatingSpeedMhz,
+          true
+        );
 
         // Add this unique value to its array
         arrDimmSpeeds.push({
           value: server.MemoryInformation[dimmSocket].OperatingSpeedMhz,
-          label: server.MemoryInformation[dimmSocket].OperatingSpeedMhz
+          label: server.MemoryInformation[dimmSocket].OperatingSpeedMhz,
         });
-      };
+      }
       // Add it to the memory set
-      memorySpeedsSet.add(server.MemoryInformation[dimmSocket].OperatingSpeedMhz);
+      memorySpeedsSet.add(
+        server.MemoryInformation[dimmSocket].OperatingSpeedMhz
+      );
     });
     // Push data into the server object
     serverObj.MemoryInfo.Manufacturers = [...memoryMakersSet];
@@ -664,9 +863,9 @@ function getDropdownData(jsonData) {
       // Add this unique value to its array
       arrNicMakes.push({
         value: server.NetworkDeviceInformation.Manufacturer,
-        label: server.NetworkDeviceInformation.Manufacturer
+        label: server.NetworkDeviceInformation.Manufacturer,
       });
-    };
+    }
     // Add it to NICs set
     nicMakersSet.add(server.NetworkDeviceInformation.Manufacturer);
 
@@ -676,21 +875,26 @@ function getDropdownData(jsonData) {
       // Add this unique value to its array
       arrNicModels.push({
         value: server.NetworkDeviceInformation.Model,
-        label: server.NetworkDeviceInformation.Model
+        label: server.NetworkDeviceInformation.Model,
       });
-    };
+    }
     // Add it to NICs set
     nicModelsSet.add(server.NetworkDeviceInformation.Model);
 
-    if (!mapNicFWs.has(server.NetworkDeviceInformation.FirmwarePackageVersion)) {
-      mapNicFWs.set(server.NetworkDeviceInformation.FirmwarePackageVersion, true);
+    if (
+      !mapNicFWs.has(server.NetworkDeviceInformation.FirmwarePackageVersion)
+    ) {
+      mapNicFWs.set(
+        server.NetworkDeviceInformation.FirmwarePackageVersion,
+        true
+      );
 
       // Add this unique value to its array
       arrNicFWs.push({
         value: server.NetworkDeviceInformation.FirmwarePackageVersion,
-        label: server.NetworkDeviceInformation.FirmwarePackageVersion
+        label: server.NetworkDeviceInformation.FirmwarePackageVersion,
       });
-    };
+    }
     // Add it to NICs set
     nicFWsSet.add(server.NetworkDeviceInformation.FirmwarePackageVersion);
 
@@ -701,19 +905,33 @@ function getDropdownData(jsonData) {
         let nicKeys = Object.keys(server.NetworkDeviceInformation[ndiKey]);
 
         nicKeys.forEach((nicKey) => {
-          if (!mapNicPortNums.has(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber)) {
-            mapNicPortNums.set(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber, true);
+          if (
+            !mapNicPortNums.has(
+              server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber
+            )
+          ) {
+            mapNicPortNums.set(
+              server.NetworkDeviceInformation[ndiKey][nicKey]
+                .PhysicalPortNumber,
+              true
+            );
 
             // Add this unique value to its array
             arrNicPortNums.push({
-              value: server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber,
-              label: server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber
+              value:
+                server.NetworkDeviceInformation[ndiKey][nicKey]
+                  .PhysicalPortNumber,
+              label:
+                server.NetworkDeviceInformation[ndiKey][nicKey]
+                  .PhysicalPortNumber,
             });
-          };
+          }
           // Add it to NICs set
-          nicPortNumsSet.add(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber);
+          nicPortNumsSet.add(
+            server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber
+          );
         });
-      };
+      }
     });
     // Push data into the server object
     serverObj.NetworkDevicesInfo.Manufacturers = [...nicMakersSet];
@@ -772,13 +990,13 @@ function getDropdownData(jsonData) {
   // console.log(arrNicFWs);
   // console.log(arrNicPortNums);
 
-  // Debugging 
+  // Debugging
   console.log("Printing all server objects data: ");
   console.log(allServerObj);
 
   // Return object with data for all dropdowns
   return allData;
-};
+}
 
 // Function that looks for all key-values to match
 function matchAll(serverObj, searchVals) {
@@ -810,125 +1028,167 @@ function matchAll(serverObj, searchVals) {
               // console.log("Bios matched!");
             } else {
               // console.log("Bios do not match!");
-            };
+            }
             break;
           case "DriveMakers":
-            if ((serverObj.StorageDisksInfo.Manufacturers).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.StorageDisksInfo.Manufacturers.some((s) =>
+                kv[1].includes(s)
+              )
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "DriveModels":
-            if ((serverObj.StorageDisksInfo.Models).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.StorageDisksInfo.Models.some((s) => kv[1].includes(s))
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "DriveSizes":
-            if ((serverObj.StorageDisksInfo.Sizes).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.StorageDisksInfo.Sizes.some((s) => kv[1].includes(s))
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "DriveWear":
-            if ((serverObj.StorageDisksInfo.Wear).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.StorageDisksInfo.Wear.some((s) => kv[1].includes(s))
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "ProcessorMakes":
-            if ((serverObj.ProcessorInfo.Manufacturers).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.ProcessorInfo.Manufacturers.some((s) =>
+                kv[1].includes(s)
+              )
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "ProcessorModels":
-            if ((serverObj.ProcessorInfo.Models).some(s => kv[1].includes(s))) {
+            if (serverObj.ProcessorInfo.Models.some((s) => kv[1].includes(s))) {
               matchCounter++;
-            };
+            }
             break;
           case "ProcessorSpeeds":
-            if ((serverObj.ProcessorInfo.Speeds).some(s => kv[1].includes(s))) {
+            if (serverObj.ProcessorInfo.Speeds.some((s) => kv[1].includes(s))) {
               matchCounter++;
-            };
+            }
             break;
           case "ProcessorCores":
-            if ((serverObj.ProcessorInfo.Cores).some(s => kv[1].includes(s))) {
+            if (serverObj.ProcessorInfo.Cores.some((s) => kv[1].includes(s))) {
               matchCounter++;
-            };
+            }
             break;
           case "ControllerNames":
-            if ((serverObj.StorageControllersInfo.Names).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.StorageControllersInfo.Names.some((s) =>
+                kv[1].includes(s)
+              )
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "ControllerFWs":
-            if ((serverObj.StorageControllersInfo.FirmwareVersions).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.StorageControllersInfo.FirmwareVersions.some((s) =>
+                kv[1].includes(s)
+              )
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "ControllerPCIslots":
-            if ((serverObj.StorageControllersInfo.PCISlots).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.StorageControllersInfo.PCISlots.some((s) =>
+                kv[1].includes(s)
+              )
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "MemoryMakers":
-            if ((serverObj.MemoryInfo.Manufacturers).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.MemoryInfo.Manufacturers.some((s) => kv[1].includes(s))
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "MemoryModels":
-            if ((serverObj.MemoryInfo.Models).some(s => kv[1].includes(s))) {
+            if (serverObj.MemoryInfo.Models.some((s) => kv[1].includes(s))) {
               matchCounter++;
-            };
+            }
             break;
           case "MemoryRanks":
-            if ((serverObj.MemoryInfo.Ranks).some(s => kv[1].includes(s))) {
+            if (serverObj.MemoryInfo.Ranks.some((s) => kv[1].includes(s))) {
               matchCounter++;
-            };
+            }
             break;
           case "MemorySizes":
-            if ((serverObj.MemoryInfo.Sizes).some(s => kv[1].includes(s))) {
+            if (serverObj.MemoryInfo.Sizes.some((s) => kv[1].includes(s))) {
               matchCounter++;
-            };
+            }
             break;
           case "MemorySpeeds":
-            if ((serverObj.MemoryInfo.Speeds).some(s => kv[1].includes(s))) {
+            if (serverObj.MemoryInfo.Speeds.some((s) => kv[1].includes(s))) {
               matchCounter++;
-            };
+            }
             break;
           case "NicMakers":
-            if ((serverObj.NetworkDevicesInfo.Manufacturers).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.NetworkDevicesInfo.Manufacturers.some((s) =>
+                kv[1].includes(s)
+              )
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "NicModels":
-            if ((serverObj.NetworkDevicesInfo.Models).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.NetworkDevicesInfo.Models.some((s) => kv[1].includes(s))
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "NicFWs":
-            if ((serverObj.NetworkDevicesInfo.FirmwareVersions).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.NetworkDevicesInfo.FirmwareVersions.some((s) =>
+                kv[1].includes(s)
+              )
+            ) {
               matchCounter++;
-            };
+            }
             break;
           case "NicPorts":
-            if ((serverObj.NetworkDevicesInfo.PortNumbers).some(s => kv[1].includes(s))) {
+            if (
+              serverObj.NetworkDevicesInfo.PortNumbers.some((s) =>
+                kv[1].includes(s)
+              )
+            ) {
               matchCounter++;
-            };
+            }
             break;
-        };
-      };
+        }
+      }
     });
     // debugging
     // console.log(matchCounter);
     // console.log(criteriaCounter);
 
     // Return boolean based on count of matches vs count of criteria
-    matchCounter == criteriaCounter ? result = true : result = false;
+    matchCounter == criteriaCounter ? (result = true) : (result = false);
     return result;
   } catch (e) {
     console.log("Error in matchAll function:");
     console.log(e);
-  };
+  }
 }
 
-// Function that returns an array of Service Tags of those servers that match 
+// Function that returns an array of Service Tags of those servers that match
 // the search criteria
 function searchServers(criteria, jsonData) {
   // console.log("Printing the search values array:")
@@ -946,9 +1206,11 @@ function searchServers(criteria, jsonData) {
     if (match) {
       matchCount++;
       // console.log(server);
-      console.log(`${server.ServiceTag} is a match. Total count is ${matchCount}`);
+      console.log(
+        `${server.ServiceTag} is a match. Total count is ${matchCount}`
+      );
       matchingServers.push(server.ServiceTag);
-    };
+    }
   });
   // Shove results into the return object
   result.found = matchCount;
@@ -964,7 +1226,7 @@ function saveToArr(data) {
     data.forEach((obj) => {
       dataInArray.push(obj.value);
     });
-  };
+  }
   return dataInArray;
 }
 
@@ -993,6 +1255,13 @@ function SearchCard() {
   const [nicFWs, setSelectedNicFWs] = useState([]);
   const [nicPorts, setSelectedNicPorts] = useState([]);
 
+  // Store results of search via state hook
+  // const [searchData, setSearchData] = useState([]);
+  // const setSearchState = useSetRecoilState(searchState);
+  const [search, setSearch] = useRecoilState(searchState);
+
+  // const [newDataArr, dispatch] = useReducer(reducer, initialSearchState);
+
   // Upon initial load get the dropdown data
   useEffect(() => {
     console.log("Getting dropdown data..");
@@ -1000,53 +1269,94 @@ function SearchCard() {
     getDropdownData(jsonInv);
   }, []);
 
-  // Upon any selection from a dropdown run a search against cached JSON
+  // Upon any selection from a dropdown run a search
   useEffect(() => {
     // Store chosen dropdown values to run a search
-    let searchValues = [{
-      "BiosOptions": saveToArr(biosOptions),
-      "DriveMakers": saveToArr(driveMakers),
-      "DriveModels": saveToArr(driveModels),
-      "DriveSizes": saveToArr(driveSizes),
-      "DriveWear": saveToArr(driveWear),
-      "ProcessorMakes": saveToArr(processorMakes),
-      "ProcessorModels": saveToArr(processorModels),
-      "ProcessorSpeeds": saveToArr(processorSpeeds),
-      "ProcessorCores": saveToArr(processorCores),
-      "ControllerNames": saveToArr(controllerNames),
-      "ControllerFWs": saveToArr(controllerFWs),
-      "ControllerPCIslots": saveToArr(controllerPCIslots),
-      "MemoryMakers": saveToArr(memoryMakers),
-      "MemoryModels": saveToArr(memoryModels),
-      "MemoryRanks": saveToArr(memoryRanks),
-      "MemorySizes": saveToArr(memorySizes),
-      "MemorySpeeds": saveToArr(memorySpeeds),
-      "NicMakers": saveToArr(nicMakers),
-      "NicModels": saveToArr(nicModels),
-      "NicFWs": saveToArr(nicFWs),
-      "NicPorts": saveToArr(nicPorts)
-    }];
+    let searchValues = [
+      {
+        BiosOptions: saveToArr(biosOptions),
+        DriveMakers: saveToArr(driveMakers),
+        DriveModels: saveToArr(driveModels),
+        DriveSizes: saveToArr(driveSizes),
+        DriveWear: saveToArr(driveWear),
+        ProcessorMakes: saveToArr(processorMakes),
+        ProcessorModels: saveToArr(processorModels),
+        ProcessorSpeeds: saveToArr(processorSpeeds),
+        ProcessorCores: saveToArr(processorCores),
+        ControllerNames: saveToArr(controllerNames),
+        ControllerFWs: saveToArr(controllerFWs),
+        ControllerPCIslots: saveToArr(controllerPCIslots),
+        MemoryMakers: saveToArr(memoryMakers),
+        MemoryModels: saveToArr(memoryModels),
+        MemoryRanks: saveToArr(memoryRanks),
+        MemorySizes: saveToArr(memorySizes),
+        MemorySpeeds: saveToArr(memorySpeeds),
+        NicMakers: saveToArr(nicMakers),
+        NicModels: saveToArr(nicModels),
+        NicFWs: saveToArr(nicFWs),
+        NicPorts: saveToArr(nicPorts),
+      },
+    ];
 
     // Get all key-value pairs from the dropdowns
     let svKVs = Object.entries(searchValues[0]);
 
-    // If any of the dropdown choices have a value then run a search
-    // and display result of it
+    searchEmpty = true;
     svKVs.forEach((kv) => {
       if (kv[1].length > 0) {
+        // Set flag
+        searchEmpty = false;
         // console.log(kv);
-        console.log("Calling search..");
-        let searchRes = searchServers(searchValues, allServerObj);
-        if (searchRes.found > 0) {
-          console.log(`Search found ${searchRes.found} machine(s) matching your criteria: ${searchRes.servers}`);
-        } else {
-          console.log("Search did not find matches with the selected criteria. Change criteria and try again!");
-        };
-      } else {
-        // display all or none
-      };
+      }
     });
+    if (!searchEmpty) {
+      console.log("Calling search..");
+      let searchRes = searchServers(searchValues, allServerObj);
+      if (searchRes.found > 0) {
+        console.log(
+          `Search found ${searchRes.found} machine(s) matching your criteria: ${searchRes.servers}`
+        );
+        // Update the component state
+        setSearch(searchRes.servers);
+      }
+    } else {
+      console.log(
+        "Search did not find matches with the selected criteria. Cha"
+      );
+      setSearch([]);
+    }
 
+    // If any of the dropdown choices have a value then run a search
+    // and display result of it
+    // svKVs.forEach((kv) => {
+    //   if (kv[1].length > 0) {
+    //     // Set flag
+    //     searchEmpty = false;
+    //     // console.log(kv);
+    //     console.log("Calling search..");
+    //     let searchRes = searchServers(searchValues, allServerObj);
+    //     if (searchRes.found > 0) {
+    //       console.log(
+    //         `Search found ${searchRes.found} machine(s) matching your criteria: ${searchRes.servers}`
+    //       );
+    //       setSearch(searchRes.servers);
+    //       // Update the component state
+    //       // setSearchData(searchRes.servers);
+    //       // Update the shared state
+    //       // dispatch({ type: "writeState", payload: searchRes.servers });
+    //       // dispatch({ type: "readState", newDataArr }); //debugging
+    //     } else {
+    //       console.log(
+    //         "Search did not find matches with the selected criteria. Change criteria and try again!"
+    //       );
+    //       // setSearchData([]);
+    //       setSearch([]);
+    //     }
+    //   } else {
+    //     // display all or none
+    //     searchEmpty = true;
+    //   }
+    // });
 
     // If any of the values are added/removed then run a search
     // if (
@@ -1094,15 +1404,15 @@ function SearchCard() {
     nicMakers,
     nicModels,
     nicFWs,
-    nicPorts]
-  );
+    nicPorts,
+  ]);
 
   return (
     <>
       <Header />
       {/* Page content */}
       <div className="header bg-gradient-info">
-        <Container className="mt--9" fluid={true} >
+        <Container className="mt--9" fluid={true}>
           {/* style={{border: "none", margin: "1px", padding: "25px", width: "auto", height: "100%", resize: "none" }} */}
           <div className="col">
             <row>
@@ -1136,10 +1446,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Select firmware.."
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedSysFWs}
+                            // options={}
+                            // isMulti
+                            // isSearchable
+                            // onChange={setSelectedSysFWs}
                           />
                         </FormGroup>
                       </Col>
@@ -1149,10 +1459,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Select CPLD.."
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedSysCPLDs}
+                            // options={}
+                            // isMulti
+                            // isSearchable
+                            // onChange={setSelectedSysCPLDs}
                           />
                         </FormGroup>
                       </Col>
@@ -1162,10 +1472,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Select DIMMs.."
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedSysDIMMs}
+                            // options={}
+                            // isMulti
+                            // isSearchable
+                            // onChange={setSelectedSysDIMMs}
                           />
                         </FormGroup>
                       </Col>
@@ -1175,10 +1485,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Select type.."
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedSysMemTypes}
+                            // options={}
+                            // isMulti
+                            // isSearchable
+                            // onChange={setSelectedSysMemTypes}
                           />
                         </FormGroup>
                       </Col>
@@ -1247,17 +1557,22 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Select firmware.."
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedDriveFWs}
+                            // options={}
+                            // isMulti
+                            // isSearchable
+                            // onChange={setSelectedDriveFWs}
                           />
                         </FormGroup>
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
                           {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter serial #" />
+                          <Input
+                            type="text"
+                            name="search"
+                            id="exampleText"
+                            placeholder="Enter serial #"
+                          />
                         </FormGroup>
                       </Col>
                     </Row>
@@ -1370,13 +1685,23 @@ function SearchCard() {
                       <Col sm={2}>
                         <FormGroup>
                           {/* <Label for="exampleSelect">SAS Address</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter SAS address.." />
+                          <Input
+                            type="text"
+                            name="search"
+                            id="exampleText"
+                            placeholder="Enter SAS address.."
+                          />
                         </FormGroup>
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
                           {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter serial #.." />
+                          <Input
+                            type="text"
+                            name="search"
+                            id="exampleText"
+                            placeholder="Enter serial #.."
+                          />
                         </FormGroup>
                       </Col>
                     </Row>
@@ -1455,7 +1780,12 @@ function SearchCard() {
                       <Col sm={2}>
                         <FormGroup>
                           {/* <Label for="exampleSelect">Part Number</Label> */}
-                          <Input type="text" name="search" id="exampleText" placeholder="Enter part #" />
+                          <Input
+                            type="text"
+                            name="search"
+                            id="exampleText"
+                            placeholder="Enter part #"
+                          />
                         </FormGroup>
                       </Col>
                     </Row>
@@ -1520,6 +1850,21 @@ function SearchCard() {
                         </FormGroup>
                       </Col>
                     </Row>
+                    <Row>
+                      <Col sm={5}>
+                        <FormGroup>
+                          <Label for="exampleSelect">Machines Found</Label>
+                          <Input
+                            type="text"
+                            name="machines"
+                            id="exampleText"
+                            placeholder="search results.."
+                            value={search}
+                            readOnly
+                          />
+                        </FormGroup>
+                      </Col>
+                    </Row>
                   </Form>
                 </CardHeader>
               </Card>
@@ -1557,8 +1902,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
           const rowValue = row.values[id];
           return rowValue !== undefined
             ? String(rowValue)
-              .toLowerCase()
-              .startsWith(String(filterValue).toLowerCase())
+                .toLowerCase()
+                .startsWith(String(filterValue).toLowerCase())
             : true;
         });
       },
@@ -1620,7 +1965,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     <>
       <Header />
       <div className="header pb-1 pt-1 pt-sm-1">
-        <Container className="mt--9" fluid={true} >
+        <Container className="mt--9" fluid={true}>
           {/* Table */}
           <Row>
             <div className="col">
@@ -1642,150 +1987,150 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                     </Row>
                   </FadeIn>
                 ) : (
-                    <React.Fragment>
-                      <Table
-                        className="align-items-center"
-                        bordered
-                        hover
-                        responsive
-                        size="sm"
-                        {...getTableProps()}
-                      >
-                        <thead>
-                          {headerGroups.map((headerGroup) => (
-                            <tr
-                              key={headerGroup.id}
-                              {...headerGroup.getHeaderGroupProps()}
-                            >
-                              {headerGroup.headers.map((column) => (
-                                <th key={column.id} {...column.getHeaderProps()}>
-                                  <div>
-                                    <span {...column.getSortByToggleProps()}>
-                                      {column.render("Header")}
-                                      {/* Add a sort direction indicator */}
-                                      {column.isSorted
-                                        ? column.isSortedDesc
-                                          ? " 🔽"
-                                          : " 🔼"
-                                        : ""}
-                                    </span>
-                                  </div>
-                                  <br />
-                                  {/* Render the columns filter UI */}
-                                  <div>
-                                    {column.canFilter
-                                      ? column.render("Filter")
-                                      : null}
-                                  </div>
-                                </th>
-                              ))}
-                            </tr>
-                          ))}
-                          <tr>
-                            <th
-                              colSpan={visibleColumns.length}
-                              style={{
-                                textAlign: "left",
-                              }}
-                            >
-                              <GlobalFilter
-                                preGlobalFilteredRows={preGlobalFilteredRows}
-                                globalFilter={state.globalFilter}
-                                setGlobalFilter={setGlobalFilter}
-                              />
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody {...getTableBodyProps()}>
-                          {page.map((row) => {
-                            prepareRow(row);
-                            return (
-                              <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                                {row.cells.map((cell) => {
-                                  return (
-                                    <td
-                                      key={cell.id}
-                                      id={cell.id}
-                                      {...cell.getCellProps()}
-                                    >
-                                      {cell.render("Cell")}
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </Table>
-                      <CardFooter className="py-4">
-                        <nav aria-label="...">
-                          <Pagination
-                            className="pagination justify-content-end mb-0"
-                            listClassName="justify-content-end mb-0"
+                  <React.Fragment>
+                    <Table
+                      className="align-items-center"
+                      bordered
+                      hover
+                      responsive
+                      size="sm"
+                      {...getTableProps()}
+                    >
+                      <thead>
+                        {headerGroups.map((headerGroup) => (
+                          <tr
+                            key={headerGroup.id}
+                            {...headerGroup.getHeaderGroupProps()}
                           >
-                            <Button color="info">
-                              Page {pageIndex + 1} of {pageOptions.length}
-                              <span className="sr-only">unread messages</span>
-                            </Button>
-                            <Button
-                              className="btn-icon btn-2"
-                              color="primary"
-                              type="button"
-                              onClick={() => gotoPage(0)}
-                              disabled={!canPreviousPage}
-                            >
-                              <span className="btn-inner--icon">
-                                <i className="fas fa-angle-double-left"></i>
-                              </span>
-                            </Button>{" "}
-                            {/* Previous Page */}
-                            <Button
-                              className="btn-icon btn-2"
-                              color="primary"
-                              type="button"
-                              onClick={() => previousPage()}
-                              disabled={!canPreviousPage}
-                            >
-                              <span className="btn-inner--icon">
-                                <i className="fas fa-angle-left"></i>
-                              </span>
-                            </Button>{" "}
-                            {/* Next Page */}
-                            <Button
-                              className="btn-icon btn-2"
-                              color="primary"
-                              type="button"
-                              onClick={() => nextPage()}
-                              disabled={!canNextPage}
-                            >
-                              <span className="btn-inner--icon">
-                                <i className="fas fa-angle-right"></i>
-                              </span>
-                            </Button>{" "}
-                            <Button
-                              className="btn-icon btn-2"
-                              color="primary"
-                              type="button"
-                              onClick={() => gotoPage(pageCount - 1)}
-                              disabled={!canNextPage}
-                            >
-                              <span className="btn-inner--icon">
-                                <i className="fas fa-angle-double-right"></i>
-                              </span>
-                            </Button>{" "}
-                            {/* <button
+                            {headerGroup.headers.map((column) => (
+                              <th key={column.id} {...column.getHeaderProps()}>
+                                <div>
+                                  <span {...column.getSortByToggleProps()}>
+                                    {column.render("Header")}
+                                    {/* Add a sort direction indicator */}
+                                    {column.isSorted
+                                      ? column.isSortedDesc
+                                        ? " 🔽"
+                                        : " 🔼"
+                                      : ""}
+                                  </span>
+                                </div>
+                                <br />
+                                {/* Render the columns filter UI */}
+                                <div>
+                                  {column.canFilter
+                                    ? column.render("Filter")
+                                    : null}
+                                </div>
+                              </th>
+                            ))}
+                          </tr>
+                        ))}
+                        <tr>
+                          <th
+                            colSpan={visibleColumns.length}
+                            style={{
+                              textAlign: "left",
+                            }}
+                          >
+                            <GlobalFilter
+                              preGlobalFilteredRows={preGlobalFilteredRows}
+                              globalFilter={state.globalFilter}
+                              setGlobalFilter={setGlobalFilter}
+                            />
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody {...getTableBodyProps()}>
+                        {page.map((row) => {
+                          prepareRow(row);
+                          return (
+                            <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                              {row.cells.map((cell) => {
+                                return (
+                                  <td
+                                    key={cell.id}
+                                    id={cell.id}
+                                    {...cell.getCellProps()}
+                                  >
+                                    {cell.render("Cell")}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                    <CardFooter className="py-4">
+                      <nav aria-label="...">
+                        <Pagination
+                          className="pagination justify-content-end mb-0"
+                          listClassName="justify-content-end mb-0"
+                        >
+                          <Button color="info">
+                            Page {pageIndex + 1} of {pageOptions.length}
+                            <span className="sr-only">unread messages</span>
+                          </Button>
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => gotoPage(0)}
+                            disabled={!canPreviousPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-double-left"></i>
+                            </span>
+                          </Button>{" "}
+                          {/* Previous Page */}
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => previousPage()}
+                            disabled={!canPreviousPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-left"></i>
+                            </span>
+                          </Button>{" "}
+                          {/* Next Page */}
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => nextPage()}
+                            disabled={!canNextPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-right"></i>
+                            </span>
+                          </Button>{" "}
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => gotoPage(pageCount - 1)}
+                            disabled={!canNextPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-double-right"></i>
+                            </span>
+                          </Button>{" "}
+                          {/* <button
                           onClick={() => gotoPage(pageCount - 1)}
                           disabled={!canNextPage}
                         >
                           {">>"}
                         </button>{" "} */}
-                            {/* <span>
+                          {/* <span>
                           Page{" "}
                           <strong>
                             {pageIndex + 1} of {pageOptions.length}
                           </strong>{" "}
                         </span> */}
-                            {/* <span>
+                          {/* <span>
                           | Go to page:{" "}
                           <input
                             type="number"
@@ -1799,43 +2144,52 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                             style={{ width: "100px" }}
                           />
                         </span>{" "} */}
-                            <Form.Control
-                              as="select"
-                              custom
-                              value={pageSize}
-                              onChange={(e) => {
-                                setPageSize(Number(e.target.value));
-                              }}
-                              onBlur={(e) => {
-                                setPageSize(Number(e.target.value));
-                              }}
-                            >
-                              {[10, 20, 30, 40, 50].map((pageSize) => (
-                                <option key={pageSize} value={pageSize}>
-                                  Show {pageSize}
-                                </option>
-                              ))}
-                            </Form.Control>
-                          </Pagination>
-                        </nav>
-                      </CardFooter>
-                    </React.Fragment>
-                  )}
+                          <Form.Control
+                            as="select"
+                            custom
+                            value={pageSize}
+                            onChange={(e) => {
+                              setPageSize(Number(e.target.value));
+                            }}
+                            onBlur={(e) => {
+                              setPageSize(Number(e.target.value));
+                            }}
+                          >
+                            {[10, 20, 30, 40, 50].map((pageSize) => (
+                              <option key={pageSize} value={pageSize}>
+                                Show {pageSize}
+                              </option>
+                            ))}
+                          </Form.Control>
+                        </Pagination>
+                      </nav>
+                    </CardFooter>
+                  </React.Fragment>
+                )}
               </Card>
             </div>
           </Row>
-
         </Container>
       </div>
     </>
   );
 }
 
+// function getSearchResults() {
+
+// }
+
 function SearchInventory() {
   // const { userInfo } = useContext(UserInfoContext);
   const userInfo = JSON.parse(localStorage.getItem("user"));
-  const [data, setData] = React.useState([]);
+  // const [newDataArr, dispatch] = useReducer(reducer, initialSearchState);
+  // const [newDataArr, dispatch] = useReducer(reducer, []);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState({ done: undefined });
+  const searchArr = useRecoilValue(searchState);
+
+  // dispatch({ type: "readState", newDataArr });
+
   // We need to keep the table from resetting the pageIndex when we
   // Update data. So we can keep track of that flag with a ref.
 
@@ -2019,7 +2373,7 @@ function SearchInventory() {
       {
         Header: "Service Tag",
         accessor: "serviceTag",
-        Cell: Server_Inventory
+        Cell: Server_Inventory,
       },
       {
         Header: "System",
@@ -2096,9 +2450,22 @@ function SearchInventory() {
   });
 
   useEffect(() => {
-    fetch(`${apiServer}/getServers`)
+    console.log("Inside SearchInventory useEffect: ");
+    // dispatch({ type: "readState" });
+    // console.log(newDataArr);
+    // Specify request options
+    const requestOptions = {
+      method: "POST",
+      body: JSON.stringify({ ServiceTagArr: searchArr }),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+    fetch(`${apiServer}/getServersByTag`, requestOptions)
       .then((res) => res.json())
       .then((data) => {
+        console.log(data);
         setData(
           data.map((item) => {
             return item;
@@ -2106,7 +2473,7 @@ function SearchInventory() {
         );
         setLoading({ done: true });
       });
-  }, []);
+  }, [searchArr]);
 
   return (
     <React.Fragment>
