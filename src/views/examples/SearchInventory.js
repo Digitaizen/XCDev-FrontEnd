@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
-import jsonInv from "assets/hw_inventory_3_nodes.json";
+// import jsonInv from "assets/hw_inventory_3_nodes.json";
 import {
   useTable,
   useRowSelect,
@@ -36,7 +36,7 @@ import axios from "axios";
 // core components
 import Header from "../../components/Headers/Header.js";
 import { useRecoilValue, useRecoilState } from "recoil";
-import { searchState } from "./Atoms";
+import { searchState, allSearchData } from "./Atoms";
 
 const apiServer = process.env.REACT_APP_API_SERVER;
 
@@ -297,6 +297,7 @@ function getDropdownData(jsonData) {
   const mapNicPortNums = new Map();
 
   const server = jsonData.resultArray.map((item) => item.data);
+  console.log(server);
 
   // Loop through each server's json data in the array
   server.forEach((server) => {
@@ -359,14 +360,14 @@ function getDropdownData(jsonData) {
     let controllerNamesSet = new Set();
     let controllerFWsSet = new Set();
     let controllerPCISlotsSet = new Set();
-    let controllerSASaddressesSet = new Set();
-    let controllerSerialNumsSet = new Set();
+    // let controllerSASaddressesSet = new Set();
+    // let controllerSerialNumsSet = new Set();
     let memoryMakersSet = new Set();
     let memoryModelsSet = new Set();
     let memoryRanksSet = new Set();
     let memorySizesSet = new Set();
     let memorySpeedsSet = new Set();
-    let memoryPartNumsSet = new Set();
+    // let memoryPartNumsSet = new Set();
     let nicMakersSet = new Set();
     let nicModelsSet = new Set();
     let nicFWsSet = new Set();
@@ -590,6 +591,8 @@ function getDropdownData(jsonData) {
     // Get the names of the controllers
     let ciKeys = Object.keys(server.StorageControllerInformation);
 
+    let keySciOemExists = false;
+    let keyPciSlotExists = false;
     // Loop through controllers, get then add unique data to array
     ciKeys.forEach((controllerName) => {
       if (
@@ -669,60 +672,101 @@ function getDropdownData(jsonData) {
 
       // 1st check if the key exists then add it to a new key array
       let newOEMkeyArr = [];
+
       if (
         keyExists(server.StorageControllerInformation[controllerName], "Oem")
       ) {
         newOEMkeyArr.push(controllerName);
+        keySciOemExists = true;
       } else {
         console.log(
           `System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'Oem' key`
         );
       }
 
-      // Now, loop through the new key array to find the data seeked
-      newOEMkeyArr.forEach((cName) => {
-        if (
-          server.StorageControllerInformation[cName].Oem.Dell.DellController
-            .PCISlot === null
-        ) {
-          console.log(
-            `System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`
+      if (keySciOemExists) {
+        // Now, loop through the new key array to find the data sought after
+        newOEMkeyArr.forEach((cName) => {
+          console.log(`${cName} of ${server.SystemInformation.SKU}`); //debugging
+          // Get the keys under 'Dell'
+          let oemControllerKeys = Object.keys(
+            server.StorageControllerInformation[cName].Oem.Dell
           );
-        } else {
-          if (
-            !mapControllerPCIslots.has(
-              server.StorageControllerInformation[cName].Oem.Dell.DellController
-                .PCISlot
-            )
-          ) {
-            mapControllerPCIslots.set(
-              server.StorageControllerInformation[cName].Oem.Dell.DellController
-                .PCISlot,
-              true
-            );
+          let oemControllerArr = [];
+          oemControllerKeys.forEach((oemControllerName) => {
+            // Check for existence of PCISlot field
+            if (
+              keyExists(
+                server.StorageControllerInformation[cName].Oem.Dell[
+                  oemControllerName
+                ],
+                "PCISlot"
+              )
+            ) {
+              oemControllerArr.push(oemControllerName);
+              keyPciSlotExists = true;
+            } else {
+              console.log(
+                `${oemControllerName} of ${server.SystemInformation.SKU} does not have PCISlot field`
+              );
+              keyPciSlotExists = false;
+            }
+          });
+          if (keyPciSlotExists) {
+            oemControllerArr.forEach((oemControllerName) => {
+              if (
+                server.StorageControllerInformation[cName].Oem.Dell[
+                  oemControllerName
+                ].PCISlot === null
+              ) {
+                console.log(
+                  `System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`
+                );
+              } else {
+                if (
+                  !mapControllerPCIslots.has(
+                    server.StorageControllerInformation[cName].Oem.Dell[
+                      oemControllerName
+                    ].PCISlot
+                  )
+                ) {
+                  mapControllerPCIslots.set(
+                    server.StorageControllerInformation[cName].Oem.Dell[
+                      oemControllerName
+                    ].PCISlot,
+                    true
+                  );
 
-            // Add this unique value to its array
-            arrControllerPCIslots.push({
-              value:
-                server.StorageControllerInformation[cName].Oem.Dell
-                  .DellController.PCISlot,
-              label:
-                server.StorageControllerInformation[cName].Oem.Dell
-                  .DellController.PCISlot,
+                  // Add this unique value to its array
+                  arrControllerPCIslots.push({
+                    value:
+                      server.StorageControllerInformation[cName].Oem.Dell[
+                        oemControllerName
+                      ].PCISlot,
+                    label:
+                      server.StorageControllerInformation[cName].Oem.Dell[
+                        oemControllerName
+                      ].PCISlot,
+                  });
+                }
+                // Add it to the controllers' set
+                controllerPCISlotsSet.add(
+                  server.StorageControllerInformation[cName].Oem.Dell[
+                    oemControllerName
+                  ].PCISlot
+                );
+              }
             });
           }
-          // Add it to the controllers' set
-          controllerPCISlotsSet.add(
-            server.StorageControllerInformation[cName].Oem.Dell.DellController
-              .PCISlot
-          );
-        }
-      });
+        });
+      }
     });
     // Push data into the server object
     serverObj.StorageControllersInfo.Names = [...controllerNamesSet];
     serverObj.StorageControllersInfo.FirmwareVersions = [...controllerFWsSet];
-    serverObj.StorageControllersInfo.PCISlots = [...controllerPCISlotsSet];
+    if (keyPciSlotExists)
+      serverObj.StorageControllersInfo.PCISlots = [...controllerPCISlotsSet];
+    else serverObj.StorageControllersInfo.PCISlots = [];
 
     // Memory Information -------------------------------------------------------------------------
     // Get the names of the DIMMs
@@ -938,30 +982,6 @@ function getDropdownData(jsonData) {
   allData["NetworkDevicesInfo"]["Models"] = arrNicModels;
   allData["NetworkDevicesInfo"]["FWs"] = arrNicFWs;
   allData["NetworkDevicesInfo"]["PortNumbers"] = arrNicPortNums;
-
-  // Debugging
-  // console.log("Printing dropdown data arrays:")
-  // console.log(arrSysBios);
-  // console.log(arrDriveMakes);
-  // console.log(arrDriveModels);
-  // console.log(arrDriveSizes);
-  // console.log(arrDriveWear);
-  // console.log(arrProcessorMakes);
-  // console.log(arrProcessorModels);
-  // console.log(arrProcessorSpeeds);
-  // console.log(arrProcessorCores);
-  // console.log(arrControllerNames);
-  // console.log(arrControllerFWs);
-  // console.log(arrControllerPCIslots);
-  // console.log(arrDimmMakes);
-  // console.log(arrDimmModels);
-  // console.log(arrDimmRanks);
-  // console.log(arrDimmSizes);
-  // console.log(arrDimmSpeeds);
-  // console.log(arrNicMakes);
-  // console.log(arrNicModels);
-  // console.log(arrNicFWs);
-  // console.log(arrNicPortNums);
 
   // Debugging
   console.log("Printing all server objects data: ");
@@ -1234,6 +1254,9 @@ function SearchCard() {
   const [search, setSearch] = useRecoilState(searchState);
 
   // const [newDataArr, dispatch] = useReducer(reducer, initialSearchState);
+  const [dropdownDataFromAPI, setDropdownDataFromAPI] = useRecoilState(
+    allSearchData
+  );
 
   // Upon initial load get the dropdown data
   useEffect(() => {
@@ -1242,7 +1265,7 @@ function SearchCard() {
     axios
       .get("http://localhost:8080/getHardwareInventory")
       .then((response) => {
-        getDropdownData(response.data);
+        setDropdownDataFromAPI(getDropdownData(response.data));
         // console.log(response.data);
       })
       .catch((error) => {
@@ -1306,64 +1329,6 @@ function SearchCard() {
       );
       setSearch([]);
     }
-
-    // If any of the dropdown choices have a value then run a search
-    // and display result of it
-    // svKVs.forEach((kv) => {
-    //   if (kv[1].length > 0) {
-    //     // Set flag
-    //     searchEmpty = false;
-    //     // console.log(kv);
-    //     console.log("Calling search..");
-    //     let searchRes = searchServers(searchValues, allServerObj);
-    //     if (searchRes.found > 0) {
-    //       console.log(
-    //         `Search found ${searchRes.found} machine(s) matching your criteria: ${searchRes.servers}`
-    //       );
-    //       setSearch(searchRes.servers);
-    //       // Update the component state
-    //       // setSearchData(searchRes.servers);
-    //       // Update the shared state
-    //       // dispatch({ type: "writeState", payload: searchRes.servers });
-    //       // dispatch({ type: "readState", newDataArr }); //debugging
-    //     } else {
-    //       console.log(
-    //         "Search did not find matches with the selected criteria. Change criteria and try again!"
-    //       );
-    //       // setSearchData([]);
-    //       setSearch([]);
-    //     }
-    //   } else {
-    //     // display all or none
-    //     searchEmpty = true;
-    //   }
-    // });
-
-    // If any of the values are added/removed then run a search
-    // if (
-    //   biosOptions.length > 0 ||
-    //   driveMakers.length > 0 ||
-    //   driveModels.length > 0 ||
-    //   driveSizes.length > 0 ||
-    //   driveWear.length > 0 ||
-    //   processorMakes.length > 0 ||
-    //   processorModels.length > 0 ||
-    //   processorSpeeds.length > 0 ||
-    //   processorCores.length > 0 ||
-    //   controllerNames.length > 0 ||
-    //   controllerFWs.length > 0 ||
-    //   controllerPCIslots.length > 0 ||
-    //   memoryMakers.length > 0 ||
-    //   memoryModels.length > 0 ||
-    //   memoryRanks.length > 0 ||
-    //   memorySizes.length > 0 ||
-    //   memorySpeeds.length > 0 ||
-    //   nicMakers.length > 0 ||
-    //   nicModels.length > 0 ||
-    //   nicFWs.length > 0 ||
-    //   nicPorts.length > 0)
-    // console.log("Calling search..");
-    // searchServers(searchValues, allServerObj);
   }, [
     biosOptions,
     driveMakers,
