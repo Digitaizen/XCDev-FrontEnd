@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Select from 'react-select';
 import jsonInv from 'assets/hw_inventory_3_nodes.json';
 import {
@@ -8,7 +8,7 @@ import {
   useFilters,
   useGlobalFilter,
   useAsyncDebounce,
-  usePagination,
+  usePagination
 } from "react-table";
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
@@ -32,12 +32,18 @@ import {
 } from "reactstrap";
 
 import Form from "react-bootstrap/Form";
+import axios from "axios";
 
 // core components
 import Header from "../../components/Headers/Header.js";
-import { getNameOfDeclaration } from "typescript";
+import { SearchContext } from '../../App';
 
 const apiServer = process.env.REACT_APP_API_SERVER;
+const apiInventory = "http://localhost:8080/getHardwareInventory";
+const inventoryFileDir = "http://100.80.149.97/DellReServer/inventory/Latest/";
+
+// Flag that indicates if Search Values are empty or not
+let searchEmpty = true;
 
 // Create top level object with subitem objects for each component's options
 let allData = {
@@ -234,7 +240,7 @@ const IP_Hyperlink = (props) => {
 const Server_Inventory = (props) => {
   let server_tag = props.cell.row.original.serviceTag;
   let server = `${props.cell.row.original.ip}.txt`;
-  let server_info = "http://100.80.149.97/DellReServer/inventory/Latest/" + server;
+  let server_info = inventoryFileDir + server;
   return (
     <div>
       <a target="_blank" href={server_info} rel="noopener noreferrer">
@@ -292,8 +298,11 @@ function getDropdownData(jsonData) {
   const mapNicFWs = new Map();
   const mapNicPortNums = new Map();
 
+  const serverObject = jsonData.resultArray.map((item) => item.data);
+
   // Loop through each server's json data in the array
-  jsonData.forEach((server) => {
+  // jsonData.forEach((server) => {
+  serverObject.forEach((server) => {
     // Create a server object to store key-value data to be searched
     let serverObj = {
       ServiceTag: "",
@@ -353,18 +362,19 @@ function getDropdownData(jsonData) {
     let controllerNamesSet = new Set();
     let controllerFWsSet = new Set();
     let controllerPCISlotsSet = new Set();
-    let controllerSASaddressesSet = new Set();
-    let controllerSerialNumsSet = new Set();
+    // let controllerSASaddressesSet = new Set();
+    // let controllerSerialNumsSet = new Set();
     let memoryMakersSet = new Set();
     let memoryModelsSet = new Set();
     let memoryRanksSet = new Set();
     let memorySizesSet = new Set();
     let memorySpeedsSet = new Set();
-    let memoryPartNumsSet = new Set();
+    // let memoryPartNumsSet = new Set();
     let nicMakersSet = new Set();
     let nicModelsSet = new Set();
     let nicFWsSet = new Set();
     let nicPortNumsSet = new Set();
+
 
     // System Information -------------------------------------------------------------------------
     // Check if the value already on the list and if not then add it
@@ -510,6 +520,8 @@ function getDropdownData(jsonData) {
     // Get the names of the controllers
     let ciKeys = Object.keys(server.StorageControllerInformation);
 
+    let keySciOemExists = false;
+    let keyPciSlotExists = false;
     // Loop through controllers, get then add unique data to array
     ciKeys.forEach((controllerName) => {
       if (!mapControllerNames.has(server.StorageControllerInformation[controllerName].Name)) {
@@ -552,35 +564,60 @@ function getDropdownData(jsonData) {
 
       // 1st check if the key exists then add it to a new key array
       let newOEMkeyArr = [];
+
       if (keyExists(server.StorageControllerInformation[controllerName], "Oem")) {
         newOEMkeyArr.push(controllerName);
+        keySciOemExists = true;
       } else {
         console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'Oem' key`);
       };
 
-      // Now, loop through the new key array to find the data seeked
-      newOEMkeyArr.forEach(cName => {
-        if (server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot === null) {
-          console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`);
-        } else {
-          if (!mapControllerPCIslots.has(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot)) {
-            mapControllerPCIslots.set(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot, true);
+      if (keySciOemExists) {
+        // Now, loop through the new key array to find the data sought after
+        newOEMkeyArr.forEach(cName => {
+          console.log(`${cName} of ${server.SystemInformation.SKU}`); //debugging
+          // Get the keys under 'Dell'
+          let oemControllerKeys = Object.keys(server.StorageControllerInformation[cName].Oem.Dell);
+          let oemControllerArr = [];
+          oemControllerKeys.forEach(oemControllerName => {
+            // Check for existence of PCISlot field
+            if (keyExists(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName], "PCISlot")) {
+              oemControllerArr.push(oemControllerName);
+              keyPciSlotExists = true;
+            } else {
+              console.log(`${oemControllerName} of ${server.SystemInformation.SKU} does not have PCISlot field`);
+              keyPciSlotExists = false;
+            };
+          });
+          if (keyPciSlotExists) {
+            oemControllerArr.forEach(oemControllerName => {
+              if (server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot === null) {
+                console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`);
+              } else {
+                if (!mapControllerPCIslots.has(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot)) {
+                  mapControllerPCIslots.set(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot, true);
 
-            // Add this unique value to its array
-            arrControllerPCIslots.push({
-              value: server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot,
-              label: server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot
+                  // Add this unique value to its array
+                  arrControllerPCIslots.push({
+                    value: server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot,
+                    label: server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot
+                  });
+                };
+                // Add it to the controllers' set
+                controllerPCISlotsSet.add(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot);
+              };
             });
           };
-          // Add it to the controllers' set
-          controllerPCISlotsSet.add(server.StorageControllerInformation[cName].Oem.Dell.DellController.PCISlot);
-        };
-      });
+        });
+      };
     });
     // Push data into the server object
     serverObj.StorageControllersInfo.Names = [...controllerNamesSet];
     serverObj.StorageControllersInfo.FirmwareVersions = [...controllerFWsSet];
-    serverObj.StorageControllersInfo.PCISlots = [...controllerPCISlotsSet];
+    if (keyPciSlotExists)
+      serverObj.StorageControllersInfo.PCISlots = [...controllerPCISlotsSet];
+    else
+      serverObj.StorageControllersInfo.PCISlots = [];
 
     // Memory Information -------------------------------------------------------------------------
     // Get the names of the DIMMs
@@ -775,6 +812,8 @@ function getDropdownData(jsonData) {
   // Debugging 
   console.log("Printing all server objects data: ");
   console.log(allServerObj);
+  console.log("Printing all dropdown objects data: ");
+  console.log(allData);
 
   // Return object with data for all dropdowns
   return allData;
@@ -912,6 +951,9 @@ function matchAll(serverObj, searchVals) {
               matchCounter++;
             };
             break;
+          default:
+            console.log("Some error in matchAll function's loop..");
+            break;
         };
       };
     });
@@ -931,9 +973,6 @@ function matchAll(serverObj, searchVals) {
 // Function that returns an array of Service Tags of those servers that match 
 // the search criteria
 function searchServers(criteria, jsonData) {
-  // console.log("Printing the search values array:")
-  // console.log(criteria);
-
   let match;
   let matchCount = 0;
   let matchingServers = [];
@@ -968,8 +1007,42 @@ function saveToArr(data) {
   return dataInArray;
 }
 
+// Fetch server data from db and add it to state
+function fetchServers(tagArr) {
+  return new Promise((resolve, reject) => {
+    console.log(`fetchServers function called with ${tagArr}`); //debugging
+
+    // Fetch these Service Tags to a db query
+    // Specify request options
+    const requestOptions = {
+      method: "POST",
+      body: JSON.stringify({ ServiceTagArr: tagArr }),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+    fetch(`${apiServer}/getServersByTag`, requestOptions)
+      .then(res => res.json())
+      .then(data => {
+        console.log(`Data returned from db: `); //debugging
+        console.log(data); //debugging
+        resolve(data);
+      })
+      .catch((e) => {
+        console.log(`Catch in fetchServers on fetch: ${e.statusText}`);
+        reject([]);
+      });
+  });
+};
+
 // Search Card with all dropdowns -----------------------------------------------------------------
 function SearchCard() {
+  // Store results of search via state hook
+  const [searchData, setSearchData] = useState([]);
+  const sContext = useContext(SearchContext);
+  // const [loading, setLoading] = useState({ done: undefined });  
+
   // Store dropdowns' selections via state hooks
   const [biosOptions, setSelectedBiosOptions] = useState([]);
   const [driveMakers, setSelectedDriveMakers] = useState([]);
@@ -997,11 +1070,21 @@ function SearchCard() {
   useEffect(() => {
     console.log("Getting dropdown data..");
     // Get the data from database JSON
-    getDropdownData(jsonInv);
+    // getDropdownData(jsonInv); // test JSON w/3 servers
+    axios
+      .get(apiInventory)
+      .then((response) => {
+        getDropdownData(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   }, []);
 
-  // Upon any selection from a dropdown run a search against cached JSON
+  // Upon any selection from a dropdown run a search
   useEffect(() => {
+    console.log(`useEffect on dropdown change`);
+
     // Store chosen dropdown values to run a search
     let searchValues = [{
       "BiosOptions": saveToArr(biosOptions),
@@ -1032,47 +1115,33 @@ function SearchCard() {
 
     // If any of the dropdown choices have a value then run a search
     // and display result of it
+    searchEmpty = true;
     svKVs.forEach((kv) => {
       if (kv[1].length > 0) {
-        // console.log(kv);
-        console.log("Calling search..");
-        let searchRes = searchServers(searchValues, allServerObj);
-        if (searchRes.found > 0) {
-          console.log(`Search found ${searchRes.found} machine(s) matching your criteria: ${searchRes.servers}`);
-        } else {
-          console.log("Search did not find matches with the selected criteria. Change criteria and try again!");
-        };
-      } else {
-        // display all or none
-      };
+        // Set flag
+        searchEmpty = false;
+      }
     });
-
-
-    // If any of the values are added/removed then run a search
-    // if (
-    //   biosOptions.length > 0 ||
-    //   driveMakers.length > 0 ||
-    //   driveModels.length > 0 ||
-    //   driveSizes.length > 0 ||
-    //   driveWear.length > 0 ||
-    //   processorMakes.length > 0 ||
-    //   processorModels.length > 0 ||
-    //   processorSpeeds.length > 0 ||
-    //   processorCores.length > 0 ||
-    //   controllerNames.length > 0 ||
-    //   controllerFWs.length > 0 ||
-    //   controllerPCIslots.length > 0 ||
-    //   memoryMakers.length > 0 ||
-    //   memoryModels.length > 0 ||
-    //   memoryRanks.length > 0 ||
-    //   memorySizes.length > 0 ||
-    //   memorySpeeds.length > 0 ||
-    //   nicMakers.length > 0 ||
-    //   nicModels.length > 0 ||
-    //   nicFWs.length > 0 ||
-    //   nicPorts.length > 0)
-    // console.log("Calling search..");
-    // searchServers(searchValues, allServerObj);
+    if (!searchEmpty) {
+      console.log("Calling search.."); //debugging
+      let searchRes = searchServers(searchValues, allServerObj);
+      if (searchRes.found > 0) {
+        console.log(`Search found ${searchRes.found} machine(s) matching your criteria: ${searchRes.servers}`);
+        // Update the component's search state
+        setSearchData(searchRes.servers);
+        console.log("Now saving to state via reducer.."); //debugging
+        // Save found server(s)' Service Tags to a shared state
+        sContext.setTagsState({ type: "saveServiceTags", payload: searchRes.servers });
+      } else {
+        console.log("Search did not find matches with the selected criteria. Change criteria and try again!"); //debugging
+        setSearchData([]);
+        sContext.setTagsState({ type: "saveServiceTags", payload: [] });
+      };
+    } else {
+      console.log("No search criteria chosen. Select criteria to search!"); //debugging
+      setSearchData([]);
+      sContext.setTagsState({ type: "resetState" });
+    }
   }, [
     biosOptions,
     driveMakers,
@@ -1094,7 +1163,8 @@ function SearchCard() {
     nicMakers,
     nicModels,
     nicFWs,
-    nicPorts]
+    nicPorts
+  ]
   );
 
   return (
@@ -1520,6 +1590,14 @@ function SearchCard() {
                         </FormGroup>
                       </Col>
                     </Row>
+                    <Row>
+                      <Col sm={5}>
+                        <FormGroup>
+                          <Label for="exampleSelect">Machines Found</Label>
+                          <Input type="text-area" name="machines" id="exampleText" placeholder="search results.." value={searchData} />
+                        </FormGroup>
+                      </Col>
+                    </Row>
                   </Form>
                 </CardHeader>
               </Card>
@@ -1607,13 +1685,14 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       autoResetRowState: !skipPageResetRef.current,
       updateMyData,
       defaultColumn,
-      filterTypes,
+      filterTypes
     },
     useFilters,
     useGlobalFilter,
     useSortBy,
     usePagination,
-    useRowSelect
+    useRowSelect,
+    useAsyncDebounce
   );
 
   return (
@@ -1831,11 +1910,13 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   );
 }
 
+
 function SearchInventory() {
-  // const { userInfo } = useContext(UserInfoContext);
   const userInfo = JSON.parse(localStorage.getItem("user"));
-  const [data, setData] = React.useState([]);
   const [loading, setLoading] = useState({ done: undefined });
+  const [data, setData] = useState([]);
+  const searchContext = useContext(SearchContext);
+
   // We need to keep the table from resetting the pageIndex when we
   // Update data. So we can keep track of that flag with a ref.
 
@@ -2095,18 +2176,26 @@ function SearchInventory() {
     skipPageResetRef.current = false;
   });
 
-  useEffect(() => {
-    fetch(`${apiServer}/getServers`)
-      .then((res) => res.json())
-      .then((data) => {
-        setData(
-          data.map((item) => {
-            return item;
-          })
-        );
-        setLoading({ done: true });
-      });
-  }, []);
+  React.useEffect(() => {
+    // If search results are not empty then run a db query
+    // and set returned data for the table to display
+    if (searchContext.tagsState.length > 0) {
+      fetchServers(searchContext.tagsState)
+        .then(data => {
+          console.log("On useEffect fetch returned: ");
+          console.log(data); //debugging
+          setData(
+            data.map((item) => {
+              return item;
+            })
+          );
+        });
+    } else {
+      // ..otherwise set data for the table to an empty array
+      setData([]);
+    };
+    setLoading({ done: true });
+  }, [searchContext.tagsState]);
 
   return (
     <React.Fragment>
