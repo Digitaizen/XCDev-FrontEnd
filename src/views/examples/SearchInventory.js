@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import Select from 'react-select';
-import jsonInv from 'assets/hw_inventory_3_nodes.json';
+
 import {
   useTable,
   useRowSelect,
@@ -301,7 +301,6 @@ function getDropdownData(jsonData) {
   const serverObject = jsonData.resultArray.map((item) => item.data);
 
   // Loop through each server's json data in the array
-  // jsonData.forEach((server) => {
   serverObject.forEach((server) => {
     // Create a server object to store key-value data to be searched
     let serverObj = {
@@ -540,14 +539,15 @@ function getDropdownData(jsonData) {
       let newSCkeyArr = [];
       if (keyExists(server.StorageControllerInformation[controllerName], "StorageControllers"))
         newSCkeyArr.push(controllerName);
-      else
-        console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'StorageControllers' key`);
+      // else
+      //   console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'StorageControllers' key`);
 
       // Now, loop through the new key array to find the data seeked
       newSCkeyArr.forEach(cName => {
-        if (server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0] === "")
-          console.log(`System '${server.SystemInformation.SKU}' controller ${cName} does not have the 'Firmware Version' data`);
-        else {
+        if (server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0] !== "")
+        //   console.log(`System '${server.SystemInformation.SKU}' controller ${cName} does not have the 'Firmware Version' data`);
+        // else 
+        {
           if (!mapControllerFWs.has(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0])) {
             mapControllerFWs.set(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0], true);
 
@@ -559,7 +559,7 @@ function getDropdownData(jsonData) {
           };
           // Add it to the controllers' set
           controllerFWsSet.add(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0]);
-        }
+        };
       });
 
       // 1st check if the key exists then add it to a new key array
@@ -569,13 +569,14 @@ function getDropdownData(jsonData) {
         newOEMkeyArr.push(controllerName);
         keySciOemExists = true;
       } else {
-        console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'Oem' key`);
+        keySciOemExists = false;
+        // console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'Oem' key`);
       };
 
       if (keySciOemExists) {
         // Now, loop through the new key array to find the data sought after
         newOEMkeyArr.forEach(cName => {
-          console.log(`${cName} of ${server.SystemInformation.SKU}`); //debugging
+          // console.log(`${cName} of ${server.SystemInformation.SKU}`); //debugging
           // Get the keys under 'Dell'
           let oemControllerKeys = Object.keys(server.StorageControllerInformation[cName].Oem.Dell);
           let oemControllerArr = [];
@@ -585,15 +586,15 @@ function getDropdownData(jsonData) {
               oemControllerArr.push(oemControllerName);
               keyPciSlotExists = true;
             } else {
-              console.log(`${oemControllerName} of ${server.SystemInformation.SKU} does not have PCISlot field`);
+              // console.log(`${oemControllerName} of ${server.SystemInformation.SKU} does not have PCISlot field`);
               keyPciSlotExists = false;
             };
           });
           if (keyPciSlotExists) {
             oemControllerArr.forEach(oemControllerName => {
-              if (server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot === null) {
-                console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`);
-              } else {
+              if (server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot !== null) {
+                //   console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`);
+                // } else {
                 if (!mapControllerPCIslots.has(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot)) {
                   mapControllerPCIslots.set(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot, true);
 
@@ -785,35 +786,11 @@ function getDropdownData(jsonData) {
   allData["NetworkDevicesInfo"]["FWs"] = arrNicFWs;
   allData["NetworkDevicesInfo"]["PortNumbers"] = arrNicPortNums;
 
-  // Debugging
-  // console.log("Printing dropdown data arrays:")
-  // console.log(arrSysBios);
-  // console.log(arrDriveMakes);
-  // console.log(arrDriveModels);
-  // console.log(arrDriveSizes);
-  // console.log(arrDriveWear);
-  // console.log(arrProcessorMakes);
-  // console.log(arrProcessorModels);
-  // console.log(arrProcessorSpeeds);
-  // console.log(arrProcessorCores);
-  // console.log(arrControllerNames);
-  // console.log(arrControllerFWs);
-  // console.log(arrControllerPCIslots);
-  // console.log(arrDimmMakes);
-  // console.log(arrDimmModels);
-  // console.log(arrDimmRanks);
-  // console.log(arrDimmSizes);
-  // console.log(arrDimmSpeeds);
-  // console.log(arrNicMakes);
-  // console.log(arrNicModels);
-  // console.log(arrNicFWs);
-  // console.log(arrNicPortNums);
-
   // Debugging 
-  console.log("Printing all server objects data: ");
-  console.log(allServerObj);
-  console.log("Printing all dropdown objects data: ");
-  console.log(allData);
+  // console.log("Printing all server objects data: ");
+  // console.log(allServerObj);
+  // console.log("Printing all dropdown objects data: ");
+  // console.log(allData);
 
   // Return object with data for all dropdowns
   return allData;
@@ -823,9 +800,6 @@ function getDropdownData(jsonData) {
 function matchAll(serverObj, searchVals) {
   try {
     let result;
-
-    console.log(serverObj); // debugging
-    // console.log(searchVals); // debugging
 
     // Get key-value pairs of search criteria
     let svKVs = Object.entries(searchVals[0]);
@@ -974,23 +948,23 @@ function matchAll(serverObj, searchVals) {
 // the search criteria
 function searchServers(criteria, jsonData) {
   let match;
-  let matchCount = 0;
+  let matchingServersSet = new Set();
   let matchingServers = [];
-  let result = { found: matchCount, servers: matchingServers };
+  let result = { found: 0, servers: matchingServers };
 
   // Loop through each server's json data in the array
   jsonData.forEach((server) => {
     // Call function to check ALL criteria against node's data
     match = matchAll(server, criteria);
     if (match) {
-      matchCount++;
-      // console.log(server);
-      console.log(`${server.ServiceTag} is a match. Total count is ${matchCount}`);
-      matchingServers.push(server.ServiceTag);
+      // Include a match only once
+      matchingServersSet.add(server.ServiceTag);
     };
   });
+  // Convert set to array
+  matchingServers = Array.from(matchingServersSet);
   // Shove results into the return object
-  result.found = matchCount;
+  result.found = matchingServers.length;
   result.servers = matchingServers;
 
   return result;
@@ -1010,7 +984,7 @@ function saveToArr(data) {
 // Fetch server data from db and add it to state
 function fetchServers(tagArr) {
   return new Promise((resolve, reject) => {
-    console.log(`fetchServers function called with ${tagArr}`); //debugging
+    console.log(`'fetchServers' from db function called.`); //debugging
 
     // Fetch these Service Tags to a db query
     // Specify request options
@@ -1025,8 +999,6 @@ function fetchServers(tagArr) {
     fetch(`${apiServer}/getServersByTag`, requestOptions)
       .then(res => res.json())
       .then(data => {
-        console.log(`Data returned from db: `); //debugging
-        console.log(data); //debugging
         resolve(data);
       })
       .catch((e) => {
@@ -1040,8 +1012,8 @@ function fetchServers(tagArr) {
 function SearchCard() {
   // Store results of search via state hook
   const [searchData, setSearchData] = useState([]);
+  const [dropdownOps, setDropdownsOps] = useState([]);
   const sContext = useContext(SearchContext);
-  // const [loading, setLoading] = useState({ done: undefined });  
 
   // Store dropdowns' selections via state hooks
   const [biosOptions, setSelectedBiosOptions] = useState([]);
@@ -1070,20 +1042,20 @@ function SearchCard() {
   useEffect(() => {
     console.log("Getting dropdown data..");
     // Get the data from database JSON
-    // getDropdownData(jsonInv); // test JSON w/3 servers
     axios
       .get(apiInventory)
       .then((response) => {
         getDropdownData(response.data);
+        setDropdownsOps(allData);
       })
       .catch((error) => {
         console.log(error);
       });
-  }, []);
+  }, [dropdownOps]);
 
   // Upon any selection from a dropdown run a search
   useEffect(() => {
-    console.log(`useEffect on dropdown change`);
+    // console.log(`useEffect on dropdown change`);
 
     // Store chosen dropdown values to run a search
     let searchValues = [{
@@ -1129,7 +1101,7 @@ function SearchCard() {
         console.log(`Search found ${searchRes.found} machine(s) matching your criteria: ${searchRes.servers}`);
         // Update the component's search state
         setSearchData(searchRes.servers);
-        console.log("Now saving to state via reducer.."); //debugging
+        // console.log("Now saving to state via reducer.."); //debugging
         // Save found server(s)' Service Tags to a shared state
         sContext.setTagsState({ type: "saveServiceTags", payload: searchRes.servers });
       } else {
@@ -2177,13 +2149,18 @@ function SearchInventory() {
   });
 
   React.useEffect(() => {
+    // On initial render clear out any previous search results
+    searchContext.tagsState = [];
+  }, []);
+
+  React.useEffect(() => {
     // If search results are not empty then run a db query
     // and set returned data for the table to display
     if (searchContext.tagsState.length > 0) {
       fetchServers(searchContext.tagsState)
         .then(data => {
-          console.log("On useEffect fetch returned: ");
-          console.log(data); //debugging
+          // console.log("On useEffect fetch returned: ");
+          // console.log(data); //debugging
           setData(
             data.map((item) => {
               return item;

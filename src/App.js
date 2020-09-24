@@ -18,10 +18,11 @@ export const SearchContext = React.createContext();
 const initialState = [];
 // Function using useReducer hook to share state among components
 const reducer = (state, action) => {
-  console.log(`reducer function called with ${action.type}`);
+  // console.log(`Reducer function called with action type of '${action.type}'`);
   switch (action.type) {
     case "saveServiceTags":
-      console.log(`Saving service tags array of ${action.payload}`);
+      console.log(`Saving service tags to state.`);
+      // console.log(action.payload);
       state = action.payload;
       break;
 
@@ -31,7 +32,8 @@ const reducer = (state, action) => {
       break;
 
     default:
-      console.log(`Default state of ${state} is returned.`);
+      console.log(`Default state is returned.`);
+      // console.log(state);
       break;
   };
   return state;
