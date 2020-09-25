@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
-// import jsonInv from "assets/hw_inventory_3_nodes.json";
+
 import {
   useTable,
   useRowSelect,
@@ -962,7 +962,6 @@ function getDropdownData(jsonData, allData) {
   allData["NetworkDevicesInfo"]["FWs"] = arrNicFWs;
   allData["NetworkDevicesInfo"]["PortNumbers"] = arrNicPortNums;
 
-  // Return object with data for all dropdowns
   return allData;
 }
 
@@ -1134,6 +1133,9 @@ function matchAll(serverObj, searchVals) {
               matchCounter++;
             }
             break;
+          default:
+            console.log("Some error in matchAll function's loop..");
+            break;
         }
       }
     });
@@ -1260,6 +1262,8 @@ function SearchCard() {
 
   // Upon any selection from a dropdown run a search
   useEffect(() => {
+    // console.log(`useEffect on dropdown change`);
+
     // Store chosen dropdown values to run a search
     let searchValues = [
       {
@@ -1908,7 +1912,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     useGlobalFilter,
     useSortBy,
     usePagination,
-    useRowSelect
+    useRowSelect,
+    useAsyncDebounce
   );
 
   return (
@@ -2130,7 +2135,6 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
 // }
 
 function SearchInventory() {
-  // const { userInfo } = useContext(UserInfoContext);
   const userInfo = JSON.parse(localStorage.getItem("user"));
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState({ done: undefined });

@@ -13,6 +13,8 @@ import { AuthContext } from "./context/auth";
 import { UserInfoContext } from "./context/UserInfoContext";
 import { RecoilRoot } from "recoil";
 
+export const SearchContext = React.createContext();
+
 const App = () => {
   const [authTokens, setAuthTokens] = useState();
   const [userInfo, setUserInfo] = useState({});
