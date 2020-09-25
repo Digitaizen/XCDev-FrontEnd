@@ -25,6 +25,7 @@ import Login from "views/examples/Login.js";
 import LabInventory from "views/examples/LabInventory";
 import Reset from "views/examples/Reset";
 import FactoryImaging from "views/examples/FactoryImaging";
+import SearchInventory from "views/examples/SearchInventory";
 // import App from "App";
 
 var routes = [
@@ -93,9 +94,16 @@ var routes = [
   {
     path: "/factoryImaging",
     name: "Factory Imaging",
-    icon: "ni ni-settings-gear-65 text-green",
+    icon: "fas fa-robot text-green", //"ni ni-settings-gear-65 text-green",
     component: FactoryImaging,
     layout: "/admin",
   },
+  {
+    path: "/SearchInventory",
+    name: "Search Inventory (RF)",
+    icon: "fas fa-search text-blue",
+    component: SearchInventory,
+    layout: "/admin",
+  }
 ];
 export default routes;

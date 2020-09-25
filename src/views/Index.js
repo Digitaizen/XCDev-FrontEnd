@@ -22,6 +22,8 @@ import classnames from "classnames";
 import Chart from "chart.js";
 // react plugin used to create charts
 import { Line, Bar } from "react-chartjs-2";
+// font-awesome icons
+import "assets/vendor/@fortawesome/fontawesome-free/css/all.min.css";
 // reactstrap components
 import {
   Button,
@@ -49,7 +51,7 @@ import {
 import Header from "components/Headers/Header.js";
 
 class Index extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
     this.state = {
       activeNav: 1,
