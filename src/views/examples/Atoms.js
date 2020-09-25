@@ -7,5 +7,14 @@ export const searchState = atom({
 
 export const allSearchData = atom({
   key: "allSearchData",
-  default: {},
+  default: {
+    SystemInfo: {},
+    ProcessorInfo: {},
+    MemoryInfo: {},
+    StorageDisksInfo: {},
+    StorageControllersInfo: {},
+    NetworkDevicesInfo: {},
+    PowerSuppliesInfo: {},
+    BackplaneInfo: {},
+  },
 });
