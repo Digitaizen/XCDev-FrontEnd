@@ -1247,7 +1247,7 @@ function SearchCard() {
   useEffect(() => {
     // Get the data from database JSON
     axios
-      .get("http://localhost:8080/getHardwareInventory")
+      .get(`${apiServer}/getHardwareInventory`)
       .then((response) => {
         setDropdownDataFromAPI(
           getDropdownData(response.data, dropdownDataFromAPI)
