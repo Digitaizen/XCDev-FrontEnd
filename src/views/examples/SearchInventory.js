@@ -1401,7 +1401,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Bios</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select BIOS.."
+                            placeholder="BIOS"
                             options={allData.SystemInfo.Bios}
                             isMulti
                             isSearchable
@@ -1414,7 +1414,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">iDRAC Firmware</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware.."
+                            placeholder="iDRAC FW"
                             // options={}
                             // isMulti
                             // isSearchable
@@ -1427,7 +1427,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">CPLD</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select CPLD.."
+                            placeholder="CPLD"
                             // options={}
                             // isMulti
                             // isSearchable
@@ -1440,7 +1440,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">DIMMs</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select DIMMs.."
+                            placeholder="DIMM Count"
                             // options={}
                             // isMulti
                             // isSearchable
@@ -1453,7 +1453,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Type of Memory</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select type.."
+                            placeholder="Total Mem"
                             // options={}
                             // isMulti
                             // isSearchable
@@ -1473,7 +1473,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Make</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
+                            placeholder="Make"
                             options={allData.StorageDisksInfo.Manufacturers}
                             isMulti
                             isSearchable
@@ -1486,7 +1486,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Model</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model.."
+                            placeholder="Model"
                             options={allData.StorageDisksInfo.Models}
                             isMulti
                             isSearchable
@@ -1499,7 +1499,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Size</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="size.."
+                            placeholder="Size"
                             options={allData.StorageDisksInfo.Sizes}
                             isMulti
                             isSearchable
@@ -1512,7 +1512,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Wear Level</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="life%.."
+                            placeholder="Life %"
                             options={allData.StorageDisksInfo.Wear}
                             isMulti
                             isSearchable
@@ -1525,7 +1525,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Firmware</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware.."
+                            placeholder="Firmware"
                             // options={}
                             // isMulti
                             // isSearchable
@@ -1536,11 +1536,19 @@ function SearchCard() {
                       <Col sm={2}>
                         <FormGroup>
                           {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          <Input
+                          {/* <Input
                             type="text"
                             name="search"
                             id="exampleText"
                             placeholder="Enter serial #"
+                          /> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Serial #"
+                            // options={allData.ProcessorInfo.Manufacturers}
+                            isMulti
+                            isSearchable
+                            // onChange={setSelectedProcessorMakes}
                           />
                         </FormGroup>
                       </Col>
@@ -1557,7 +1565,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Make</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
+                            placeholder="Make"
                             options={allData.ProcessorInfo.Manufacturers}
                             isMulti
                             isSearchable
@@ -1570,7 +1578,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Model</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model.."
+                            placeholder="Model"
                             options={allData.ProcessorInfo.Models}
                             isMulti
                             isSearchable
@@ -1583,7 +1591,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Clock Speed</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select speed.."
+                            placeholder="Speed"
                             options={allData.ProcessorInfo.Speeds}
                             isMulti
                             isSearchable
@@ -1596,11 +1604,24 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Core Count</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select core count.."
+                            placeholder="Core Count"
                             options={allData.ProcessorInfo.Cores}
                             isMulti
                             isSearchable
                             onChange={setSelectedProcessorCores}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Core Count</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="CPU Count"
+                            // options={allData.ProcessorInfo.Cores}
+                            isMulti
+                            isSearchable
+                            // onChange={setSelectedProcessorCores}
                           />
                         </FormGroup>
                       </Col>
@@ -1617,7 +1638,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Name</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select name..."
+                            placeholder="Name"
                             options={allData.StorageControllersInfo.Names}
                             isMulti
                             isSearchable
@@ -1630,7 +1651,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Firmware</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware.."
+                            placeholder="Firmware"
                             options={allData.StorageControllersInfo.FWs}
                             isMulti
                             isSearchable
@@ -1643,7 +1664,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">PCI Slot</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select PCI slot.."
+                            placeholder="PCI slot"
                             options={allData.StorageControllersInfo.PCISlots}
                             isMulti
                             isSearchable
@@ -1654,22 +1675,38 @@ function SearchCard() {
                       <Col sm={2}>
                         <FormGroup>
                           {/* <Label for="exampleSelect">SAS Address</Label> */}
-                          <Input
+                          {/* <Input
                             type="text"
                             name="search"
                             id="exampleText"
-                            placeholder="Enter SAS address.."
+                            placeholder="Enter SAS address"
+                          /> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="SAS Address"
+                            // options={allData.StorageControllersInfo.PCISlots}
+                            isMulti
+                            isSearchable
+                            // onChange={setSelectedControllerPCIslots}
                           />
                         </FormGroup>
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
                           {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          <Input
+                          {/* <Input
                             type="text"
                             name="search"
                             id="exampleText"
-                            placeholder="Enter serial #.."
+                            placeholder="Enter serial #"
+                          /> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Serial #"
+                            // options={allData.StorageControllersInfo.PCISlots}
+                            isMulti
+                            isSearchable
+                            // onChange={setSelectedControllerPCIslots}
                           />
                         </FormGroup>
                       </Col>
@@ -1686,7 +1723,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Manufacturer</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
+                            placeholder="Make"
                             options={allData.MemoryInfo.Manufacturers}
                             isMulti
                             isSearchable
@@ -1699,7 +1736,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Model</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model.."
+                            placeholder="Model"
                             options={allData.MemoryInfo.Models}
                             isMulti
                             isSearchable
@@ -1712,7 +1749,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Rank</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="rank.."
+                            placeholder="Rank"
                             options={allData.MemoryInfo.Ranks}
                             isMulti
                             isSearchable
@@ -1725,7 +1762,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Size</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="size.."
+                            placeholder="Size"
                             options={allData.MemoryInfo.Sizes}
                             isMulti
                             isSearchable
@@ -1738,7 +1775,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Speed</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select speed.."
+                            placeholder="Speed"
                             options={allData.MemoryInfo.Speeds}
                             isMulti
                             isSearchable
@@ -1749,11 +1786,19 @@ function SearchCard() {
                       <Col sm={2}>
                         <FormGroup>
                           {/* <Label for="exampleSelect">Part Number</Label> */}
-                          <Input
+                          {/* <Input
                             type="text"
                             name="search"
                             id="exampleText"
                             placeholder="Enter part #"
+                          /> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Part #"
+                            // options={allData.MemoryInfo.Speeds}
+                            isMulti
+                            isSearchable
+                            // onChange={setSelectedMemorySpeeds}
                           />
                         </FormGroup>
                       </Col>
@@ -1770,7 +1815,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Manufacturer</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
+                            placeholder="Make"
                             options={allData.NetworkDevicesInfo.Manufacturers}
                             isMulti
                             isSearchable
@@ -1783,7 +1828,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Model</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model.."
+                            placeholder="Model"
                             options={allData.NetworkDevicesInfo.Models}
                             isMulti
                             isSearchable
@@ -1796,7 +1841,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Firmware</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware.."
+                            placeholder="Firmware"
                             options={allData.NetworkDevicesInfo.FWs}
                             isMulti
                             isSearchable
@@ -1809,7 +1854,7 @@ function SearchCard() {
                           {/* <Label for="exampleSelect">Port Number</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select port.."
+                            placeholder="Port"
                             options={allData.NetworkDevicesInfo.PortNumbers}
                             isMulti
                             isSearchable
@@ -1818,8 +1863,22 @@ function SearchCard() {
                           {/* <Input type="text" name="search" id="exampleText" placeholder="Enter port #" /> */}
                         </FormGroup>
                       </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          {/* <Label for="exampleSelect">Port Number</Label> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="MAC Address"
+                            // options={allData.NetworkDevicesInfo.PortNumbers}
+                            isMulti
+                            isSearchable
+                            // onChange={setSelectedNicPorts}
+                          />
+                          {/* <Input type="text" name="search" id="exampleText" placeholder="Enter port #" /> */}
+                        </FormGroup>
+                      </Col>
                     </Row>
-                    <Row>
+                    {/* <Row>
                       <Col sm={5}>
                         <FormGroup>
                           <Label for="exampleSelect">Machines Found</Label>
@@ -1827,12 +1886,12 @@ function SearchCard() {
                             type="text-area"
                             name="machines"
                             id="exampleText"
-                            placeholder="search results.."
+                            placeholder="search results"
                             value={searchData}
                           />
                         </FormGroup>
                       </Col>
-                    </Row>
+                    </Row> */}
                   </Form>
                 </CardHeader>
               </Card>
