@@ -2138,7 +2138,9 @@ function SearchInventory() {
   const userInfo = JSON.parse(localStorage.getItem("user"));
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState({ done: undefined });
-  const searchArr = useRecoilValue(searchState);
+  const [searchArr, setSearchArr] = useRecoilState(searchState);
+
+  let searchArrLength = searchArr.length;
 
   // We need to keep the table from resetting the pageIndex when we
   // Update data. So we can keep track of that flag with a ref.
@@ -2400,9 +2402,13 @@ function SearchInventory() {
   });
 
   React.useEffect(() => {
+    searchArrLength = 0;
+  }, []);
+
+  React.useEffect(() => {
     // If search results are not empty then run a db query
     // and set returned data for the table to display
-    if (searchArr.length > 0) {
+    if (searchArrLength > 0) {
       fetchServers(searchArr).then((data) => {
         // console.log("On useEffect fetch returned: ");
         // console.log(data); //debugging
