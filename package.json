@@ -71,7 +71,8 @@
     "react-scripts": "^3.4.0",
     "react-select": "^3.1.0",
     "react-table": "^7.0.4",
-    "reactstrap": "^8.4.1"
+    "reactstrap": "^8.4.1",
+    "recoil": "0.0.13"
   },
   "devDependencies": {
     "@types/googlemaps": "^3.39.2",
