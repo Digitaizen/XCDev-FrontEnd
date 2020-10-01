@@ -5,8 +5,8 @@ export const searchState = atom({
   default: [],
 });
 
-export const allSearchData = atom({
-  key: "allSearchData",
+export const allDropDownData = atom({
+  key: "allDropDownData",
   default: {
     SystemInfo: {},
     ProcessorInfo: {},
