@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 
 import {
@@ -30,31 +30,18 @@ import {
   FormGroup,
   Label,
 } from "reactstrap";
-
 import Form from "react-bootstrap/Form";
 import axios from "axios";
 
 // core components
 import Header from "../../components/Headers/Header.js";
-import { SearchContext } from "../../App";
+import { useRecoilState } from "recoil";
+import { searchState, allDropDownData } from "./Atoms";
 
 const apiServer = process.env.REACT_APP_API_SERVER;
-const inventoryFileDir = "http://100.80.149.97/DellReServer/inventory/Latest/";
 
 // Flag that indicates if Search Values are empty or not
 let searchEmpty = true;
-
-// Create top level object with subitem objects for each component's options
-let allData = {
-  SystemInfo: {},
-  ProcessorInfo: {},
-  MemoryInfo: {},
-  StorageDisksInfo: {},
-  StorageControllersInfo: {},
-  NetworkDevicesInfo: {},
-  PowerSuppliesInfo: {},
-  BackplaneInfo: {},
-};
 
 // Create main array to store server objects data
 let allServerObj = [];
@@ -214,6 +201,7 @@ const EditableComments = ({
       fetch(`${apiServer}/patchComments/${row.original._id}`, requestOptions)
         .then((response) => response.json())
         .catch((e) => {
+          // eslint-disable-next-line no-console
           console.error(e.message);
         });
       // console.log(`Updated row ${row.index} with new comment: ${value}`); //Leaving here for logging and troubleshooting
@@ -260,7 +248,8 @@ const IP_Hyperlink = (props) => {
 const Server_Inventory = (props) => {
   let server_tag = props.cell.row.original.serviceTag;
   let server = `${props.cell.row.original.ip}.txt`;
-  let server_info = inventoryFileDir + server;
+  let server_info =
+    "http://100.80.149.97/DellReServer/inventory/Latest/" + server;
   return (
     <div>
       <a target="_blank" href={server_info} rel="noopener noreferrer">
@@ -271,7 +260,8 @@ const Server_Inventory = (props) => {
 };
 
 // Get data for all Search Inventory dropdown lists
-function getDropdownData(jsonData) {
+function getDropdownData(jsonData, allData) {
+
   // Create sets to store only unique values for each key
   let setSysBios = new Set();
   let setDriveMakers = new Set();
@@ -295,10 +285,10 @@ function getDropdownData(jsonData) {
   let setNicFWs = new Set();
   let setNicPortNums = new Set();
 
-  const serverObject = jsonData.resultArray.map((item) => item.data);
+  const server = jsonData.resultArray.map((item) => item.data);
 
   // Loop through each server's json data in the array
-  serverObject.forEach((server) => {
+  server.forEach((server) => {
     // Create a server object to store key-value data to be searched
     let serverObj = {
       ServiceTag: "",
@@ -629,7 +619,7 @@ function getDropdownData(jsonData) {
   });
 
   // Convert sets to arrays, then sort the items
-  let sortedSysBios = sortDropdownItems(Array.from(setSysBios), "version");
+  let sortedSysBios = (sortDropdownItems(Array.from(setSysBios), "version"))
   let sortedDriveMakes = sortDropdownItems(Array.from(setDriveMakers), "string");
   let sortedDriveModels = sortDropdownItems(Array.from(setDriveModels), "string");
   let sortedDriveSizes = sortDropdownItems(Array.from(setDriveSizes), "integer");
@@ -742,36 +732,6 @@ function getDropdownData(jsonData) {
   allData["NetworkDevicesInfo"]["FWs"] = sortedNicFWs;
   allData["NetworkDevicesInfo"]["PortNumbers"] = sortedNicPortNums;
 
-  // console.log("Sorted dropdown items: ");
-  // console.log(sortedSysBios);
-  // console.log(sortedDriveMakes);
-  // console.log(sortedDriveModels);
-  // console.log(sortedDriveSizes);
-  // console.log(sortedDriveWear);
-  // console.log(sortedProcessorMakes);
-  // console.log(sortedProcessorModels);
-  // console.log(sortedProcessorSpeeds);
-  // console.log(sortedProcessorCores);
-  // console.log(sortedControllerNames);
-  // console.log(sortedControllerFWs);
-  // console.log(sortedControllerPCIslots);
-  // console.log(sortedDimmMakes);
-  // console.log(sortedDimmModels);
-  // console.log(sortedDimmRanks);
-  // console.log(sortedDimmSizes);
-  // console.log(sortedDimmSpeeds);
-  // console.log(sortedNicMakes);
-  // console.log(sortedNicModels);
-  // console.log(sortedNicFWs);
-  // console.log(sortedNicPortNums);
-
-  // Debugging
-  // console.log("Printing all server objects data: ");
-  // console.log(allServerObj);
-  // console.log("Printing all dropdown objects data: ");
-  // console.log(allData);
-
-  // Return object with data for all dropdowns
   return allData;
 }
 
@@ -883,9 +843,6 @@ function matchAll(serverObj, searchVals) {
         }
       }
     });
-    // debugging
-    // console.log(matchCounter);
-    // console.log(criteriaCounter);
 
     // Return boolean based on count of matches vs count of criteria
     matchCounter == criteriaCounter ? (result = true) : (result = false);
@@ -978,11 +935,6 @@ function sortDropdownItems(arrToSort, itemType) {
 
 // Search Card with all dropdowns -----------------------------------------------------------------
 function SearchCard() {
-  // Store results of search via state hook
-  const [searchData, setSearchData] = useState([]);
-  const [dropdownOps, setDropdownsOps] = useState([]);
-  const sContext = useContext(SearchContext);
-
   // Store dropdowns' selections via state hooks
   const [biosOptions, setSelectedBiosOptions] = useState([]);
   const [driveMakers, setSelectedDriveMakers] = useState([]);
@@ -1005,21 +957,28 @@ function SearchCard() {
   const [nicModels, setSelectedNicModels] = useState([]);
   const [nicFWs, setSelectedNicFWs] = useState([]);
   const [nicPorts, setSelectedNicPorts] = useState([]);
+  const [dropdownDataFromAPI, setDropdownDataFromAPI] = useRecoilState(
+    allDropDownData
+  );
+  // Store results of search via state hook
+  const [search, setSearch] = useRecoilState(searchState);
 
   // Upon initial load get the dropdown data
   useEffect(() => {
-    console.log("Getting dropdown data..");
     // Get the data from database JSON
     axios
       .get(`${apiServer}/getHardwareInventory`)
       .then((response) => {
-        getDropdownData(response.data);
-        setDropdownsOps(allData);
+        setDropdownDataFromAPI(
+          getDropdownData(response.data, dropdownDataFromAPI)
+        );
+        // console.log(response.data);
       })
       .catch((error) => {
-        console.log(error);
+        // eslint-disable-next-line no-console
+        console.error(error);
       });
-  }, [dropdownOps]);
+  }, []);
 
   // Upon any selection from a dropdown run a search
   useEffect(() => {
@@ -1055,41 +1014,26 @@ function SearchCard() {
     // Get all key-value pairs from the dropdowns
     let svKVs = Object.entries(searchValues[0]);
 
-    // If any of the dropdown choices have a value then run a search
-    // and display result of it
     searchEmpty = true;
     svKVs.forEach((kv) => {
       if (kv[1].length > 0) {
         // Set flag
         searchEmpty = false;
+        // console.log(kv);
       }
     });
     if (!searchEmpty) {
-      console.log("Calling search.."); //debugging
       let searchRes = searchServers(searchValues, allServerObj);
       if (searchRes.found > 0) {
         console.log(
           `Search found ${searchRes.found} machine(s) matching your criteria: ${searchRes.servers}`
         );
-        // Update the component's search state
-        setSearchData(searchRes.servers);
-        // console.log("Now saving to state via reducer.."); //debugging
-        // Save found server(s)' Service Tags to a shared state
-        sContext.setTagsState({
-          type: "saveServiceTags",
-          payload: searchRes.servers,
-        });
-      } else {
-        console.log(
-          "Search did not find matches with the selected criteria. Change criteria and try again!"
-        ); //debugging
-        setSearchData([]);
-        sContext.setTagsState({ type: "saveServiceTags", payload: [] });
+        // Update the component state
+        setSearch(searchRes.servers);
       }
     } else {
-      console.log("No search criteria chosen. Select criteria to search!"); //debugging
-      setSearchData([]);
-      sContext.setTagsState({ type: "resetState" });
+      console.log("Search did not find matches with the selected criteria.");
+      setSearch([]);
     }
   }, [
     biosOptions,
@@ -1139,8 +1083,8 @@ function SearchCard() {
                         <FormGroup>
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="BIOS"
-                            options={allData.SystemInfo.Bios}
+                            placeholder="Select BIOS.."
+                            options={dropdownDataFromAPI.SystemInfo.Bios}
                             isMulti
                             isSearchable
                             onChange={setSelectedBiosOptions}
@@ -1207,7 +1151,9 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Make"
-                            options={allData.StorageDisksInfo.Manufacturers}
+                            options={
+                              dropdownDataFromAPI.StorageDisksInfo.Manufacturers
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedDriveMakers}
@@ -1219,7 +1165,9 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Model"
-                            options={allData.StorageDisksInfo.Models}
+                            options={
+                              dropdownDataFromAPI.StorageDisksInfo.Models
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedDriveModels}
@@ -1231,7 +1179,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Size"
-                            options={allData.StorageDisksInfo.Sizes}
+                            options={dropdownDataFromAPI.StorageDisksInfo.Sizes}
                             isMulti
                             isSearchable
                             onChange={setSelectedDriveSizes}
@@ -1243,7 +1191,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Life %"
-                            options={allData.StorageDisksInfo.Wear}
+                            options={dropdownDataFromAPI.StorageDisksInfo.Wear}
                             isMulti
                             isSearchable
                             onChange={setSelectedDriveWear}
@@ -1264,6 +1212,7 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
+                          {/* <Label for="exampleSelect">Serial Number</Label> */}
                           {/* <Input
                             type="text"
                             name="search"
@@ -1273,7 +1222,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Serial #"
-                            // options={allData.ProcessorInfo.Manufacturers}
+                            // options={dropdownDataFromAPI.ProcessorInfo.Manufacturers}
                             isMulti
                             isSearchable
                           // onChange={setSelectedProcessorMakes}
@@ -1293,7 +1242,9 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Make"
-                            options={allData.ProcessorInfo.Manufacturers}
+                            options={
+                              dropdownDataFromAPI.ProcessorInfo.Manufacturers
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedProcessorMakes}
@@ -1305,7 +1256,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Model"
-                            options={allData.ProcessorInfo.Models}
+                            options={dropdownDataFromAPI.ProcessorInfo.Models}
                             isMulti
                             isSearchable
                             onChange={setSelectedProcessorModels}
@@ -1317,7 +1268,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Speed"
-                            options={allData.ProcessorInfo.Speeds}
+                            options={dropdownDataFromAPI.ProcessorInfo.Speeds}
                             isMulti
                             isSearchable
                             onChange={setSelectedProcessorSpeeds}
@@ -1329,7 +1280,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Core Count"
-                            options={allData.ProcessorInfo.Cores}
+                            options={dropdownDataFromAPI.ProcessorInfo.Cores}
                             isMulti
                             isSearchable
                             onChange={setSelectedProcessorCores}
@@ -1338,10 +1289,11 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
+                          {/* <Label for="exampleSelect">Core Count</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="CPU Count"
-                            // options={allData.ProcessorInfo.Cores}
+                            // options={dropdownDataFromAPI.ProcessorInfo.Cores}
                             isMulti
                             isSearchable
                           // onChange={setSelectedProcessorCores}
@@ -1361,7 +1313,9 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Name"
-                            options={allData.StorageControllersInfo.Names}
+                            options={
+                              dropdownDataFromAPI.StorageControllersInfo.Names
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedControllerNames}
@@ -1373,7 +1327,9 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Firmware"
-                            options={allData.StorageControllersInfo.FWs}
+                            options={
+                              dropdownDataFromAPI.StorageControllersInfo.FWs
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedControllerFWs}
@@ -1385,7 +1341,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="PCI slot"
-                            options={allData.StorageControllersInfo.PCISlots}
+                            options={
+                              dropdownDataFromAPI.StorageControllersInfo
+                                .PCISlots
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedControllerPCIslots}
@@ -1394,6 +1353,7 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
+                          {/* <Label for="exampleSelect">SAS Address</Label> */}
                           {/* <Input
                             type="text"
                             name="search"
@@ -1403,7 +1363,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="SAS Address"
-                            // options={allData.StorageControllersInfo.PCISlots}
+                            // options={dropdownDataFromAPI.StorageControllersInfo.PCISlots}
                             isMulti
                             isSearchable
                           // onChange={setSelectedControllerPCIslots}
@@ -1412,6 +1372,7 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
+                          {/* <Label for="exampleSelect">Serial Number</Label> */}
                           {/* <Input
                             type="text"
                             name="search"
@@ -1421,7 +1382,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Serial #"
-                            // options={allData.StorageControllersInfo.PCISlots}
+                            // options={dropdownDataFromAPI.StorageControllersInfo.PCISlots}
                             isMulti
                             isSearchable
                           // onChange={setSelectedControllerPCIslots}
@@ -1441,7 +1402,9 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Make"
-                            options={allData.MemoryInfo.Manufacturers}
+                            options={
+                              dropdownDataFromAPI.MemoryInfo.Manufacturers
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedMemoryMakers}
@@ -1453,7 +1416,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Model"
-                            options={allData.MemoryInfo.Models}
+                            options={dropdownDataFromAPI.MemoryInfo.Models}
                             isMulti
                             isSearchable
                             onChange={setSelectedMemoryModels}
@@ -1465,7 +1428,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Rank"
-                            options={allData.MemoryInfo.Ranks}
+                            options={dropdownDataFromAPI.MemoryInfo.Ranks}
                             isMulti
                             isSearchable
                             onChange={setSelectedMemoryRanks}
@@ -1477,7 +1440,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Size"
-                            options={allData.MemoryInfo.Sizes}
+                            options={dropdownDataFromAPI.MemoryInfo.Sizes}
                             isMulti
                             isSearchable
                             onChange={setSelectedMemorySizes}
@@ -1489,7 +1452,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Speed"
-                            options={allData.MemoryInfo.Speeds}
+                            options={dropdownDataFromAPI.MemoryInfo.Speeds}
                             isMulti
                             isSearchable
                             onChange={setSelectedMemorySpeeds}
@@ -1498,6 +1461,7 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
+                          {/* <Label for="exampleSelect">Part Number</Label> */}
                           {/* <Input
                             type="text"
                             name="search"
@@ -1507,7 +1471,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Part #"
-                            // options={allData.MemoryInfo.Speeds}
+                            // options={dropdownDataFromAPI.MemoryInfo.Speeds}
                             isMulti
                             isSearchable
                           // onChange={setSelectedMemorySpeeds}
@@ -1527,7 +1491,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Make"
-                            options={allData.NetworkDevicesInfo.Manufacturers}
+                            options={
+                              dropdownDataFromAPI.NetworkDevicesInfo
+                                .Manufacturers
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedNicMakers}
@@ -1539,7 +1506,9 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Model"
-                            options={allData.NetworkDevicesInfo.Models}
+                            options={
+                              dropdownDataFromAPI.NetworkDevicesInfo.Models
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedNicModels}
@@ -1551,7 +1520,7 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Firmware"
-                            options={allData.NetworkDevicesInfo.FWs}
+                            options={dropdownDataFromAPI.NetworkDevicesInfo.FWs}
                             isMulti
                             isSearchable
                             onChange={setSelectedNicFWs}
@@ -1563,7 +1532,9 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Port"
-                            options={allData.NetworkDevicesInfo.PortNumbers}
+                            options={
+                              dropdownDataFromAPI.NetworkDevicesInfo.PortNumbers
+                            }
                             isMulti
                             isSearchable
                             onChange={setSelectedNicPorts}
@@ -1573,10 +1544,11 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
+                          {/* <Label for="exampleSelect">Port Number</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="MAC Address"
-                            // options={allData.NetworkDevicesInfo.PortNumbers}
+                            // options={dropdownDataFromAPI.NetworkDevicesInfo.PortNumbers}
                             isMulti
                             isSearchable
                           // onChange={setSelectedNicPorts}
@@ -1911,9 +1883,11 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
 
 function SearchInventory() {
   const userInfo = JSON.parse(localStorage.getItem("user"));
-  const [loading, setLoading] = useState({ done: undefined });
   const [data, setData] = useState([]);
-  const searchContext = useContext(SearchContext);
+  const [loading, setLoading] = useState({ done: undefined });
+  const [searchArr, setSearchArr] = useRecoilState(searchState);
+
+  let searchArrLength = searchArr.length;
 
   // We need to keep the table from resetting the pageIndex when we
   // Update data. So we can keep track of that flag with a ref.
@@ -2173,15 +2147,14 @@ function SearchInventory() {
   });
 
   React.useEffect(() => {
-    // On initial render clear out any previous search results
-    searchContext.tagsState = [];
+    searchArrLength = 0;
   }, []);
 
   React.useEffect(() => {
     // If search results are not empty then run a db query
     // and set returned data for the table to display
-    if (searchContext.tagsState.length > 0) {
-      fetchServers(searchContext.tagsState).then((data) => {
+    if (searchArrLength > 0) {
+      fetchServers(searchArr).then((data) => {
         // console.log("On useEffect fetch returned: ");
         // console.log(data); //debugging
         setData(
@@ -2195,7 +2168,7 @@ function SearchInventory() {
       setData([]);
     }
     setLoading({ done: true });
-  }, [searchContext.tagsState]);
+  }, [searchArr]);
 
   return (
     <React.Fragment>

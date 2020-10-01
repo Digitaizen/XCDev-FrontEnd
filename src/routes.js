@@ -100,10 +100,10 @@ var routes = [
   },
   {
     path: "/SearchInventory",
-    name: "Search Inventory (RF)",
+    name: "Search Inventory (PREVIEW)",
     icon: "fas fa-search text-blue",
     component: SearchInventory,
     layout: "/admin",
-  }
+  },
 ];
 export default routes;
