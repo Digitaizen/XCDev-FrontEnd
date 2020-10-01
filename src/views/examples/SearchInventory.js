@@ -115,14 +115,36 @@ function fuzzyTextFilterFn(rows, id, filterValue) {
 fuzzyTextFilterFn.autoRemove = (val) => !val;
 
 // Function that returns data size in short, human-readable format. Input: data size in bytes.
-function formatSize(x) {
-  const units = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-  let l = 0,
-    n = parseInt(x, 10) || 0;
-  while (n >= 1024 && ++l) {
-    n = n / 1024;
-  }
-  return n.toFixed(n < 10 && l > 0 ? 1 : 0) + " " + units[l];
+function formatSize(bytes, roundOff) {
+  // console.log("Before formating: " + bytes); //debugging
+  let converted;
+  if (typeof bytes === "number") {
+    const units = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    let l = 0,
+      n = parseInt(bytes, 10) || 0;
+    while (n >= 1024 && ++l) {
+      n = n / 1024;
+    };
+    if (roundOff)
+      converted = Math.round(n.toFixed(n < 10 && l > 0 ? 1 : 0)) + " " + units[l];
+    else
+      converted = n.toFixed(n < 10 && l > 0 ? 1 : 0) + " " + units[l];
+  } else {
+    converted = bytes;
+  };
+  // console.log("after formating: " + converted); //debugging
+  return converted;
+
+
+  // var neg = bytes < 0;
+  // var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  // if (neg) bytes = -bytes;
+  // if (bytes < 1) return (neg ? '-' : '') + bytes + ' B';
+  // var exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1000)), units.length - 1);
+  // bytes = Math.round(Number((bytes / Math.pow(1000, exponent)).toFixed(2)));
+  // var unit = units[exponent];
+  // return (neg ? '-' : '') + bytes + ' ' + unit;
 }
 
 // Function to check the existence of a key in an object
@@ -250,51 +272,28 @@ const Server_Inventory = (props) => {
 
 // Get data for all Search Inventory dropdown lists
 function getDropdownData(jsonData) {
-  // Create arrays for each dropdown and set default value to empty
-  const arrSysBios = [];
-  const arrDriveMakes = [];
-  const arrDriveModels = [];
-  const arrDriveSizes = [];
-  const arrDriveWear = [];
-  const arrProcessorMakes = [];
-  const arrProcessorModels = [];
-  const arrProcessorSpeeds = [];
-  const arrProcessorCores = [];
-  const arrControllerNames = [];
-  const arrControllerFWs = [];
-  const arrControllerPCIslots = [];
-  const arrDimmMakes = [];
-  const arrDimmModels = [];
-  const arrDimmRanks = [];
-  const arrDimmSizes = [];
-  const arrDimmSpeeds = [];
-  const arrNicMakes = [];
-  const arrNicModels = [];
-  const arrNicFWs = [];
-  const arrNicPortNums = [];
-
-  // Create maps to store only unique values for each key
-  const mapSysBios = new Map();
-  const mapDriveMakers = new Map();
-  const mapDriveModels = new Map();
-  const mapDriveSizes = new Map();
-  const mapDriveWear = new Map();
-  const mapProcessorMakes = new Map();
-  const mapProcessorModels = new Map();
-  const mapProcessorSpeeds = new Map();
-  const mapProcessorCores = new Map();
-  const mapControllerNames = new Map();
-  const mapControllerFWs = new Map();
-  const mapControllerPCIslots = new Map();
-  const mapDimmMakes = new Map();
-  const mapDimmModels = new Map();
-  const mapDimmRanks = new Map();
-  const mapDimmSizes = new Map();
-  const mapDimmSpeeds = new Map();
-  const mapNicMakes = new Map();
-  const mapNicModels = new Map();
-  const mapNicFWs = new Map();
-  const mapNicPortNums = new Map();
+  // Create sets to store only unique values for each key
+  let setSysBios = new Set();
+  let setDriveMakers = new Set();
+  let setDriveModels = new Set();
+  let setDriveSizes = new Set();
+  let setDriveWear = new Set();
+  let setProcessorMakes = new Set();
+  let setProcessorModels = new Set();
+  let setProcessorSpeeds = new Set();
+  let setProcessorCores = new Set();
+  let setControllerNames = new Set();
+  let setControllerFWs = new Set();
+  let setControllerPCIslots = new Set();
+  let setDimmMakes = new Set();
+  let setDimmModels = new Set();
+  let setDimmRanks = new Set();
+  let setDimmSizes = new Set();
+  let setDimmSpeeds = new Set();
+  let setNicMakes = new Set();
+  let setNicModels = new Set();
+  let setNicFWs = new Set();
+  let setNicPortNums = new Set();
 
   const serverObject = jsonData.resultArray.map((item) => item.data);
 
@@ -352,7 +351,7 @@ function getDropdownData(jsonData) {
     let driveSizesSet = new Set();
     let driveWearSet = new Set();
     // let driveFWsSet = new Set();
-    let processorMakesSet = new Set();
+    let processorMakersSet = new Set();
     let processorModelsSet = new Set();
     let processorSpeedsSet = new Set();
     let processorCoresSet = new Set();
@@ -373,16 +372,9 @@ function getDropdownData(jsonData) {
     let nicPortNumsSet = new Set();
 
     // System Information -------------------------------------------------------------------------
-    // Check if the value already on the list and if not then add it
-    if (!mapSysBios.has(server.SystemInformation.BiosVersion)) {
-      mapSysBios.set(server.SystemInformation.BiosVersion, true);
+    // Add it to set
+    setSysBios.add(server.SystemInformation.BiosVersion);
 
-      // Add this unique value to its array
-      arrSysBios.push({
-        value: server.SystemInformation.BiosVersion,
-        label: server.SystemInformation.BiosVersion,
-      });
-    }
     // Push data into the server object
     serverObj.ServiceTag = server.SystemInformation.SKU;
     serverObj.SystemInfo.BiosVersion = server.SystemInformation.BiosVersion;
@@ -393,97 +385,41 @@ function getDropdownData(jsonData) {
 
     // Loop through drives, get then add unique data to array
     sdiKeys.forEach((driveName) => {
-      if (
-        !mapDriveMakers.has(
-          server.StorageDisksInformation[driveName].Manufacturer
-        )
-      ) {
-        mapDriveMakers.set(
-          server.StorageDisksInformation[driveName].Manufacturer,
-          true
-        );
-
-        // Add this unique value to its array
-        arrDriveMakes.push({
-          value: server.StorageDisksInformation[driveName].Manufacturer,
-          label: server.StorageDisksInformation[driveName].Manufacturer,
-        });
+      // Add it to set
+      if (server.StorageDisksInformation[driveName].Manufacturer) {
+        setDriveMakers.add(server.StorageDisksInformation[driveName].Manufacturer);
+        // Add it to the drive's set
+        driveMakersSet.add(server.StorageDisksInformation[driveName].Manufacturer);
+      } else {
+        setDriveMakers.add("undefined");
+        driveMakersSet.add("undefined");
       }
-      // Add it to the drive's set
-      driveMakersSet.add(
-        server.StorageDisksInformation[driveName].Manufacturer
-      );
 
-      if (
-        !mapDriveModels.has(server.StorageDisksInformation[driveName].Model)
-      ) {
-        mapDriveModels.set(
-          server.StorageDisksInformation[driveName].Model,
-          true
-        );
-
-        // Add this unique value to its array
-        arrDriveModels.push({
-          value: server.StorageDisksInformation[driveName].Model,
-          label: server.StorageDisksInformation[driveName].Model,
-        });
-      }
+      // Add it to set
+      setDriveModels.add(server.StorageDisksInformation[driveName].Model.trim());
       // Add it to the drive's set
       driveModelsSet.add(server.StorageDisksInformation[driveName].Model);
 
-      if (
-        !mapDriveSizes.has(
-          server.StorageDisksInformation[driveName].CapacityBytes
-        )
-      ) {
-        mapDriveSizes.set(
-          server.StorageDisksInformation[driveName].CapacityBytes,
-          true
-        );
-
-        // Re-format data and add this unique value to its array
-        let formValue = formatSize(
-          server.StorageDisksInformation[driveName].CapacityBytes
-        );
-        arrDriveSizes.push({
-          value: formValue,
-          label: formValue,
-        });
-      }
+      // Add it to set
+      setDriveSizes.add(server.StorageDisksInformation[driveName].CapacityBytes);
       // Add it to the drive's set
-      driveSizesSet.add(
-        formatSize(server.StorageDisksInformation[driveName].CapacityBytes)
-      );
-
-      if (
-        !mapDriveWear.has(
-          server.StorageDisksInformation[driveName]
-            .PredictedMediaLifeLeftPercent
-        )
-      ) {
-        mapDriveWear.set(
-          server.StorageDisksInformation[driveName]
-            .PredictedMediaLifeLeftPercent,
-          true
-        );
-
-        // Add this unique value to its array
-        arrDriveWear.push({
-          value:
-            server.StorageDisksInformation[driveName]
-              .PredictedMediaLifeLeftPercent,
-          label:
-            server.StorageDisksInformation[driveName]
-              .PredictedMediaLifeLeftPercent,
-        });
+      if (typeof server.StorageDisksInformation[driveName].CapacityBytes === "number")
+        driveSizesSet.add(formatSize(server.StorageDisksInformation[driveName].CapacityBytes), false);
+      else {
+        console.log(server.StorageDisksInformation[driveName].CapacityBytes);
+        driveSizesSet.add("invalid");
       }
-      // Add it to the drive's set
-      driveWearSet.add(
-        server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent
-      );
-      serverObj.StorageDisksInfo.SerialNumbers.push(
-        server.StorageDisksInformation[driveName].SerialNumber
-      );
+
+      // Add it to set
+      if (server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent !== null) {
+        setDriveWear.add(server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent); // Add it to the drive's set
+        driveWearSet.add(server.StorageDisksInformation[driveName].PredictedMediaLifeLeftPercent);
+      } else {
+        setDriveWear.add("undefined");
+        driveWearSet.add("undefined");
+      }
+
+      serverObj.StorageDisksInfo.SerialNumbers.push(server.StorageDisksInformation[driveName].SerialNumber);
     });
     // Push data into the server object
     serverObj.StorageDisksInfo.Manufacturers = [...driveMakersSet];
@@ -498,90 +434,28 @@ function getDropdownData(jsonData) {
 
     // Loop through processors, get then add unique data to array
     piKeys.forEach((processorName) => {
-      if (
-        !mapProcessorMakes.has(
-          server.ProcessorInformation[processorName].Manufacturer
-        )
-      ) {
-        mapProcessorMakes.set(
-          server.ProcessorInformation[processorName].Manufacturer,
-          true
-        );
-
-        // Add this unique value to its array
-        arrProcessorMakes.push({
-          value: server.ProcessorInformation[processorName].Manufacturer,
-          label: server.ProcessorInformation[processorName].Manufacturer,
-        });
-      }
+      // Add it to set
+      setProcessorMakes.add(server.ProcessorInformation[processorName].Manufacturer);
       // Add it to the processors' set
-      processorMakesSet.add(
-        server.ProcessorInformation[processorName].Manufacturer
-      );
+      processorMakersSet.add(server.ProcessorInformation[processorName].Manufacturer);
 
-      if (
-        !mapProcessorModels.has(
-          server.ProcessorInformation[processorName].Model
-        )
-      ) {
-        mapProcessorModels.set(
-          server.ProcessorInformation[processorName].Model,
-          true
-        );
-
-        // Add this unique value to its array
-        arrProcessorModels.push({
-          value: server.ProcessorInformation[processorName].Model,
-          label: server.ProcessorInformation[processorName].Model,
-        });
-      }
+      // Add it to set
+      setProcessorModels.add(server.ProcessorInformation[processorName].Model);
       // Add it to the processors' set
       processorModelsSet.add(server.ProcessorInformation[processorName].Model);
 
-      if (
-        !mapProcessorSpeeds.has(
-          server.ProcessorInformation[processorName].MaxSpeedMhz
-        )
-      ) {
-        mapProcessorSpeeds.set(
-          server.ProcessorInformation[processorName].MaxSpeedMhz,
-          true
-        );
-
-        // Add this unique value to its array
-        arrProcessorSpeeds.push({
-          value: server.ProcessorInformation[processorName].MaxSpeedMHz,
-          label: server.ProcessorInformation[processorName].MaxSpeedMHz,
-        });
-      }
+      // Add it to set
+      setProcessorSpeeds.add(server.ProcessorInformation[processorName].MaxSpeedMHz);
       // Add it to the processors' set
-      processorSpeedsSet.add(
-        server.ProcessorInformation[processorName].MaxSpeedMHz
-      );
+      processorSpeedsSet.add(server.ProcessorInformation[processorName].MaxSpeedMHz);
 
-      if (
-        !mapProcessorCores.has(
-          server.ProcessorInformation[processorName].TotalCores
-        )
-      ) {
-        mapProcessorCores.set(
-          server.ProcessorInformation[processorName].TotalCores,
-          true
-        );
-
-        // Add this unique value to its array
-        arrProcessorCores.push({
-          value: server.ProcessorInformation[processorName].TotalCores,
-          label: server.ProcessorInformation[processorName].TotalCores,
-        });
-      }
+      // Add it to set
+      setProcessorCores.add(server.ProcessorInformation[processorName].TotalCores);
       // Add it to the processors' set
-      processorCoresSet.add(
-        server.ProcessorInformation[processorName].TotalCores
-      );
+      processorCoresSet.add(server.ProcessorInformation[processorName].TotalCores);
     });
     // Push data into the server object
-    serverObj.ProcessorInfo.Manufacturers = [...processorMakesSet];
+    serverObj.ProcessorInfo.Manufacturers = [...processorMakersSet];
     serverObj.ProcessorInfo.Models = [...processorModelsSet];
     serverObj.ProcessorInfo.Speeds = [...processorSpeedsSet];
     serverObj.ProcessorInfo.CoreCounts = [...processorCoresSet];
@@ -594,83 +468,34 @@ function getDropdownData(jsonData) {
     let keyPciSlotExists = false;
     // Loop through controllers, get then add unique data to array
     ciKeys.forEach((controllerName) => {
-      if (
-        !mapControllerNames.has(
-          server.StorageControllerInformation[controllerName].Name
-        )
-      ) {
-        mapControllerNames.set(
-          server.StorageControllerInformation[controllerName].Name,
-          true
-        );
-
-        // Add this unique value to its array
-        arrControllerNames.push({
-          value: server.StorageControllerInformation[controllerName].Name,
-          label: server.StorageControllerInformation[controllerName].Name,
-        });
-      }
+      // Add it to set
+      setControllerNames.add(server.StorageControllerInformation[controllerName].Name);
       // Add it to the controllers' set
-      controllerNamesSet.add(
-        server.StorageControllerInformation[controllerName].Name
-      );
+      controllerNamesSet.add(server.StorageControllerInformation[controllerName].Name);
 
       // 1st check if the key exists then add it to a new key array
       let newSCkeyArr = [];
-      if (
-        keyExists(
-          server.StorageControllerInformation[controllerName],
-          "StorageControllers"
-        )
-      )
+      if (keyExists(server.StorageControllerInformation[controllerName], "StorageControllers"))
         newSCkeyArr.push(controllerName);
       // else
       //   console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have the 'StorageControllers' key`);
 
       // Now, loop through the new key array to find the data seeked
       newSCkeyArr.forEach((cName) => {
-        if (
-          server.StorageControllerInformation[cName].StorageControllers
-            .FirmwareVersion[0] !== ""
-        ) {
+        if (server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0] !== "") {
           //   console.log(`System '${server.SystemInformation.SKU}' controller ${cName} does not have the 'Firmware Version' data`);
           // else
-          if (
-            !mapControllerFWs.has(
-              server.StorageControllerInformation[cName].StorageControllers
-                .FirmwareVersion[0]
-            )
-          ) {
-            mapControllerFWs.set(
-              server.StorageControllerInformation[cName].StorageControllers
-                .FirmwareVersion[0],
-              true
-            );
-
-            // Add this unique value to its array
-            arrControllerFWs.push({
-              value:
-                server.StorageControllerInformation[cName].StorageControllers
-                  .FirmwareVersion[0],
-              label:
-                server.StorageControllerInformation[cName].StorageControllers
-                  .FirmwareVersion[0],
-            });
-          }
+          // Add it to set
+          setControllerFWs.add(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0]);
           // Add it to the controllers' set
-          controllerFWsSet.add(
-            server.StorageControllerInformation[cName].StorageControllers
-              .FirmwareVersion[0]
-          );
+          controllerFWsSet.add(server.StorageControllerInformation[cName].StorageControllers.FirmwareVersion[0]);
         }
       });
 
       // 1st check if the key exists then add it to a new key array
       let newOEMkeyArr = [];
 
-      if (
-        keyExists(server.StorageControllerInformation[controllerName], "Oem")
-      ) {
+      if (keyExists(server.StorageControllerInformation[controllerName], "Oem")) {
         newOEMkeyArr.push(controllerName);
         keySciOemExists = true;
       } else {
@@ -683,20 +508,11 @@ function getDropdownData(jsonData) {
         newOEMkeyArr.forEach((cName) => {
           // console.log(`${cName} of ${server.SystemInformation.SKU}`); //debugging
           // Get the keys under 'Dell'
-          let oemControllerKeys = Object.keys(
-            server.StorageControllerInformation[cName].Oem.Dell
-          );
+          let oemControllerKeys = Object.keys(server.StorageControllerInformation[cName].Oem.Dell);
           let oemControllerArr = [];
           oemControllerKeys.forEach((oemControllerName) => {
             // Check for existence of PCISlot field
-            if (
-              keyExists(
-                server.StorageControllerInformation[cName].Oem.Dell[
-                  oemControllerName
-                ],
-                "PCISlot"
-              )
-            ) {
+            if (keyExists(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName], "PCISlot")) {
               oemControllerArr.push(oemControllerName);
               keyPciSlotExists = true;
             } else {
@@ -706,45 +522,13 @@ function getDropdownData(jsonData) {
           });
           if (keyPciSlotExists) {
             oemControllerArr.forEach((oemControllerName) => {
-              if (
-                server.StorageControllerInformation[cName].Oem.Dell[
-                  oemControllerName
-                ].PCISlot !== null
-              ) {
+              if (server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot !== null) {
                 //   console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`);
                 // } else {
-                if (
-                  !mapControllerPCIslots.has(
-                    server.StorageControllerInformation[cName].Oem.Dell[
-                      oemControllerName
-                    ].PCISlot
-                  )
-                ) {
-                  mapControllerPCIslots.set(
-                    server.StorageControllerInformation[cName].Oem.Dell[
-                      oemControllerName
-                    ].PCISlot,
-                    true
-                  );
-
-                  // Add this unique value to its array
-                  arrControllerPCIslots.push({
-                    value:
-                      server.StorageControllerInformation[cName].Oem.Dell[
-                        oemControllerName
-                      ].PCISlot,
-                    label:
-                      server.StorageControllerInformation[cName].Oem.Dell[
-                        oemControllerName
-                      ].PCISlot,
-                  });
-                }
+                // Add it to set
+                setControllerPCIslots.add(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot);
                 // Add it to the controllers' set
-                controllerPCISlotsSet.add(
-                  server.StorageControllerInformation[cName].Oem.Dell[
-                    oemControllerName
-                  ].PCISlot
-                );
+                controllerPCISlotsSet.add(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot);
               }
             });
           }
@@ -764,96 +548,26 @@ function getDropdownData(jsonData) {
 
     // Loop through keys and store unique data
     miKeys.forEach((dimmSocket) => {
-      if (
-        !mapDimmMakes.has(server.MemoryInformation[dimmSocket].Manufacturer)
-      ) {
-        mapDimmMakes.set(
-          server.MemoryInformation[dimmSocket].Manufacturer,
-          true
-        );
-
-        // Add this unique value to its array
-        arrDimmMakes.push({
-          value: server.MemoryInformation[dimmSocket].Manufacturer,
-          label: server.MemoryInformation[dimmSocket].Manufacturer,
-        });
-      }
+      // Add it to set
+      setDimmMakes.add(server.MemoryInformation[dimmSocket].Manufacturer);
       // Add it to the memory set
       memoryMakersSet.add(server.MemoryInformation[dimmSocket].Manufacturer);
-
-      if (
-        !mapDimmModels.has(
-          server.MemoryInformation[dimmSocket].MemoryDeviceType
-        )
-      ) {
-        mapDimmModels.set(
-          server.MemoryInformation[dimmSocket].MemoryDeviceType,
-          true
-        );
-
-        // Add this unique value to its array
-        arrDimmModels.push({
-          value: server.MemoryInformation[dimmSocket].MemoryDeviceType,
-          label: server.MemoryInformation[dimmSocket].MemoryDeviceType,
-        });
-      }
+      // Add it to set
+      setDimmModels.add(server.MemoryInformation[dimmSocket].MemoryDeviceType);
       // Add it to the memory set
-      memoryModelsSet.add(
-        server.MemoryInformation[dimmSocket].MemoryDeviceType
-      );
-
-      if (!mapDimmRanks.has(server.MemoryInformation[dimmSocket].RankCount)) {
-        mapDimmRanks.set(server.MemoryInformation[dimmSocket].RankCount, true);
-
-        // Add this unique value to its array
-        arrDimmRanks.push({
-          value: server.MemoryInformation[dimmSocket].RankCount,
-          label: server.MemoryInformation[dimmSocket].RankCount,
-        });
-      }
+      memoryModelsSet.add(server.MemoryInformation[dimmSocket].MemoryDeviceType);
+      // Add it to set
+      setDimmRanks.add(server.MemoryInformation[dimmSocket].RankCount);
       // Add it to the memory set
       memoryRanksSet.add(server.MemoryInformation[dimmSocket].RankCount);
-
-      if (!mapDimmSizes.has(server.MemoryInformation[dimmSocket].CapacityMiB)) {
-        mapDimmSizes.set(
-          server.MemoryInformation[dimmSocket].CapacityMiB,
-          true
-        );
-
-        // Re-format data and add this unique value to its array
-        let formValue = formatSize(
-          server.MemoryInformation[dimmSocket].CapacityMiB * 1000
-        );
-        arrDimmSizes.push({
-          value: formValue,
-          label: formValue,
-        });
-      }
+      // Add it to set
+      setDimmSizes.add(server.MemoryInformation[dimmSocket].CapacityMiB * 1000);
       // Add it to the memory set
-      memorySizesSet.add(
-        formatSize(server.MemoryInformation[dimmSocket].CapacityMiB * 1000)
-      );
-
-      if (
-        !mapDimmSpeeds.has(
-          server.MemoryInformation[dimmSocket].OperatingSpeedMhz
-        )
-      ) {
-        mapDimmSpeeds.set(
-          server.MemoryInformation[dimmSocket].OperatingSpeedMhz,
-          true
-        );
-
-        // Add this unique value to its array
-        arrDimmSpeeds.push({
-          value: server.MemoryInformation[dimmSocket].OperatingSpeedMhz,
-          label: server.MemoryInformation[dimmSocket].OperatingSpeedMhz,
-        });
-      }
+      memorySizesSet.add(formatSize(server.MemoryInformation[dimmSocket].CapacityMiB * 1000, true));
+      // Add it to set
+      setDimmSpeeds.add(server.MemoryInformation[dimmSocket].OperatingSpeedMhz);
       // Add it to the memory set
-      memorySpeedsSet.add(
-        server.MemoryInformation[dimmSocket].OperatingSpeedMhz
-      );
+      memorySpeedsSet.add(server.MemoryInformation[dimmSocket].OperatingSpeedMhz);
     });
     // Push data into the server object
     serverObj.MemoryInfo.Manufacturers = [...memoryMakersSet];
@@ -863,47 +577,32 @@ function getDropdownData(jsonData) {
     serverObj.MemoryInfo.Speeds = [...memorySpeedsSet];
 
     // Network Device Information -----------------------------------------------------------------
-    // Store unique data
-    if (!mapNicMakes.has(server.NetworkDeviceInformation.Manufacturer)) {
-      mapNicMakes.set(server.NetworkDeviceInformation.Manufacturer, true);
-
-      // Add this unique value to its array
-      arrNicMakes.push({
-        value: server.NetworkDeviceInformation.Manufacturer,
-        label: server.NetworkDeviceInformation.Manufacturer,
-      });
+    // Add it to set
+    if (server.NetworkDeviceInformation.Manufacturer) {
+      setNicMakes.add(server.NetworkDeviceInformation.Manufacturer); // Add it to NICs set
+      nicMakersSet.add(server.NetworkDeviceInformation.Manufacturer);
+    } else {
+      setNicMakes.add("undefined");
+      nicMakersSet.add("undefined");
     }
-    // Add it to NICs set
-    nicMakersSet.add(server.NetworkDeviceInformation.Manufacturer);
 
-    if (!mapNicModels.has(server.NetworkDeviceInformation.Model)) {
-      mapNicModels.set(server.NetworkDeviceInformation.Model, true);
-
-      // Add this unique value to its array
-      arrNicModels.push({
-        value: server.NetworkDeviceInformation.Model,
-        label: server.NetworkDeviceInformation.Model,
-      });
+    // Add it to set
+    if (server.NetworkDeviceInformation.Model) {
+      setNicModels.add(server.NetworkDeviceInformation.Model); // Add it to NICs set
+      nicModelsSet.add(server.NetworkDeviceInformation.Model);
+    } else {
+      setNicModels.add("undefined");
+      nicModelsSet.add("undefined");
     }
-    // Add it to NICs set
-    nicModelsSet.add(server.NetworkDeviceInformation.Model);
 
-    if (
-      !mapNicFWs.has(server.NetworkDeviceInformation.FirmwarePackageVersion)
-    ) {
-      mapNicFWs.set(
-        server.NetworkDeviceInformation.FirmwarePackageVersion,
-        true
-      );
-
-      // Add this unique value to its array
-      arrNicFWs.push({
-        value: server.NetworkDeviceInformation.FirmwarePackageVersion,
-        label: server.NetworkDeviceInformation.FirmwarePackageVersion,
-      });
+    // Add it to set
+    if (server.NetworkDeviceInformation.FirmwarePackageVersion) {
+      setNicFWs.add(server.NetworkDeviceInformation.FirmwarePackageVersion); // Add it to NICs set
+      nicFWsSet.add(server.NetworkDeviceInformation.FirmwarePackageVersion);
+    } else {
+      setNicFWs.add("undefined");
+      nicFWsSet.add("undefined");
     }
-    // Add it to NICs set
-    nicFWsSet.add(server.NetworkDeviceInformation.FirmwarePackageVersion);
 
     let ndiKeys = Object.keys(server.NetworkDeviceInformation);
 
@@ -912,31 +611,10 @@ function getDropdownData(jsonData) {
         let nicKeys = Object.keys(server.NetworkDeviceInformation[ndiKey]);
 
         nicKeys.forEach((nicKey) => {
-          if (
-            !mapNicPortNums.has(
-              server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber
-            )
-          ) {
-            mapNicPortNums.set(
-              server.NetworkDeviceInformation[ndiKey][nicKey]
-                .PhysicalPortNumber,
-              true
-            );
-
-            // Add this unique value to its array
-            arrNicPortNums.push({
-              value:
-                server.NetworkDeviceInformation[ndiKey][nicKey]
-                  .PhysicalPortNumber,
-              label:
-                server.NetworkDeviceInformation[ndiKey][nicKey]
-                  .PhysicalPortNumber,
-            });
-          }
+          // Add it to set
+          setNicPortNums.add(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber);
           // Add it to NICs set
-          nicPortNumsSet.add(
-            server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber
-          );
+          nicPortNumsSet.add(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber);
         });
       }
     });
@@ -950,28 +628,142 @@ function getDropdownData(jsonData) {
     allServerObj.push(serverObj);
   });
 
+  // Convert sets to arrays, then sort the items
+  let sortedSysBios = sortDropdownItems(Array.from(setSysBios), "version");
+  let sortedDriveMakes = sortDropdownItems(Array.from(setDriveMakers), "string");
+  let sortedDriveModels = sortDropdownItems(Array.from(setDriveModels), "string");
+  let sortedDriveSizes = sortDropdownItems(Array.from(setDriveSizes), "integer");
+  let sortedDriveWear = sortDropdownItems(Array.from(setDriveWear), "integer");
+  let sortedProcessorMakes = sortDropdownItems(Array.from(setProcessorMakes), "string");
+  let sortedProcessorModels = sortDropdownItems(Array.from(setProcessorModels), "string");
+  let sortedProcessorSpeeds = sortDropdownItems(Array.from(setProcessorSpeeds), "integer");
+  let sortedProcessorCores = sortDropdownItems(Array.from(setProcessorCores), "integer");
+  let sortedControllerNames = sortDropdownItems(Array.from(setControllerNames), "string");
+  let sortedControllerFWs = sortDropdownItems(Array.from(setControllerFWs), "version");
+  let sortedControllerPCIslots = sortDropdownItems(Array.from(setControllerPCIslots), "integer");
+  let sortedDimmMakes = sortDropdownItems(Array.from(setDimmMakes), "string");
+  let sortedDimmModels = sortDropdownItems(Array.from(setDimmModels), "string");
+  let sortedDimmRanks = sortDropdownItems(Array.from(setDimmRanks), "integer");
+  let sortedDimmSizes = sortDropdownItems(Array.from(setDimmSizes), "integer");
+  let sortedDimmSpeeds = sortDropdownItems(Array.from(setDimmSpeeds), "integer");
+  let sortedNicMakes = sortDropdownItems(Array.from(setNicMakes), "string");
+  let sortedNicModels = sortDropdownItems(Array.from(setNicModels), "string");
+  let sortedNicFWs = sortDropdownItems(Array.from(setNicFWs), "version");
+  let sortedNicPortNums = sortDropdownItems(Array.from(setNicPortNums), "integer");
+
+  // // Reformat size values into human-readable format
+  // sortedDriveSizes.forEach(item => formatSize(item));
+  // sortedDimmSizes.forEach(item => formatSize(item));
+
+  // Create an array of sorted arrays
+  let sortedArrays = [
+    sortedSysBios,
+    sortedDriveMakes,
+    sortedDriveModels,
+    sortedDriveSizes,
+    sortedDriveWear,
+    sortedProcessorMakes,
+    sortedProcessorModels,
+    sortedProcessorSpeeds,
+    sortedProcessorCores,
+    sortedDimmMakes,
+    sortedDimmModels,
+    sortedDimmRanks,
+    sortedDimmSizes,
+    sortedDimmSpeeds,
+    sortedControllerNames,
+    sortedControllerFWs,
+    sortedControllerPCIslots,
+    sortedNicPortNums,
+    sortedNicMakes,
+    sortedNicModels,
+    sortedNicFWs,
+    sortedNicPortNums,
+  ];
+
+  // Loop through sorted arrays and set them up for dropdowns
+  sortedArrays.forEach((sorted) => {
+    console.log("Setting up dropdowns w/label & value..");
+    if (sorted) {
+      // Skip if an array is already setup for a dropdown
+      if (typeof sorted[0] !== "object") {
+        if (sorted === sortedDriveSizes || sorted === sortedDimmSizes) {
+          // Set a map to collect only unique values and push/remove array items to reflect the map
+          let tempMap = new Map();
+          sorted.forEach((item) => {
+            if (typeof item == "number") {
+              // console.log("Valid: " + item); //debugging
+              if (sorted === sortedDriveSizes)
+                item = formatSize(item, false);
+              else
+                item = formatSize(item, true);
+            } else {
+              // console.log("Invalid: " + item); //debugging
+              item = "invalid";
+            };
+            if (!tempMap.has(item)) {
+              tempMap.set(item, true);
+              sorted.push({ label: item, value: item });
+            } else {
+              sorted.splice(item.index, 1);
+            };
+          });
+          sorted.splice(0, sorted.length / 2);
+        } else {
+          sorted.forEach((item) => {
+            sorted.push({ label: item, value: item });
+          });
+          sorted.splice(0, sorted.length / 2);
+        };
+      };
+    };
+  });
+
   // Store data in the top-level object
-  allData["SystemInfo"]["Bios"] = arrSysBios;
-  allData["StorageDisksInfo"]["Manufacturers"] = arrDriveMakes;
-  allData["StorageDisksInfo"]["Models"] = arrDriveModels;
-  allData["StorageDisksInfo"]["Sizes"] = arrDriveSizes;
-  allData["StorageDisksInfo"]["Wear"] = arrDriveWear;
-  allData["ProcessorInfo"]["Manufacturers"] = arrProcessorMakes;
-  allData["ProcessorInfo"]["Models"] = arrProcessorModels;
-  allData["ProcessorInfo"]["Speeds"] = arrProcessorSpeeds;
-  allData["ProcessorInfo"]["Cores"] = arrProcessorCores;
-  allData["StorageControllersInfo"]["Names"] = arrControllerNames;
-  allData["StorageControllersInfo"]["FWs"] = arrControllerFWs;
-  allData["StorageControllersInfo"]["PCISlots"] = arrControllerPCIslots;
-  allData["MemoryInfo"]["Manufacturers"] = arrDimmMakes;
-  allData["MemoryInfo"]["Models"] = arrDimmModels;
-  allData["MemoryInfo"]["Ranks"] = arrDimmRanks;
-  allData["MemoryInfo"]["Sizes"] = arrDimmSizes;
-  allData["MemoryInfo"]["Speeds"] = arrDimmSpeeds;
-  allData["NetworkDevicesInfo"]["Manufacturers"] = arrNicMakes;
-  allData["NetworkDevicesInfo"]["Models"] = arrNicModels;
-  allData["NetworkDevicesInfo"]["FWs"] = arrNicFWs;
-  allData["NetworkDevicesInfo"]["PortNumbers"] = arrNicPortNums;
+  allData["SystemInfo"]["Bios"] = sortedSysBios;
+  allData["StorageDisksInfo"]["Manufacturers"] = sortedDriveMakes;
+  allData["StorageDisksInfo"]["Models"] = sortedDriveModels;
+  allData["StorageDisksInfo"]["Sizes"] = sortedDriveSizes;
+  allData["StorageDisksInfo"]["Wear"] = sortedDriveWear;
+  allData["ProcessorInfo"]["Manufacturers"] = sortedProcessorMakes;
+  allData["ProcessorInfo"]["Models"] = sortedProcessorModels;
+  allData["ProcessorInfo"]["Speeds"] = sortedProcessorSpeeds;
+  allData["ProcessorInfo"]["Cores"] = sortedProcessorCores;
+  allData["StorageControllersInfo"]["Names"] = sortedControllerNames;
+  allData["StorageControllersInfo"]["FWs"] = sortedControllerFWs;
+  allData["StorageControllersInfo"]["PCISlots"] = sortedControllerPCIslots;
+  allData["MemoryInfo"]["Manufacturers"] = sortedDimmMakes;
+  allData["MemoryInfo"]["Models"] = sortedDimmModels;
+  allData["MemoryInfo"]["Ranks"] = sortedDimmRanks;
+  allData["MemoryInfo"]["Sizes"] = sortedDimmSizes;
+  allData["MemoryInfo"]["Speeds"] = sortedDimmSpeeds;
+  allData["NetworkDevicesInfo"]["Manufacturers"] = sortedNicMakes;
+  allData["NetworkDevicesInfo"]["Models"] = sortedNicModels;
+  allData["NetworkDevicesInfo"]["FWs"] = sortedNicFWs;
+  allData["NetworkDevicesInfo"]["PortNumbers"] = sortedNicPortNums;
+
+  // console.log("Sorted dropdown items: ");
+  // console.log(sortedSysBios);
+  // console.log(sortedDriveMakes);
+  // console.log(sortedDriveModels);
+  // console.log(sortedDriveSizes);
+  // console.log(sortedDriveWear);
+  // console.log(sortedProcessorMakes);
+  // console.log(sortedProcessorModels);
+  // console.log(sortedProcessorSpeeds);
+  // console.log(sortedProcessorCores);
+  // console.log(sortedControllerNames);
+  // console.log(sortedControllerFWs);
+  // console.log(sortedControllerPCIslots);
+  // console.log(sortedDimmMakes);
+  // console.log(sortedDimmModels);
+  // console.log(sortedDimmRanks);
+  // console.log(sortedDimmSizes);
+  // console.log(sortedDimmSpeeds);
+  // console.log(sortedNicMakes);
+  // console.log(sortedNicModels);
+  // console.log(sortedNicFWs);
+  // console.log(sortedNicPortNums);
 
   // Debugging
   // console.log("Printing all server objects data: ");
@@ -999,160 +791,91 @@ function matchAll(serverObj, searchVals) {
     // against each server's object data; count the matches.
     svKVs.forEach((kv) => {
       if (kv[1].length > 0) {
-        // console.log(kv);
         criteriaCounter++;
         switch (kv[0]) {
           case "BiosOptions":
-            // console.log(serverObj.SystemInfo.BiosVersion);
-            // console.log(kv[1]);
-            if (kv[1].includes(serverObj.SystemInfo.BiosVersion)) {
+            if (kv[1].includes(serverObj.SystemInfo.BiosVersion))
               matchCounter++;
-              // console.log("Bios matched!");
-            } else {
-              // console.log("Bios do not match!");
-            }
             break;
           case "DriveMakers":
-            if (
-              serverObj.StorageDisksInfo.Manufacturers.some((s) =>
-                kv[1].includes(s)
-              )
-            ) {
+            if (serverObj.StorageDisksInfo.Manufacturers.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "DriveModels":
-            if (
-              serverObj.StorageDisksInfo.Models.some((s) => kv[1].includes(s))
-            ) {
+            if (serverObj.StorageDisksInfo.Models.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "DriveSizes":
-            if (
-              serverObj.StorageDisksInfo.Sizes.some((s) => kv[1].includes(s))
-            ) {
+            if (serverObj.StorageDisksInfo.Sizes.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "DriveWear":
-            if (
-              serverObj.StorageDisksInfo.Wear.some((s) => kv[1].includes(s))
-            ) {
+            if (serverObj.StorageDisksInfo.Wear.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "ProcessorMakes":
-            if (
-              serverObj.ProcessorInfo.Manufacturers.some((s) =>
-                kv[1].includes(s)
-              )
-            ) {
+            if (serverObj.ProcessorInfo.Manufacturers.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "ProcessorModels":
-            if (serverObj.ProcessorInfo.Models.some((s) => kv[1].includes(s))) {
+            if (serverObj.ProcessorInfo.Models.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "ProcessorSpeeds":
-            if (serverObj.ProcessorInfo.Speeds.some((s) => kv[1].includes(s))) {
+            if (serverObj.ProcessorInfo.Speeds.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "ProcessorCores":
-            if (serverObj.ProcessorInfo.Cores.some((s) => kv[1].includes(s))) {
+            if (serverObj.ProcessorInfo.CoreCounts.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "ControllerNames":
-            if (
-              serverObj.StorageControllersInfo.Names.some((s) =>
-                kv[1].includes(s)
-              )
-            ) {
+            if (serverObj.StorageControllersInfo.Names.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "ControllerFWs":
-            if (
-              serverObj.StorageControllersInfo.FirmwareVersions.some((s) =>
-                kv[1].includes(s)
-              )
-            ) {
+            if (serverObj.StorageControllersInfo.FirmwareVersions.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "ControllerPCIslots":
-            if (
-              serverObj.StorageControllersInfo.PCISlots.some((s) =>
-                kv[1].includes(s)
-              )
-            ) {
+            if (serverObj.StorageControllersInfo.PCISlots.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "MemoryMakers":
-            if (
-              serverObj.MemoryInfo.Manufacturers.some((s) => kv[1].includes(s))
-            ) {
+            if (serverObj.MemoryInfo.Manufacturers.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "MemoryModels":
-            if (serverObj.MemoryInfo.Models.some((s) => kv[1].includes(s))) {
+            if (serverObj.MemoryInfo.Models.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "MemoryRanks":
-            if (serverObj.MemoryInfo.Ranks.some((s) => kv[1].includes(s))) {
+            if (serverObj.MemoryInfo.Ranks.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "MemorySizes":
-            if (serverObj.MemoryInfo.Sizes.some((s) => kv[1].includes(s))) {
+            if (serverObj.MemoryInfo.Sizes.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "MemorySpeeds":
-            if (serverObj.MemoryInfo.Speeds.some((s) => kv[1].includes(s))) {
+            if (serverObj.MemoryInfo.Speeds.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "NicMakers":
-            if (
-              serverObj.NetworkDevicesInfo.Manufacturers.some((s) =>
-                kv[1].includes(s)
-              )
-            ) {
+            if (serverObj.NetworkDevicesInfo.Manufacturers.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "NicModels":
-            if (
-              serverObj.NetworkDevicesInfo.Models.some((s) => kv[1].includes(s))
-            ) {
+            if (serverObj.NetworkDevicesInfo.Models.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "NicFWs":
-            if (
-              serverObj.NetworkDevicesInfo.FirmwareVersions.some((s) =>
-                kv[1].includes(s)
-              )
-            ) {
+            if (serverObj.NetworkDevicesInfo.FirmwareVersions.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           case "NicPorts":
-            if (
-              serverObj.NetworkDevicesInfo.PortNumbers.some((s) =>
-                kv[1].includes(s)
-              )
-            ) {
+            if (serverObj.NetworkDevicesInfo.PortNumbers.some((s) => kv[1].includes(s)))
               matchCounter++;
-            }
             break;
           default:
             console.log("Some error in matchAll function's loop..");
@@ -1235,6 +958,22 @@ function fetchServers(tagArr) {
         reject([]);
       });
   });
+}
+
+// Function to sort an array of different type of values in ascending order
+function sortDropdownItems(arrToSort, itemType) {
+  let resultArr = arrToSort;
+  if (arrToSort) {
+    if (itemType === "string") resultArr = arrToSort.sort();
+    else if (itemType === "integer")
+      resultArr = arrToSort.sort(function (a, b) {
+        return a - b;
+      });
+    else if (itemType === "version") {
+      resultArr.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    };
+  };
+  return resultArr;
 }
 
 // Search Card with all dropdowns -----------------------------------------------------------------
@@ -1398,10 +1137,9 @@ function SearchCard() {
                       <Col xs={1}></Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Bios</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select BIOS.."
+                            placeholder="BIOS"
                             options={allData.SystemInfo.Bios}
                             isMulti
                             isSearchable
@@ -1411,53 +1149,49 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">iDRAC Firmware</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware.."
-                            // options={}
-                            // isMulti
-                            // isSearchable
-                            // onChange={setSelectedSysFWs}
+                            placeholder="iDRAC FW"
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedSysFWs}
                           />
                         </FormGroup>
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">CPLD</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select CPLD.."
-                            // options={}
-                            // isMulti
-                            // isSearchable
-                            // onChange={setSelectedSysCPLDs}
+                            placeholder="CPLD"
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedSysCPLDs}
                           />
                         </FormGroup>
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">DIMMs</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select DIMMs.."
-                            // options={}
-                            // isMulti
-                            // isSearchable
-                            // onChange={setSelectedSysDIMMs}
+                            placeholder="DIMM Count"
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedSysDIMMs}
                           />
                         </FormGroup>
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Type of Memory</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select type.."
-                            // options={}
-                            // isMulti
-                            // isSearchable
-                            // onChange={setSelectedSysMemTypes}
+                            placeholder="Total Mem"
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedSysMemTypes}
                           />
                         </FormGroup>
                       </Col>
@@ -1470,10 +1204,9 @@ function SearchCard() {
                       <Col xs={1}></Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Make</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
+                            placeholder="Make"
                             options={allData.StorageDisksInfo.Manufacturers}
                             isMulti
                             isSearchable
@@ -1483,10 +1216,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Model</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model.."
+                            placeholder="Model"
                             options={allData.StorageDisksInfo.Models}
                             isMulti
                             isSearchable
@@ -1496,10 +1228,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={1}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Size</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="size.."
+                            placeholder="Size"
                             options={allData.StorageDisksInfo.Sizes}
                             isMulti
                             isSearchable
@@ -1509,10 +1240,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={1}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Wear Level</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="life%.."
+                            placeholder="Life %"
                             options={allData.StorageDisksInfo.Wear}
                             isMulti
                             isSearchable
@@ -1522,25 +1252,31 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Firmware</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware.."
-                            // options={}
-                            // isMulti
-                            // isSearchable
-                            // onChange={setSelectedDriveFWs}
+                            placeholder="Firmware"
+                          // options={}
+                          // isMulti
+                          // isSearchable
+                          // onChange={setSelectedDriveFWs}
                           />
                         </FormGroup>
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          <Input
+                          {/* <Input
                             type="text"
                             name="search"
                             id="exampleText"
                             placeholder="Enter serial #"
+                          /> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Serial #"
+                            // options={allData.ProcessorInfo.Manufacturers}
+                            isMulti
+                            isSearchable
+                          // onChange={setSelectedProcessorMakes}
                           />
                         </FormGroup>
                       </Col>
@@ -1554,10 +1290,9 @@ function SearchCard() {
                       <Col xs={1}></Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Make</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
+                            placeholder="Make"
                             options={allData.ProcessorInfo.Manufacturers}
                             isMulti
                             isSearchable
@@ -1567,10 +1302,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Model</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model.."
+                            placeholder="Model"
                             options={allData.ProcessorInfo.Models}
                             isMulti
                             isSearchable
@@ -1580,10 +1314,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Clock Speed</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select speed.."
+                            placeholder="Speed"
                             options={allData.ProcessorInfo.Speeds}
                             isMulti
                             isSearchable
@@ -1593,14 +1326,25 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Core Count</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select core count.."
+                            placeholder="Core Count"
                             options={allData.ProcessorInfo.Cores}
                             isMulti
                             isSearchable
                             onChange={setSelectedProcessorCores}
+                          />
+                        </FormGroup>
+                      </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="CPU Count"
+                            // options={allData.ProcessorInfo.Cores}
+                            isMulti
+                            isSearchable
+                          // onChange={setSelectedProcessorCores}
                           />
                         </FormGroup>
                       </Col>
@@ -1614,10 +1358,9 @@ function SearchCard() {
                       <Col xs={1}></Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Name</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select name..."
+                            placeholder="Name"
                             options={allData.StorageControllersInfo.Names}
                             isMulti
                             isSearchable
@@ -1627,10 +1370,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Firmware</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware.."
+                            placeholder="Firmware"
                             options={allData.StorageControllersInfo.FWs}
                             isMulti
                             isSearchable
@@ -1640,10 +1382,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">PCI Slot</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select PCI slot.."
+                            placeholder="PCI slot"
                             options={allData.StorageControllersInfo.PCISlots}
                             isMulti
                             isSearchable
@@ -1653,23 +1394,37 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">SAS Address</Label> */}
-                          <Input
+                          {/* <Input
                             type="text"
                             name="search"
                             id="exampleText"
-                            placeholder="Enter SAS address.."
+                            placeholder="Enter SAS address"
+                          /> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="SAS Address"
+                            // options={allData.StorageControllersInfo.PCISlots}
+                            isMulti
+                            isSearchable
+                          // onChange={setSelectedControllerPCIslots}
                           />
                         </FormGroup>
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          <Input
+                          {/* <Input
                             type="text"
                             name="search"
                             id="exampleText"
-                            placeholder="Enter serial #.."
+                            placeholder="Enter serial #"
+                          /> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Serial #"
+                            // options={allData.StorageControllersInfo.PCISlots}
+                            isMulti
+                            isSearchable
+                          // onChange={setSelectedControllerPCIslots}
                           />
                         </FormGroup>
                       </Col>
@@ -1683,10 +1438,9 @@ function SearchCard() {
                       <Col xs={1}></Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Manufacturer</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
+                            placeholder="Make"
                             options={allData.MemoryInfo.Manufacturers}
                             isMulti
                             isSearchable
@@ -1696,10 +1450,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Model</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model.."
+                            placeholder="Model"
                             options={allData.MemoryInfo.Models}
                             isMulti
                             isSearchable
@@ -1709,10 +1462,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={1}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Rank</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="rank.."
+                            placeholder="Rank"
                             options={allData.MemoryInfo.Ranks}
                             isMulti
                             isSearchable
@@ -1722,10 +1474,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={1}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Size</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="size.."
+                            placeholder="Size"
                             options={allData.MemoryInfo.Sizes}
                             isMulti
                             isSearchable
@@ -1735,10 +1486,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Speed</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select speed.."
+                            placeholder="Speed"
                             options={allData.MemoryInfo.Speeds}
                             isMulti
                             isSearchable
@@ -1748,12 +1498,19 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Part Number</Label> */}
-                          <Input
+                          {/* <Input
                             type="text"
                             name="search"
                             id="exampleText"
                             placeholder="Enter part #"
+                          /> */}
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="Part #"
+                            // options={allData.MemoryInfo.Speeds}
+                            isMulti
+                            isSearchable
+                          // onChange={setSelectedMemorySpeeds}
                           />
                         </FormGroup>
                       </Col>
@@ -1767,10 +1524,9 @@ function SearchCard() {
                       <Col xs={1}></Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Manufacturer</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select make.."
+                            placeholder="Make"
                             options={allData.NetworkDevicesInfo.Manufacturers}
                             isMulti
                             isSearchable
@@ -1780,10 +1536,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Model</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select model.."
+                            placeholder="Model"
                             options={allData.NetworkDevicesInfo.Models}
                             isMulti
                             isSearchable
@@ -1793,10 +1548,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Firmware</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select firmware.."
+                            placeholder="Firmware"
                             options={allData.NetworkDevicesInfo.FWs}
                             isMulti
                             isSearchable
@@ -1806,10 +1560,9 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Port Number</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select port.."
+                            placeholder="Port"
                             options={allData.NetworkDevicesInfo.PortNumbers}
                             isMulti
                             isSearchable
@@ -1818,21 +1571,33 @@ function SearchCard() {
                           {/* <Input type="text" name="search" id="exampleText" placeholder="Enter port #" /> */}
                         </FormGroup>
                       </Col>
+                      <Col sm={2}>
+                        <FormGroup>
+                          <Select
+                            className="mt-1 col-md-15 col-offset-8"
+                            placeholder="MAC Address"
+                            // options={allData.NetworkDevicesInfo.PortNumbers}
+                            isMulti
+                            isSearchable
+                          // onChange={setSelectedNicPorts}
+                          />
+                          {/* <Input type="text" name="search" id="exampleText" placeholder="Enter port #" /> */}
+                        </FormGroup>
+                      </Col>
                     </Row>
-                    <Row>
+                    {/* <Row>
                       <Col sm={5}>
                         <FormGroup>
-                          <Label for="exampleSelect">Machines Found</Label>
                           <Input
                             type="text-area"
                             name="machines"
                             id="exampleText"
-                            placeholder="search results.."
+                            placeholder="search results"
                             value={searchData}
                           />
                         </FormGroup>
                       </Col>
-                    </Row>
+                    </Row> */}
                   </Form>
                 </CardHeader>
               </Card>
@@ -1870,8 +1635,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
           const rowValue = row.values[id];
           return rowValue !== undefined
             ? String(rowValue)
-                .toLowerCase()
-                .startsWith(String(filterValue).toLowerCase())
+              .toLowerCase()
+              .startsWith(String(filterValue).toLowerCase())
             : true;
         });
       },
@@ -1956,150 +1721,150 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                     </Row>
                   </FadeIn>
                 ) : (
-                  <React.Fragment>
-                    <Table
-                      className="align-items-center"
-                      bordered
-                      hover
-                      responsive
-                      size="sm"
-                      {...getTableProps()}
-                    >
-                      <thead>
-                        {headerGroups.map((headerGroup) => (
-                          <tr
-                            key={headerGroup.id}
-                            {...headerGroup.getHeaderGroupProps()}
-                          >
-                            {headerGroup.headers.map((column) => (
-                              <th key={column.id} {...column.getHeaderProps()}>
-                                <div>
-                                  <span {...column.getSortByToggleProps()}>
-                                    {column.render("Header")}
-                                    {/* Add a sort direction indicator */}
-                                    {column.isSorted
-                                      ? column.isSortedDesc
-                                        ? " 🔽"
-                                        : " 🔼"
-                                      : ""}
-                                  </span>
-                                </div>
-                                <br />
-                                {/* Render the columns filter UI */}
-                                <div>
-                                  {column.canFilter
-                                    ? column.render("Filter")
-                                    : null}
-                                </div>
-                              </th>
-                            ))}
-                          </tr>
-                        ))}
-                        <tr>
-                          <th
-                            colSpan={visibleColumns.length}
-                            style={{
-                              textAlign: "left",
-                            }}
-                          >
-                            <GlobalFilter
-                              preGlobalFilteredRows={preGlobalFilteredRows}
-                              globalFilter={state.globalFilter}
-                              setGlobalFilter={setGlobalFilter}
-                            />
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody {...getTableBodyProps()}>
-                        {page.map((row) => {
-                          prepareRow(row);
-                          return (
-                            <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                              {row.cells.map((cell) => {
-                                return (
-                                  <td
-                                    key={cell.id}
-                                    id={cell.id}
-                                    {...cell.getCellProps()}
-                                  >
-                                    {cell.render("Cell")}
-                                  </td>
-                                );
-                              })}
+                    <React.Fragment>
+                      <Table
+                        className="align-items-center"
+                        bordered
+                        hover
+                        responsive
+                        size="sm"
+                        {...getTableProps()}
+                      >
+                        <thead>
+                          {headerGroups.map((headerGroup) => (
+                            <tr
+                              key={headerGroup.id}
+                              {...headerGroup.getHeaderGroupProps()}
+                            >
+                              {headerGroup.headers.map((column) => (
+                                <th key={column.id} {...column.getHeaderProps()}>
+                                  <div>
+                                    <span {...column.getSortByToggleProps()}>
+                                      {column.render("Header")}
+                                      {/* Add a sort direction indicator */}
+                                      {column.isSorted
+                                        ? column.isSortedDesc
+                                          ? " 🔽"
+                                          : " 🔼"
+                                        : ""}
+                                    </span>
+                                  </div>
+                                  <br />
+                                  {/* Render the columns filter UI */}
+                                  <div>
+                                    {column.canFilter
+                                      ? column.render("Filter")
+                                      : null}
+                                  </div>
+                                </th>
+                              ))}
                             </tr>
-                          );
-                        })}
-                      </tbody>
-                    </Table>
-                    <CardFooter className="py-4">
-                      <nav aria-label="...">
-                        <Pagination
-                          className="pagination justify-content-end mb-0"
-                          listClassName="justify-content-end mb-0"
-                        >
-                          <Button color="info">
-                            Page {pageIndex + 1} of {pageOptions.length}
-                            <span className="sr-only">unread messages</span>
-                          </Button>
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => gotoPage(0)}
-                            disabled={!canPreviousPage}
+                          ))}
+                          <tr>
+                            <th
+                              colSpan={visibleColumns.length}
+                              style={{
+                                textAlign: "left",
+                              }}
+                            >
+                              <GlobalFilter
+                                preGlobalFilteredRows={preGlobalFilteredRows}
+                                globalFilter={state.globalFilter}
+                                setGlobalFilter={setGlobalFilter}
+                              />
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody {...getTableBodyProps()}>
+                          {page.map((row) => {
+                            prepareRow(row);
+                            return (
+                              <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                                {row.cells.map((cell) => {
+                                  return (
+                                    <td
+                                      key={cell.id}
+                                      id={cell.id}
+                                      {...cell.getCellProps()}
+                                    >
+                                      {cell.render("Cell")}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </Table>
+                      <CardFooter className="py-4">
+                        <nav aria-label="...">
+                          <Pagination
+                            className="pagination justify-content-end mb-0"
+                            listClassName="justify-content-end mb-0"
                           >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-double-left"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* Previous Page */}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => previousPage()}
-                            disabled={!canPreviousPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-left"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* Next Page */}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => nextPage()}
-                            disabled={!canNextPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-right"></i>
-                            </span>
-                          </Button>{" "}
-                          <Button
-                            className="btn-icon btn-2"
-                            color="primary"
-                            type="button"
-                            onClick={() => gotoPage(pageCount - 1)}
-                            disabled={!canNextPage}
-                          >
-                            <span className="btn-inner--icon">
-                              <i className="fas fa-angle-double-right"></i>
-                            </span>
-                          </Button>{" "}
-                          {/* <button
+                            <Button color="info">
+                              Page {pageIndex + 1} of {pageOptions.length}
+                              <span className="sr-only">unread messages</span>
+                            </Button>
+                            <Button
+                              className="btn-icon btn-2"
+                              color="primary"
+                              type="button"
+                              onClick={() => gotoPage(0)}
+                              disabled={!canPreviousPage}
+                            >
+                              <span className="btn-inner--icon">
+                                <i className="fas fa-angle-double-left"></i>
+                              </span>
+                            </Button>{" "}
+                            {/* Previous Page */}
+                            <Button
+                              className="btn-icon btn-2"
+                              color="primary"
+                              type="button"
+                              onClick={() => previousPage()}
+                              disabled={!canPreviousPage}
+                            >
+                              <span className="btn-inner--icon">
+                                <i className="fas fa-angle-left"></i>
+                              </span>
+                            </Button>{" "}
+                            {/* Next Page */}
+                            <Button
+                              className="btn-icon btn-2"
+                              color="primary"
+                              type="button"
+                              onClick={() => nextPage()}
+                              disabled={!canNextPage}
+                            >
+                              <span className="btn-inner--icon">
+                                <i className="fas fa-angle-right"></i>
+                              </span>
+                            </Button>{" "}
+                            <Button
+                              className="btn-icon btn-2"
+                              color="primary"
+                              type="button"
+                              onClick={() => gotoPage(pageCount - 1)}
+                              disabled={!canNextPage}
+                            >
+                              <span className="btn-inner--icon">
+                                <i className="fas fa-angle-double-right"></i>
+                              </span>
+                            </Button>{" "}
+                            {/* <button
                           onClick={() => gotoPage(pageCount - 1)}
                           disabled={!canNextPage}
                         >
                           {">>"}
                         </button>{" "} */}
-                          {/* <span>
+                            {/* <span>
                           Page{" "}
                           <strong>
                             {pageIndex + 1} of {pageOptions.length}
                           </strong>{" "}
                         </span> */}
-                          {/* <span>
+                            {/* <span>
                           | Go to page:{" "}
                           <input
                             type="number"
@@ -2113,28 +1878,28 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                             style={{ width: "100px" }}
                           />
                         </span>{" "} */}
-                          <Form.Control
-                            as="select"
-                            custom
-                            value={pageSize}
-                            onChange={(e) => {
-                              setPageSize(Number(e.target.value));
-                            }}
-                            onBlur={(e) => {
-                              setPageSize(Number(e.target.value));
-                            }}
-                          >
-                            {[10, 20, 30, 40, 50].map((pageSize) => (
-                              <option key={pageSize} value={pageSize}>
-                                Show {pageSize}
-                              </option>
-                            ))}
-                          </Form.Control>
-                        </Pagination>
-                      </nav>
-                    </CardFooter>
-                  </React.Fragment>
-                )}
+                            <Form.Control
+                              as="select"
+                              custom
+                              value={pageSize}
+                              onChange={(e) => {
+                                setPageSize(Number(e.target.value));
+                              }}
+                              onBlur={(e) => {
+                                setPageSize(Number(e.target.value));
+                              }}
+                            >
+                              {[10, 20, 30, 40, 50].map((pageSize) => (
+                                <option key={pageSize} value={pageSize}>
+                                  Show {pageSize}
+                                </option>
+                              ))}
+                            </Form.Control>
+                          </Pagination>
+                        </nav>
+                      </CardFooter>
+                    </React.Fragment>
+                  )}
               </Card>
             </div>
           </Row>
@@ -2310,10 +2075,8 @@ function SearchInventory() {
                   // ); //debugging
 
                   // Fetch it to the backend API with a new status
-                  fetch(
-                    `${apiServer}/patchStatus/${dbRowIdx}`,
-                    requestOptions
-                  ).then((response) => response.json());
+                  fetch(`${apiServer}/patchStatus/${dbRowIdx}`, requestOptions)
+                    .then((response) => response.json());
                   // .then(response => console.log(response));
 
                   // Update row's 'Status' to "available"
