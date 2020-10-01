@@ -268,6 +268,7 @@ function getDropdownData(jsonData, allData) {
   let setDriveModels = new Set();
   let setDriveSizes = new Set();
   let setDriveWear = new Set();
+  let setDriveSerials = new Set();
   let setProcessorMakes = new Set();
   let setProcessorModels = new Set();
   let setProcessorSpeeds = new Set();
@@ -340,6 +341,7 @@ function getDropdownData(jsonData, allData) {
     let driveModelsSet = new Set();
     let driveSizesSet = new Set();
     let driveWearSet = new Set();
+    let driveSerials = new Set();
     // let driveFWsSet = new Set();
     let processorMakersSet = new Set();
     let processorModelsSet = new Set();
@@ -409,13 +411,23 @@ function getDropdownData(jsonData, allData) {
         driveWearSet.add("undefined");
       }
 
-      serverObj.StorageDisksInfo.SerialNumbers.push(server.StorageDisksInformation[driveName].SerialNumber);
+      // Add it to set
+      if (server.StorageDisksInformation[driveName].SerialNumber !== null) {
+        setDriveSerials.add(server.StorageDisksInformation[driveName].SerialNumber); // Add it to the drive's set
+        driveSerials.add(server.StorageDisksInformation[driveName].SerialNumber);
+      } else {
+        setDriveSerials.add("undefined");
+        driveSerials.add("undefined");
+      }
+
+      // serverObj.StorageDisksInfo.SerialNumbers.push(server.StorageDisksInformation[driveName].SerialNumber);
     });
     // Push data into the server object
     serverObj.StorageDisksInfo.Manufacturers = [...driveMakersSet];
     serverObj.StorageDisksInfo.Models = [...driveModelsSet];
     serverObj.StorageDisksInfo.Sizes = [...driveSizesSet];
     serverObj.StorageDisksInfo.Wear = [...driveWearSet];
+    serverObj.StorageDisksInfo.SerialNumbers = [...driveSerials];
     // add FirmwareVersions here later
 
     // Processors Information ---------------------------------------------------------------------
@@ -616,6 +628,7 @@ function getDropdownData(jsonData, allData) {
 
     // Add server object's data to the main array
     allServerObj.push(serverObj);
+    console.log(allServerObj)
   });
 
   // Convert sets to arrays, then sort the items
@@ -624,6 +637,7 @@ function getDropdownData(jsonData, allData) {
   let sortedDriveModels = sortDropdownItems(Array.from(setDriveModels), "string");
   let sortedDriveSizes = sortDropdownItems(Array.from(setDriveSizes), "integer");
   let sortedDriveWear = sortDropdownItems(Array.from(setDriveWear), "integer");
+  let sortedDriveSerials = sortDropdownItems(Array.from(setDriveSerials), "integer");
   let sortedProcessorMakes = sortDropdownItems(Array.from(setProcessorMakes), "string");
   let sortedProcessorModels = sortDropdownItems(Array.from(setProcessorModels), "string");
   let sortedProcessorSpeeds = sortDropdownItems(Array.from(setProcessorSpeeds), "integer");
@@ -652,6 +666,7 @@ function getDropdownData(jsonData, allData) {
     sortedDriveModels,
     sortedDriveSizes,
     sortedDriveWear,
+    sortedDriveSerials,
     sortedProcessorMakes,
     sortedProcessorModels,
     sortedProcessorSpeeds,
@@ -715,6 +730,7 @@ function getDropdownData(jsonData, allData) {
   allData["StorageDisksInfo"]["Models"] = sortedDriveModels;
   allData["StorageDisksInfo"]["Sizes"] = sortedDriveSizes;
   allData["StorageDisksInfo"]["Wear"] = sortedDriveWear;
+  allData["StorageDisksInfo"]["SerialNumber"] = sortedDriveSerials;
   allData["ProcessorInfo"]["Manufacturers"] = sortedProcessorMakes;
   allData["ProcessorInfo"]["Models"] = sortedProcessorModels;
   allData["ProcessorInfo"]["Speeds"] = sortedProcessorSpeeds;
@@ -771,6 +787,10 @@ function matchAll(serverObj, searchVals) {
             break;
           case "DriveWear":
             if (serverObj.StorageDisksInfo.Wear.some((s) => kv[1].includes(s)))
+              matchCounter++;
+            break;
+          case "DriveSerials":
+            if (serverObj.StorageDisksInfo.SerialNumbers.some((s) => kv[1].includes(s)))
               matchCounter++;
             break;
           case "ProcessorMakes":
@@ -941,6 +961,7 @@ function SearchCard() {
   const [driveModels, setSelectedDriveModels] = useState([]);
   const [driveSizes, setSelectedDriveSizes] = useState([]);
   const [driveWear, setSelectedDriveWear] = useState([]);
+  const [driveSerials, setDriveSerials] = useState([]);
   const [processorMakes, setSelectedProcessorMakes] = useState([]);
   const [processorModels, setSelectedProcessorModels] = useState([]);
   const [processorSpeeds, setSelectedProcessorSpeeds] = useState([]);
@@ -992,6 +1013,7 @@ function SearchCard() {
         DriveModels: saveToArr(driveModels),
         DriveSizes: saveToArr(driveSizes),
         DriveWear: saveToArr(driveWear),
+        DriveSerials: saveToArr(driveSerials),
         ProcessorMakes: saveToArr(processorMakes),
         ProcessorModels: saveToArr(processorModels),
         ProcessorSpeeds: saveToArr(processorSpeeds),
@@ -1041,6 +1063,7 @@ function SearchCard() {
     driveModels,
     driveSizes,
     driveWear,
+    driveSerials,
     processorMakes,
     processorModels,
     processorSpeeds,
@@ -1212,20 +1235,13 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          {/* <Input
-                            type="text"
-                            name="search"
-                            id="exampleText"
-                            placeholder="Enter serial #"
-                          /> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Serial #"
-                            // options={dropdownDataFromAPI.ProcessorInfo.Manufacturers}
+                            options={dropdownDataFromAPI.StorageDisksInfo.SerialNumber}
                             isMulti
                             isSearchable
-                          // onChange={setSelectedProcessorMakes}
+                            onChange={setDriveSerials}
                           />
                         </FormGroup>
                       </Col>
