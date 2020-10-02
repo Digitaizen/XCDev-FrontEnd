@@ -268,6 +268,7 @@ function getDropdownData(jsonData, allData) {
   let setDriveModels = new Set();
   let setDriveSizes = new Set();
   let setDriveWear = new Set();
+  let setDriveFirmwares = new Set();
   let setDriveSerials = new Set();
   let setProcessorMakes = new Set();
   let setProcessorModels = new Set();
@@ -341,6 +342,7 @@ function getDropdownData(jsonData, allData) {
     let driveModelsSet = new Set();
     let driveSizesSet = new Set();
     let driveWearSet = new Set();
+    let driveFirmwaresSet = new Set();
     let driveSerials = new Set();
     // let driveFWsSet = new Set();
     let processorMakersSet = new Set();
@@ -411,7 +413,16 @@ function getDropdownData(jsonData, allData) {
         driveWearSet.add("undefined");
       }
 
-      // Add it to set
+      // Add it to Drive Firmware set
+      if (server.StorageDisksInformation[driveName].Revision !== null) {
+        setDriveFirmwares.add(server.StorageDisksInformation[driveName].Revision); // Add it to the drive's set
+        driveFirmwaresSet.add(server.StorageDisksInformation[driveName].Revision);
+      } else {
+        setDriveFirmwares.add("undefined");
+        driveFirmwaresSet.add("undefined");
+      }
+
+      // Add it to Drive Serial Number Set
       if (server.StorageDisksInformation[driveName].SerialNumber !== null) {
         setDriveSerials.add(server.StorageDisksInformation[driveName].SerialNumber); // Add it to the drive's set
         driveSerials.add(server.StorageDisksInformation[driveName].SerialNumber);
@@ -427,6 +438,7 @@ function getDropdownData(jsonData, allData) {
     serverObj.StorageDisksInfo.Models = [...driveModelsSet];
     serverObj.StorageDisksInfo.Sizes = [...driveSizesSet];
     serverObj.StorageDisksInfo.Wear = [...driveWearSet];
+    serverObj.StorageDisksInfo.FirmwareVersions = [...driveFirmwaresSet];
     serverObj.StorageDisksInfo.SerialNumbers = [...driveSerials];
     // add FirmwareVersions here later
 
@@ -447,9 +459,9 @@ function getDropdownData(jsonData, allData) {
       processorModelsSet.add(server.ProcessorInformation[processorName].Model);
 
       // Add it to set
-      setProcessorSpeeds.add(server.ProcessorInformation[processorName].MaxSpeedMHz);
+      setProcessorSpeeds.add(server.ProcessorInformation[processorName].Oem ? server.ProcessorInformation[processorName].Oem.Dell.DellProcessor.CurrentClockSpeedMhz : "Undefined");
       // Add it to the processors' set
-      processorSpeedsSet.add(server.ProcessorInformation[processorName].MaxSpeedMHz);
+      processorSpeedsSet.add(server.ProcessorInformation[processorName].Oem ? server.ProcessorInformation[processorName].Oem.Dell.DellProcessor.CurrentClockSpeedMhz : "Undefined");
 
       // Add it to set
       setProcessorCores.add(server.ProcessorInformation[processorName].TotalCores);
@@ -637,6 +649,7 @@ function getDropdownData(jsonData, allData) {
   let sortedDriveModels = sortDropdownItems(Array.from(setDriveModels), "string");
   let sortedDriveSizes = sortDropdownItems(Array.from(setDriveSizes), "integer");
   let sortedDriveWear = sortDropdownItems(Array.from(setDriveWear), "integer");
+  let sortedDriveFirmwares = sortDropdownItems(Array.from(setDriveFirmwares), "string");
   let sortedDriveSerials = sortDropdownItems(Array.from(setDriveSerials), "integer");
   let sortedProcessorMakes = sortDropdownItems(Array.from(setProcessorMakes), "string");
   let sortedProcessorModels = sortDropdownItems(Array.from(setProcessorModels), "string");
@@ -666,6 +679,7 @@ function getDropdownData(jsonData, allData) {
     sortedDriveModels,
     sortedDriveSizes,
     sortedDriveWear,
+    sortedDriveFirmwares,
     sortedDriveSerials,
     sortedProcessorMakes,
     sortedProcessorModels,
@@ -730,6 +744,7 @@ function getDropdownData(jsonData, allData) {
   allData["StorageDisksInfo"]["Models"] = sortedDriveModels;
   allData["StorageDisksInfo"]["Sizes"] = sortedDriveSizes;
   allData["StorageDisksInfo"]["Wear"] = sortedDriveWear;
+  allData["StorageDisksInfo"]["DriveFirmwares"] = sortedDriveFirmwares;
   allData["StorageDisksInfo"]["SerialNumber"] = sortedDriveSerials;
   allData["ProcessorInfo"]["Manufacturers"] = sortedProcessorMakes;
   allData["ProcessorInfo"]["Models"] = sortedProcessorModels;
@@ -787,6 +802,10 @@ function matchAll(serverObj, searchVals) {
             break;
           case "DriveWear":
             if (serverObj.StorageDisksInfo.Wear.some((s) => kv[1].includes(s)))
+              matchCounter++;
+            break;
+          case "DriveFirmwares":
+            if (serverObj.StorageDisksInfo.FirmwareVersions.some((s) => kv[1].includes(s)))
               matchCounter++;
             break;
           case "DriveSerials":
@@ -961,6 +980,7 @@ function SearchCard() {
   const [driveModels, setSelectedDriveModels] = useState([]);
   const [driveSizes, setSelectedDriveSizes] = useState([]);
   const [driveWear, setSelectedDriveWear] = useState([]);
+  const [driveFirmwares, setSelectedDriveFirmwares] = useState([]);
   const [driveSerials, setDriveSerials] = useState([]);
   const [processorMakes, setSelectedProcessorMakes] = useState([]);
   const [processorModels, setSelectedProcessorModels] = useState([]);
@@ -1013,6 +1033,7 @@ function SearchCard() {
         DriveModels: saveToArr(driveModels),
         DriveSizes: saveToArr(driveSizes),
         DriveWear: saveToArr(driveWear),
+        DriveFirmwares: saveToArr(driveFirmwares),
         DriveSerials: saveToArr(driveSerials),
         ProcessorMakes: saveToArr(processorMakes),
         ProcessorModels: saveToArr(processorModels),
@@ -1066,6 +1087,7 @@ function SearchCard() {
     driveModels,
     driveSizes,
     driveWear,
+    driveFirmwares,
     driveSerials,
     processorMakes,
     processorModels,
@@ -1229,10 +1251,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Firmware"
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedDriveFWs}
+                            options={dropdownDataFromAPI.StorageDisksInfo.DriveFirmwares}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedDriveFirmwares}
                           />
                         </FormGroup>
                       </Col>
@@ -1286,7 +1308,7 @@ function SearchCard() {
                         <FormGroup>
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Speed"
+                            placeholder="Current Speed"
                             options={dropdownDataFromAPI.ProcessorInfo.Speeds}
                             isMulti
                             isSearchable
