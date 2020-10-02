@@ -1052,8 +1052,11 @@ function SearchCard() {
         );
         // Update the component state
         setSearch(searchRes.servers);
+      } else {
+        setSearch([]);
       }
     } else {
+      // eslint-disable-next-line no-console
       console.log("Search did not find matches with the selected criteria.");
       setSearch([]);
     }
