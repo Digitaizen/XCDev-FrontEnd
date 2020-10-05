@@ -274,6 +274,7 @@ function getDropdownData(jsonData, allData) {
   let setProcessorModels = new Set();
   let setProcessorSpeeds = new Set();
   let setProcessorCores = new Set();
+  let setProcessorCounts = new Set();
   let setControllerNames = new Set();
   let setControllerFWs = new Set();
   let setControllerPCIslots = new Set();
@@ -282,6 +283,7 @@ function getDropdownData(jsonData, allData) {
   let setDimmRanks = new Set();
   let setDimmSizes = new Set();
   let setDimmSpeeds = new Set();
+  let setDimmPartNums = new Set();
   let setNicMakes = new Set();
   let setNicModels = new Set();
   let setNicFWs = new Set();
@@ -306,6 +308,7 @@ function getDropdownData(jsonData, allData) {
         Models: [],
         Speeds: [],
         CoreCounts: [],
+        CPUCounts: [],
       },
       MemoryInfo: {
         Manufacturers: [],
@@ -313,6 +316,7 @@ function getDropdownData(jsonData, allData) {
         Ranks: [],
         Sizes: [],
         Speeds: [],
+        PartNums: [],
       },
       StorageDisksInfo: {
         Manufacturers: [],
@@ -349,6 +353,7 @@ function getDropdownData(jsonData, allData) {
     let processorModelsSet = new Set();
     let processorSpeedsSet = new Set();
     let processorCoresSet = new Set();
+    let processorCountsSet = new Set();
     let controllerNamesSet = new Set();
     let controllerFWsSet = new Set();
     let controllerPCISlotsSet = new Set();
@@ -359,6 +364,7 @@ function getDropdownData(jsonData, allData) {
     let memoryRanksSet = new Set();
     let memorySizesSet = new Set();
     let memorySpeedsSet = new Set();
+    let memoryPartNumsSet = new Set();
     // let memoryPartNumsSet = new Set();
     let nicMakersSet = new Set();
     let nicModelsSet = new Set();
@@ -390,7 +396,7 @@ function getDropdownData(jsonData, allData) {
       }
 
       // Add it to set
-      setDriveModels.add(server.StorageDisksInformation[driveName].Model.trim());
+      setDriveModels.add(server.StorageDisksInformation[driveName].Model);
       // Add it to the drive's set
       driveModelsSet.add(server.StorageDisksInformation[driveName].Model);
 
@@ -467,12 +473,18 @@ function getDropdownData(jsonData, allData) {
       setProcessorCores.add(server.ProcessorInformation[processorName].TotalCores);
       // Add it to the processors' set
       processorCoresSet.add(server.ProcessorInformation[processorName].TotalCores);
+
+      // Add it to CPU Count Dropdown Array
+      setProcessorCounts.add(server.SystemInformation.ProcessorSummary.Count);
+      // Add it to CPU Count Server Object
+      processorCountsSet.add(server.SystemInformation.ProcessorSummary.Count);
     });
     // Push data into the server object
     serverObj.ProcessorInfo.Manufacturers = [...processorMakersSet];
     serverObj.ProcessorInfo.Models = [...processorModelsSet];
     serverObj.ProcessorInfo.Speeds = [...processorSpeedsSet];
     serverObj.ProcessorInfo.CoreCounts = [...processorCoresSet];
+    serverObj.ProcessorInfo.CPUCounts = [...processorCountsSet];
 
     // Storage Controllers Information ------------------------------------------------------------
     // Get the names of the controllers
@@ -582,6 +594,11 @@ function getDropdownData(jsonData, allData) {
       setDimmSpeeds.add(server.MemoryInformation[dimmSocket].OperatingSpeedMhz);
       // Add it to the memory set
       memorySpeedsSet.add(server.MemoryInformation[dimmSocket].OperatingSpeedMhz);
+      // Add it to Part# Dropdown Array
+      setDimmPartNums.add(server.MemoryInformation[dimmSocket].PartNumber)
+      // Add it to Part# Server Object
+      memoryPartNumsSet.add(server.MemoryInformation[dimmSocket].PartNumber)
+
     });
     // Push data into the server object
     serverObj.MemoryInfo.Manufacturers = [...memoryMakersSet];
@@ -589,6 +606,7 @@ function getDropdownData(jsonData, allData) {
     serverObj.MemoryInfo.Ranks = [...memoryRanksSet];
     serverObj.MemoryInfo.Sizes = [...memorySizesSet];
     serverObj.MemoryInfo.Speeds = [...memorySpeedsSet];
+    serverObj.MemoryInfo.PartNums = [...memoryPartNumsSet];
 
     // Network Device Information -----------------------------------------------------------------
     // Add it to set
@@ -655,6 +673,7 @@ function getDropdownData(jsonData, allData) {
   let sortedProcessorModels = sortDropdownItems(Array.from(setProcessorModels), "string");
   let sortedProcessorSpeeds = sortDropdownItems(Array.from(setProcessorSpeeds), "integer");
   let sortedProcessorCores = sortDropdownItems(Array.from(setProcessorCores), "integer");
+  let sortedProcessorCounts = sortDropdownItems(Array.from(setProcessorCounts), "integer");
   let sortedControllerNames = sortDropdownItems(Array.from(setControllerNames), "string");
   let sortedControllerFWs = sortDropdownItems(Array.from(setControllerFWs), "version");
   let sortedControllerPCIslots = sortDropdownItems(Array.from(setControllerPCIslots), "integer");
@@ -663,6 +682,7 @@ function getDropdownData(jsonData, allData) {
   let sortedDimmRanks = sortDropdownItems(Array.from(setDimmRanks), "integer");
   let sortedDimmSizes = sortDropdownItems(Array.from(setDimmSizes), "integer");
   let sortedDimmSpeeds = sortDropdownItems(Array.from(setDimmSpeeds), "integer");
+  let sortedDimmPartNums = sortDropdownItems(Array.from(setDimmPartNums), "string");
   let sortedNicMakes = sortDropdownItems(Array.from(setNicMakes), "string");
   let sortedNicModels = sortDropdownItems(Array.from(setNicModels), "string");
   let sortedNicFWs = sortDropdownItems(Array.from(setNicFWs), "version");
@@ -685,11 +705,13 @@ function getDropdownData(jsonData, allData) {
     sortedProcessorModels,
     sortedProcessorSpeeds,
     sortedProcessorCores,
+    sortedProcessorCounts,
     sortedDimmMakes,
     sortedDimmModels,
     sortedDimmRanks,
     sortedDimmSizes,
     sortedDimmSpeeds,
+    sortedDimmPartNums,
     sortedControllerNames,
     sortedControllerFWs,
     sortedControllerPCIslots,
@@ -750,6 +772,7 @@ function getDropdownData(jsonData, allData) {
   allData["ProcessorInfo"]["Models"] = sortedProcessorModels;
   allData["ProcessorInfo"]["Speeds"] = sortedProcessorSpeeds;
   allData["ProcessorInfo"]["Cores"] = sortedProcessorCores;
+  allData["ProcessorInfo"]["CPUCounts"] = sortedProcessorCounts;
   allData["StorageControllersInfo"]["Names"] = sortedControllerNames;
   allData["StorageControllersInfo"]["FWs"] = sortedControllerFWs;
   allData["StorageControllersInfo"]["PCISlots"] = sortedControllerPCIslots;
@@ -758,6 +781,7 @@ function getDropdownData(jsonData, allData) {
   allData["MemoryInfo"]["Ranks"] = sortedDimmRanks;
   allData["MemoryInfo"]["Sizes"] = sortedDimmSizes;
   allData["MemoryInfo"]["Speeds"] = sortedDimmSpeeds;
+  allData["MemoryInfo"]["PartNums"] = sortedDimmPartNums;
   allData["NetworkDevicesInfo"]["Manufacturers"] = sortedNicMakes;
   allData["NetworkDevicesInfo"]["Models"] = sortedNicModels;
   allData["NetworkDevicesInfo"]["FWs"] = sortedNicFWs;
@@ -828,6 +852,10 @@ function matchAll(serverObj, searchVals) {
             if (serverObj.ProcessorInfo.CoreCounts.some((s) => kv[1].includes(s)))
               matchCounter++;
             break;
+          case "ProcessorCounts":
+            if (serverObj.ProcessorInfo.CPUCounts.some((s) => kv[1].includes(s)))
+              matchCounter++;
+            break;
           case "ControllerNames":
             if (serverObj.StorageControllersInfo.Names.some((s) => kv[1].includes(s)))
               matchCounter++;
@@ -853,11 +881,15 @@ function matchAll(serverObj, searchVals) {
               matchCounter++;
             break;
           case "MemorySizes":
-            if (serverObj.MemoryInfo.Sizes.some((s) => kv[1].includes(s)))
+            if (serverObj.MemoryInfo.PartNums.some((s) => kv[1].includes(s)))
               matchCounter++;
             break;
           case "MemorySpeeds":
             if (serverObj.MemoryInfo.Speeds.some((s) => kv[1].includes(s)))
+              matchCounter++;
+            break;
+          case "MemoryPartNums":
+            if (serverObj.MemoryInfo.PartNums.some((s) => kv[1].includes(s)))
               matchCounter++;
             break;
           case "NicMakers":
@@ -986,6 +1018,7 @@ function SearchCard() {
   const [processorModels, setSelectedProcessorModels] = useState([]);
   const [processorSpeeds, setSelectedProcessorSpeeds] = useState([]);
   const [processorCores, setSelectedProcessorCores] = useState([]);
+  const [processorCounts, setSelectedProcessorCounts] = useState([]);
   const [controllerNames, setSelectedControllerNames] = useState([]);
   const [controllerFWs, setSelectedControllerFWs] = useState([]);
   const [controllerPCIslots, setSelectedControllerPCIslots] = useState([]);
@@ -994,6 +1027,7 @@ function SearchCard() {
   const [memoryRanks, setSelectedMemoryRanks] = useState([]);
   const [memorySizes, setSelectedMemorySizes] = useState([]);
   const [memorySpeeds, setSelectedMemorySpeeds] = useState([]);
+  const [memoryPartNums, setSelectedMemoryPartNums] = useState([]);
   const [nicMakers, setSelectedNicMakers] = useState([]);
   const [nicModels, setSelectedNicModels] = useState([]);
   const [nicFWs, setSelectedNicFWs] = useState([]);
@@ -1039,6 +1073,7 @@ function SearchCard() {
         ProcessorModels: saveToArr(processorModels),
         ProcessorSpeeds: saveToArr(processorSpeeds),
         ProcessorCores: saveToArr(processorCores),
+        ProcessorCounts: saveToArr(processorCounts),
         ControllerNames: saveToArr(controllerNames),
         ControllerFWs: saveToArr(controllerFWs),
         ControllerPCIslots: saveToArr(controllerPCIslots),
@@ -1047,6 +1082,7 @@ function SearchCard() {
         MemoryRanks: saveToArr(memoryRanks),
         MemorySizes: saveToArr(memorySizes),
         MemorySpeeds: saveToArr(memorySpeeds),
+        MemoryPartNums: saveToArr(memoryPartNums),
         NicMakers: saveToArr(nicMakers),
         NicModels: saveToArr(nicModels),
         NicFWs: saveToArr(nicFWs),
@@ -1093,6 +1129,7 @@ function SearchCard() {
     processorModels,
     processorSpeeds,
     processorCores,
+    processorCounts,
     controllerNames,
     controllerFWs,
     controllerPCIslots,
@@ -1101,6 +1138,7 @@ function SearchCard() {
     memoryRanks,
     memorySizes,
     memorySpeeds,
+    memoryPartNums,
     nicMakers,
     nicModels,
     nicFWs,
@@ -1131,7 +1169,7 @@ function SearchCard() {
                         <FormGroup>
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Select BIOS.."
+                            placeholder="BIOS"
                             options={dropdownDataFromAPI.SystemInfo.Bios}
                             isMulti
                             isSearchable
@@ -1330,14 +1368,13 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Core Count</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="CPU Count"
-                            // options={dropdownDataFromAPI.ProcessorInfo.Cores}
+                            options={dropdownDataFromAPI.ProcessorInfo.CPUCounts}
                             isMulti
                             isSearchable
-                          // onChange={setSelectedProcessorCores}
+                            onChange={setSelectedProcessorCounts}
                           />
                         </FormGroup>
                       </Col>
@@ -1502,20 +1539,13 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Part Number</Label> */}
-                          {/* <Input
-                            type="text"
-                            name="search"
-                            id="exampleText"
-                            placeholder="Enter part #"
-                          /> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Part #"
-                            // options={dropdownDataFromAPI.MemoryInfo.Speeds}
+                            options={dropdownDataFromAPI.MemoryInfo.PartNums}
                             isMulti
                             isSearchable
-                          // onChange={setSelectedMemorySpeeds}
+                            onChange={setSelectedMemoryPartNums}
                           />
                         </FormGroup>
                       </Col>
