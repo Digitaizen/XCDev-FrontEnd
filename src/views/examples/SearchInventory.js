@@ -288,6 +288,7 @@ function getDropdownData(jsonData, allData) {
   let setNicModels = new Set();
   let setNicFWs = new Set();
   let setNicPortNums = new Set();
+  let setNicMACAddresses = new Set();
 
   const server = jsonData.resultArray.map((item) => item.data);
 
@@ -338,6 +339,7 @@ function getDropdownData(jsonData, allData) {
         Models: [],
         FirmwareVersions: [],
         PortNumbers: [],
+        MACAddresses: [],
       },
     };
 
@@ -370,7 +372,7 @@ function getDropdownData(jsonData, allData) {
     let nicModelsSet = new Set();
     let nicFWsSet = new Set();
     let nicPortNumsSet = new Set();
-
+    let nicMACAddresses = new Set();
     // System Information -------------------------------------------------------------------------
     // Add it to set
     setSysBios.add(server.SystemInformation.BiosVersion);
@@ -647,6 +649,10 @@ function getDropdownData(jsonData, allData) {
           setNicPortNums.add(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber);
           // Add it to NICs set
           nicPortNumsSet.add(server.NetworkDeviceInformation[ndiKey][nicKey].PhysicalPortNumber);
+          // Add it to MACAddresses Drop-down Array
+          setNicMACAddresses.add(server.NetworkDeviceInformation[ndiKey][nicKey].AssociatedNetworkAddresses[0]);
+          // Add it to MACAddresses Server Obj
+          nicMACAddresses.add(server.NetworkDeviceInformation[ndiKey][nicKey].AssociatedNetworkAddresses[0]);
         });
       }
     });
@@ -655,6 +661,7 @@ function getDropdownData(jsonData, allData) {
     serverObj.NetworkDevicesInfo.Models = [...nicModelsSet];
     serverObj.NetworkDevicesInfo.FirmwareVersions = [...nicFWsSet];
     serverObj.NetworkDevicesInfo.PortNumbers = [...nicPortNumsSet];
+    serverObj.NetworkDevicesInfo.MACAddresses = [...nicMACAddresses];
 
     // Add server object's data to the main array
     allServerObj.push(serverObj);
@@ -687,6 +694,7 @@ function getDropdownData(jsonData, allData) {
   let sortedNicModels = sortDropdownItems(Array.from(setNicModels), "string");
   let sortedNicFWs = sortDropdownItems(Array.from(setNicFWs), "version");
   let sortedNicPortNums = sortDropdownItems(Array.from(setNicPortNums), "integer");
+  let sortedNicMACAddresses = sortDropdownItems(Array.from(setNicMACAddresses), "integer");
 
   // // Reformat size values into human-readable format
   // sortedDriveSizes.forEach(item => formatSize(item));
@@ -720,6 +728,7 @@ function getDropdownData(jsonData, allData) {
     sortedNicModels,
     sortedNicFWs,
     sortedNicPortNums,
+    sortedNicMACAddresses
   ];
 
   // Loop through sorted arrays and set them up for dropdowns
@@ -786,6 +795,7 @@ function getDropdownData(jsonData, allData) {
   allData["NetworkDevicesInfo"]["Models"] = sortedNicModels;
   allData["NetworkDevicesInfo"]["FWs"] = sortedNicFWs;
   allData["NetworkDevicesInfo"]["PortNumbers"] = sortedNicPortNums;
+  allData["NetworkDevicesInfo"]["MACAddresses"] = sortedNicMACAddresses;
 
   return allData;
 }
@@ -906,6 +916,10 @@ function matchAll(serverObj, searchVals) {
             break;
           case "NicPorts":
             if (serverObj.NetworkDevicesInfo.PortNumbers.some((s) => kv[1].includes(s)))
+              matchCounter++;
+            break;
+          case "NicMACAddresses":
+            if (serverObj.NetworkDevicesInfo.MACAddresses.some((s) => kv[1].includes(s)))
               matchCounter++;
             break;
           default:
@@ -1032,6 +1046,7 @@ function SearchCard() {
   const [nicModels, setSelectedNicModels] = useState([]);
   const [nicFWs, setSelectedNicFWs] = useState([]);
   const [nicPorts, setSelectedNicPorts] = useState([]);
+  const [nicMACAddresses, setSelectedNicMACAddresses] = useState([]);
   const [dropdownDataFromAPI, setDropdownDataFromAPI] = useRecoilState(
     allDropDownData
   );
@@ -1087,6 +1102,7 @@ function SearchCard() {
         NicModels: saveToArr(nicModels),
         NicFWs: saveToArr(nicFWs),
         NicPorts: saveToArr(nicPorts),
+        NicMACAddresses: saveToArr(nicMACAddresses)
       },
     ];
 
@@ -1143,6 +1159,7 @@ function SearchCard() {
     nicModels,
     nicFWs,
     nicPorts,
+    nicMACAddresses
   ]);
 
   return (
@@ -1615,14 +1632,13 @@ function SearchCard() {
                       </Col>
                       <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Port Number</Label> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="MAC Address"
-                            // options={dropdownDataFromAPI.NetworkDevicesInfo.PortNumbers}
+                            options={dropdownDataFromAPI.NetworkDevicesInfo.MACAddresses}
                             isMulti
                             isSearchable
-                          // onChange={setSelectedNicPorts}
+                            onChange={setSelectedNicMACAddresses}
                           />
                           {/* <Input type="text" name="search" id="exampleText" placeholder="Enter port #" /> */}
                         </FormGroup>
