@@ -264,6 +264,10 @@ function getDropdownData(jsonData, allData) {
 
   // Create sets to store only unique values for each key
   let setSysBios = new Set();
+  let setSysFirmwareVersions = new Set();
+  let setSysCPLDs = new Set();
+  let setSysDIMMs = new Set();
+  let setSysMemTotals = new Set();
   let setDriveMakers = new Set();
   let setDriveModels = new Set();
   let setDriveSizes = new Set();
@@ -278,6 +282,7 @@ function getDropdownData(jsonData, allData) {
   let setControllerNames = new Set();
   let setControllerFWs = new Set();
   let setControllerPCIslots = new Set();
+  let setControllerSASAddresses = new Set();
   let setDimmMakes = new Set();
   let setDimmModels = new Set();
   let setDimmRanks = new Set();
@@ -298,11 +303,11 @@ function getDropdownData(jsonData, allData) {
     let serverObj = {
       ServiceTag: "",
       SystemInfo: {
-        BiosVersion: "",
-        FirmwareVersion: "",
-        CPLD: "",
+        BiosVersion: [],
+        FirmwareVersion: [],
+        CPLD: [],
         DIMMs: [],
-        Types: [],
+        MemTotals: [],
       },
       ProcessorInfo: {
         Manufacturers: [],
@@ -344,6 +349,11 @@ function getDropdownData(jsonData, allData) {
     };
 
     // Create a set for each of server components' searchable data
+    let sysBiosSet = new Set();
+    let sysFirmwareVersionsSet = new Set();
+    let sysCPLDsSet = new Set();
+    let sysDIMMsSet = new Set();
+    let sysMemTotalsSet = new Set();
     let driveMakersSet = new Set();
     let driveModelsSet = new Set();
     let driveSizesSet = new Set();
@@ -359,6 +369,7 @@ function getDropdownData(jsonData, allData) {
     let controllerNamesSet = new Set();
     let controllerFWsSet = new Set();
     let controllerPCISlotsSet = new Set();
+    let controllerSASAddressesSet = new Set();
     // let controllerSASaddressesSet = new Set();
     // let controllerSerialNumsSet = new Set();
     let memoryMakersSet = new Set();
@@ -374,12 +385,53 @@ function getDropdownData(jsonData, allData) {
     let nicPortNumsSet = new Set();
     let nicMACAddresses = new Set();
     // System Information -------------------------------------------------------------------------
-    // Add it to set
-    setSysBios.add(server.SystemInformation.BiosVersion);
-
-    // Push data into the server object
     serverObj.ServiceTag = server.SystemInformation.SKU;
+
+    // Add it to BIOS Dropdown Array and BIOS Server Obj Property 
+    setSysBios.add(server.SystemInformation.BiosVersion);
+    sysBiosSet.add(server.SystemInformation.BiosVersion)
+
+    // Add it to iDRAC FW Array and iDRAC Server Object Property
+    if (server.SystemInformation.IdracFirmware) {
+      setSysFirmwareVersions.add(server.SystemInformation.IdracFirmware)
+      sysFirmwareVersionsSet.add(server.SystemInformation.IdracFirmware)
+    } else {
+      setSysFirmwareVersions.add("undefined")
+      sysFirmwareVersionsSet.add("undefined")
+    }
+
+    // Add it to CPLD Dropdown and CPLD Server Obj Property
+    if (server.SystemInformation.SystemCPLDversion) {
+      setSysCPLDs.add(server.SystemInformation.SystemCPLDversion)
+      sysCPLDsSet.add(server.SystemInformation.SystemCPLDversion)
+    } else {
+      setSysCPLDs.add("undefined")
+      sysCPLDsSet.add("undefined")
+    }
+
+    // Add it to DIMM Count Dropdown and DIMM Count Server Obj Property
+    if (server.MemoryInformation.DimmCount) {
+      setSysDIMMs.add(server.MemoryInformation.DimmCount)
+      sysDIMMsSet.add(server.MemoryInformation.DimmCount)
+    } else {
+      setSysDIMMs.add("undefined")
+      sysDIMMsSet.add("undefined")
+    }
+
+    // Add it to DIMM Count Dropdown and DIMM Count Server Obj Property
+    if (server.SystemInformation.MemorySummary.TotalSystemMemoryGiB) {
+      setSysMemTotals.add(server.SystemInformation.MemorySummary.TotalSystemMemoryGiB)
+      sysMemTotalsSet.add(server.SystemInformation.MemorySummary.TotalSystemMemoryGiB)
+    } else {
+      setSysMemTotals.add("undefined")
+      sysMemTotalsSet.add("undefined")
+    }
+
     serverObj.SystemInfo.BiosVersion = server.SystemInformation.BiosVersion;
+    serverObj.SystemInfo.FirmwareVersion = [...sysFirmwareVersionsSet];
+    serverObj.SystemInfo.CPLD = [...sysCPLDsSet];
+    serverObj.SystemInfo.DIMMs = [...sysDIMMsSet];
+    serverObj.SystemInfo.MemTotals = [...sysMemTotalsSet];
 
     // Storage Disks Information ------------------------------------------------------------------
     // Get the names of the drives
@@ -550,13 +602,18 @@ function getDropdownData(jsonData, allData) {
           });
           if (keyPciSlotExists) {
             oemControllerArr.forEach((oemControllerName) => {
-              if (server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot !== null) {
-                //   console.log(`System '${server.SystemInformation.SKU}' controller ${controllerName} does not have 'PCISlot' data`);
-                // } else {
+              if (server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot) {
                 // Add it to set
                 setControllerPCIslots.add(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot);
                 // Add it to the controllers' set
                 controllerPCISlotsSet.add(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].PCISlot);
+              }
+
+              if (server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].SASAddress) {
+                // Add it to SASAddress Dropdown Array
+                setControllerSASAddresses.add(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].SASAddress);
+                // Add it to the SASAddress Server Object
+                controllerSASAddressesSet.add(server.StorageControllerInformation[cName].Oem.Dell[oemControllerName].SASAddress);
               }
             });
           }
@@ -566,6 +623,7 @@ function getDropdownData(jsonData, allData) {
     // Push data into the server object
     serverObj.StorageControllersInfo.Names = [...controllerNamesSet];
     serverObj.StorageControllersInfo.FirmwareVersions = [...controllerFWsSet];
+    serverObj.StorageControllersInfo.SASAddresses = [...controllerSASAddressesSet]
     if (keyPciSlotExists)
       serverObj.StorageControllersInfo.PCISlots = [...controllerPCISlotsSet];
     else serverObj.StorageControllersInfo.PCISlots = [];
@@ -670,6 +728,10 @@ function getDropdownData(jsonData, allData) {
 
   // Convert sets to arrays, then sort the items
   let sortedSysBios = (sortDropdownItems(Array.from(setSysBios), "version"))
+  let sortedSysFirmwareVersions = (sortDropdownItems(Array.from(setSysFirmwareVersions), "version"))
+  let sortedSysCPLDs = (sortDropdownItems(Array.from(setSysCPLDs), "version"))
+  let sortedSysDIMMs = (sortDropdownItems(Array.from(setSysDIMMs), "integer"))
+  let sortedSysMemTotals = (sortDropdownItems(Array.from(setSysMemTotals), "integer"))
   let sortedDriveMakes = sortDropdownItems(Array.from(setDriveMakers), "string");
   let sortedDriveModels = sortDropdownItems(Array.from(setDriveModels), "string");
   let sortedDriveSizes = sortDropdownItems(Array.from(setDriveSizes), "integer");
@@ -684,6 +746,7 @@ function getDropdownData(jsonData, allData) {
   let sortedControllerNames = sortDropdownItems(Array.from(setControllerNames), "string");
   let sortedControllerFWs = sortDropdownItems(Array.from(setControllerFWs), "version");
   let sortedControllerPCIslots = sortDropdownItems(Array.from(setControllerPCIslots), "integer");
+  let sortedControllerSASAddresses = sortDropdownItems(Array.from(setControllerSASAddresses), "string");
   let sortedDimmMakes = sortDropdownItems(Array.from(setDimmMakes), "string");
   let sortedDimmModels = sortDropdownItems(Array.from(setDimmModels), "string");
   let sortedDimmRanks = sortDropdownItems(Array.from(setDimmRanks), "integer");
@@ -703,6 +766,10 @@ function getDropdownData(jsonData, allData) {
   // Create an array of sorted arrays
   let sortedArrays = [
     sortedSysBios,
+    sortedSysFirmwareVersions,
+    sortedSysCPLDs,
+    sortedSysDIMMs,
+    sortedSysMemTotals,
     sortedDriveMakes,
     sortedDriveModels,
     sortedDriveSizes,
@@ -723,6 +790,7 @@ function getDropdownData(jsonData, allData) {
     sortedControllerNames,
     sortedControllerFWs,
     sortedControllerPCIslots,
+    sortedControllerSASAddresses,
     sortedNicPortNums,
     sortedNicMakes,
     sortedNicModels,
@@ -771,6 +839,10 @@ function getDropdownData(jsonData, allData) {
 
   // Store data in the top-level object
   allData["SystemInfo"]["Bios"] = sortedSysBios;
+  allData["SystemInfo"]["FirmwareVersions"] = sortedSysFirmwareVersions;
+  allData["SystemInfo"]["CPLDs"] = sortedSysCPLDs;
+  allData["SystemInfo"]["DIMMs"] = sortedSysDIMMs;
+  allData["SystemInfo"]["MemTotals"] = sortedSysMemTotals;
   allData["StorageDisksInfo"]["Manufacturers"] = sortedDriveMakes;
   allData["StorageDisksInfo"]["Models"] = sortedDriveModels;
   allData["StorageDisksInfo"]["Sizes"] = sortedDriveSizes;
@@ -785,6 +857,7 @@ function getDropdownData(jsonData, allData) {
   allData["StorageControllersInfo"]["Names"] = sortedControllerNames;
   allData["StorageControllersInfo"]["FWs"] = sortedControllerFWs;
   allData["StorageControllersInfo"]["PCISlots"] = sortedControllerPCIslots;
+  allData["StorageControllersInfo"]["SASAddresses"] = sortedControllerSASAddresses;
   allData["MemoryInfo"]["Manufacturers"] = sortedDimmMakes;
   allData["MemoryInfo"]["Models"] = sortedDimmModels;
   allData["MemoryInfo"]["Ranks"] = sortedDimmRanks;
@@ -820,6 +893,22 @@ function matchAll(serverObj, searchVals) {
         switch (kv[0]) {
           case "BiosOptions":
             if (kv[1].includes(serverObj.SystemInfo.BiosVersion))
+              matchCounter++;
+            break;
+          case "SysFirmwareVersions":
+            if (serverObj.SystemInfo.FirmwareVersion.some((s) => kv[1].includes(s)))
+              matchCounter++;
+            break;
+          case "SysCPLDs":
+            if (serverObj.SystemInfo.CPLD.some((s) => kv[1].includes(s)))
+              matchCounter++;
+            break;
+          case "SysDIMMs":
+            if (serverObj.SystemInfo.DIMMs.some((s) => kv[1].includes(s)))
+              matchCounter++;
+            break;
+          case "SysMemTotals":
+            if (serverObj.SystemInfo.MemTotals.some((s) => kv[1].includes(s)))
               matchCounter++;
             break;
           case "DriveMakers":
@@ -878,6 +967,10 @@ function matchAll(serverObj, searchVals) {
             if (serverObj.StorageControllersInfo.PCISlots.some((s) => kv[1].includes(s)))
               matchCounter++;
             break;
+          case "ControllerSASAddresses":
+            if (serverObj.StorageControllersInfo.SASAddresses.some((s) => kv[1].includes(s)))
+              matchCounter++;
+            break;
           case "MemoryMakers":
             if (serverObj.MemoryInfo.Manufacturers.some((s) => kv[1].includes(s)))
               matchCounter++;
@@ -933,8 +1026,8 @@ function matchAll(serverObj, searchVals) {
     matchCounter == criteriaCounter ? (result = true) : (result = false);
     return result;
   } catch (e) {
+    // eslint-disable-next-line no-console
     console.log("Error in matchAll function:");
-    console.log(e);
   }
 }
 
@@ -1022,6 +1115,10 @@ function sortDropdownItems(arrToSort, itemType) {
 function SearchCard() {
   // Store dropdowns' selections via state hooks
   const [biosOptions, setSelectedBiosOptions] = useState([]);
+  const [sysFirmwareVersions, setSelectedSysFirmwareVersions] = useState([]);
+  const [sysCPLDs, setSelectedSysCPLDs] = useState([]);
+  const [sysDIMMs, setSelectedSysDIMMs] = useState([]);
+  const [sysMemTotals, setSelectedSysMemTotals] = useState([]);
   const [driveMakers, setSelectedDriveMakers] = useState([]);
   const [driveModels, setSelectedDriveModels] = useState([]);
   const [driveSizes, setSelectedDriveSizes] = useState([]);
@@ -1036,6 +1133,7 @@ function SearchCard() {
   const [controllerNames, setSelectedControllerNames] = useState([]);
   const [controllerFWs, setSelectedControllerFWs] = useState([]);
   const [controllerPCIslots, setSelectedControllerPCIslots] = useState([]);
+  const [controllerSASAddresses, setSelectedControllerSASAddresses] = useState([]);
   const [memoryMakers, setSelectedMemoryMakers] = useState([]);
   const [memoryModels, setSelectedMemoryModels] = useState([]);
   const [memoryRanks, setSelectedMemoryRanks] = useState([]);
@@ -1078,6 +1176,10 @@ function SearchCard() {
     let searchValues = [
       {
         BiosOptions: saveToArr(biosOptions),
+        SysFirmwareVersions: saveToArr(sysFirmwareVersions),
+        SysCPLDs: saveToArr(sysCPLDs),
+        SysDIMMs: saveToArr(sysDIMMs),
+        SysMemTotals: saveToArr(sysMemTotals),
         DriveMakers: saveToArr(driveMakers),
         DriveModels: saveToArr(driveModels),
         DriveSizes: saveToArr(driveSizes),
@@ -1092,6 +1194,7 @@ function SearchCard() {
         ControllerNames: saveToArr(controllerNames),
         ControllerFWs: saveToArr(controllerFWs),
         ControllerPCIslots: saveToArr(controllerPCIslots),
+        ControllerSASAddresses: saveToArr(controllerSASAddresses),
         MemoryMakers: saveToArr(memoryMakers),
         MemoryModels: saveToArr(memoryModels),
         MemoryRanks: saveToArr(memoryRanks),
@@ -1135,6 +1238,10 @@ function SearchCard() {
     }
   }, [
     biosOptions,
+    sysFirmwareVersions,
+    sysCPLDs,
+    sysDIMMs,
+    sysMemTotals,
     driveMakers,
     driveModels,
     driveSizes,
@@ -1149,6 +1256,7 @@ function SearchCard() {
     controllerNames,
     controllerFWs,
     controllerPCIslots,
+    controllerSASAddresses,
     memoryMakers,
     memoryModels,
     memoryRanks,
@@ -1179,9 +1287,9 @@ function SearchCard() {
                     <Row>
                       <Col sm={1}>
                         {/* <br></br> */}
-                        <Label>System Information</Label>
+                        <Label>System</Label>
                       </Col>
-                      <Col xs={1}></Col>
+                      {/* <Col xs={1}></Col> */}
                       <Col sm={2}>
                         <FormGroup>
                           <Select
@@ -1199,10 +1307,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="iDRAC FW"
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedSysFWs}
+                            options={dropdownDataFromAPI.SystemInfo.FirmwareVersions}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedSysFirmwareVersions}
                           />
                         </FormGroup>
                       </Col>
@@ -1211,10 +1319,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="CPLD"
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedSysCPLDs}
+                            options={dropdownDataFromAPI.SystemInfo.CPLDs}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedSysCPLDs}
                           />
                         </FormGroup>
                       </Col>
@@ -1223,10 +1331,10 @@ function SearchCard() {
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="DIMM Count"
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedSysDIMMs}
+                            options={dropdownDataFromAPI.SystemInfo.DIMMs}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedSysDIMMs}
                           />
                         </FormGroup>
                       </Col>
@@ -1234,11 +1342,11 @@ function SearchCard() {
                         <FormGroup>
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Total Mem"
-                          // options={}
-                          // isMulti
-                          // isSearchable
-                          // onChange={setSelectedSysMemTypes}
+                            placeholder="Total Mem (GB)"
+                            options={dropdownDataFromAPI.SystemInfo.MemTotals}
+                            isMulti
+                            isSearchable
+                            onChange={setSelectedSysMemTotals}
                           />
                         </FormGroup>
                       </Col>
@@ -1246,9 +1354,9 @@ function SearchCard() {
                     <Row>
                       <Col sm={1}>
                         {/* <br></br> */}
-                        <Label>Drive Information</Label>
+                        <Label>Drive</Label>
                       </Col>
-                      <Col xs={1}></Col>
+                      {/* <Col xs={1}></Col> */}
                       <Col sm={2}>
                         <FormGroup>
                           <Select
@@ -1330,9 +1438,9 @@ function SearchCard() {
                     <Row>
                       <Col sm={1}>
                         {/* <br></br> */}
-                        <Label>Processor Information</Label>
+                        <Label>Processor</Label>
                       </Col>
-                      <Col xs={1}></Col>
+                      {/* <Col xs={1}></Col> */}
                       <Col sm={2}>
                         <FormGroup>
                           <Select
@@ -1400,9 +1508,9 @@ function SearchCard() {
                     <Row>
                       <Col sm={1}>
                         {/* <br></br> */}
-                        <Label>Controllers Information</Label>
+                        <Label>Storage Controller</Label>
                       </Col>
-                      <Col xs={1}></Col>
+                      {/* <Col xs={1}></Col> */}
                       <Col sm={2}>
                         <FormGroup>
                           <Select
@@ -1446,34 +1554,20 @@ function SearchCard() {
                           />
                         </FormGroup>
                       </Col>
-                      <Col sm={2}>
+                      <Col sm={4}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">SAS Address</Label> */}
-                          {/* <Input
-                            type="text"
-                            name="search"
-                            id="exampleText"
-                            placeholder="Enter SAS address"
-                          /> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="SAS Address"
-                            // options={dropdownDataFromAPI.StorageControllersInfo.PCISlots}
+                            options={dropdownDataFromAPI.StorageControllersInfo.SASAddresses}
                             isMulti
                             isSearchable
-                          // onChange={setSelectedControllerPCIslots}
+                            onChange={setSelectedControllerSASAddresses}
                           />
                         </FormGroup>
                       </Col>
-                      <Col sm={2}>
+                      {/* <Col sm={2}>
                         <FormGroup>
-                          {/* <Label for="exampleSelect">Serial Number</Label> */}
-                          {/* <Input
-                            type="text"
-                            name="search"
-                            id="exampleText"
-                            placeholder="Enter serial #"
-                          /> */}
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
                             placeholder="Serial #"
@@ -1483,15 +1577,15 @@ function SearchCard() {
                           // onChange={setSelectedControllerPCIslots}
                           />
                         </FormGroup>
-                      </Col>
+                      </Col> */}
                     </Row>
 
                     <Row>
                       <Col sm={1}>
                         {/* <br></br> */}
-                        <Label>DIMMs Information</Label>
+                        <Label>Memory</Label>
                       </Col>
-                      <Col xs={1}></Col>
+                      {/* <Col xs={1}></Col> */}
                       <Col sm={2}>
                         <FormGroup>
                           <Select
@@ -1571,9 +1665,9 @@ function SearchCard() {
                     <Row>
                       <Col sm={1}>
                         {/* <br></br> */}
-                        <Label>NICs Information</Label>
+                        <Label>NIC</Label>
                       </Col>
-                      <Col xs={1}></Col>
+                      {/* <Col xs={1}></Col> */}
                       <Col sm={2}>
                         <FormGroup>
                           <Select
