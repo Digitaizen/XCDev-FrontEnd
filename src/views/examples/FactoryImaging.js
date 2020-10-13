@@ -236,17 +236,18 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   const [bmrOptions, setBmrOptions] = useState([]);
   const [factoryblockOptions, setFactoryblockOptions] = useState([]);
   const [selectedBmrIsoOption, setSelectedBmrIsoOption] = useState("");
+  const [hypervisorOptions, setHypervisorOptions] = useState("");
   const [selectedFactoryBlockOption, setSelectedFactoryBlockOption] = useState(
     ""
   );
   const [selectedHypervisorOption, setSelectedHypervisorOption] = useState("");
 
-  const hypervisorOptions = [
-    { value: "AHV", label: "AHV" },
-    { value: "ESXi_65", label: "ESXi_65" },
-    { value: "ESXi_67", label: "ESXi_67" },
-    { value: "ESXi_70", label: "ESXi_70" },
-  ];
+  // const hypervisorOptions = [
+  //   { value: "AHV", label: "AHV" },
+  //   { value: "ESXi_65", label: "ESXi_65" },
+  //   { value: "ESXi_67", label: "ESXi_67" },
+  //   { value: "ESXi_70", label: "ESXi_70" },
+  // ];
 
   // API request for getting Factory Block Folder List
   useEffect(() => {
@@ -288,6 +289,26 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       });
   }, []);
 
+  // API request for getting BMR ISO File List
+  useEffect(() => {
+    let config = {
+      method: "get",
+      // url: "http://localhost:8080/getIsoFiles",
+      url: "http://100.80.149.97:8080/getHypervisors",
+      headers: {},
+    };
+
+    axios(config)
+      .then(function (response) {
+        // console.log(JSON.stringify(response.data.results));
+        setHypervisorOptions(response.data.results);
+      })
+      .catch(function (error) {
+        // eslint-disable-next-line no-console
+        console.log(error);
+      });
+  }, []);
+
   //default options defined for the lottie file loading animation
   const defaultOptions = {
     loop: true,
@@ -310,8 +331,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
           const rowValue = row.values[id];
           return rowValue !== undefined
             ? String(rowValue)
-                .toLowerCase()
-                .startsWith(String(filterValue).toLowerCase())
+              .toLowerCase()
+              .startsWith(String(filterValue).toLowerCase())
             : true;
         });
       },
@@ -459,241 +480,241 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                   </Row>
                 </FadeIn>
               ) : (
-                <React.Fragment>
-                  <Row>
-                    <Col md="12">
-                      <UncontrolledAlert className="alert-default" fade={false}>
-                        <span className="alert-inner--icon">
-                          <i className="ni ni-air-baloon" />
-                        </span>{" "}
-                        <span className="alert-inner--text">
-                          <strong>INFO!</strong> Only iDRAC version 4.0.0
+                  <React.Fragment>
+                    <Row>
+                      <Col md="12">
+                        <UncontrolledAlert className="alert-default" fade={false}>
+                          <span className="alert-inner--icon">
+                            <i className="ni ni-air-baloon" />
+                          </span>{" "}
+                          <span className="alert-inner--text">
+                            <strong>INFO!</strong> Only iDRAC version 4.00.00.00
                           systems and higher are supported for Factory Imaging
                           Automation
                         </span>
-                      </UncontrolledAlert>
-                    </Col>
-                  </Row>
-                  {selectedRowData.length !== 0 ? (
-                    <div>
-                      <Row>
-                        <Col md="4">
-                          <Select
-                            className="mt-2 col-md-12 col-offset-4"
-                            placeholder="Select BMR ISO File..."
-                            options={bmrOptions}
-                            onChange={(selectedOption) =>
-                              setSelectedBmrIsoOption(selectedOption.value)
-                            }
-                          />
-                        </Col>
-                        <Col md="4">
-                          <Select
-                            className="mt-2 col-md-12 col-offset-4"
-                            placeholder="Select Factory Block..."
-                            options={factoryblockOptions}
-                            onChange={(selectedOption) =>
-                              setSelectedFactoryBlockOption(
-                                selectedOption.value
-                              )
-                            }
-                          />
-                        </Col>
-                        <Col md="4">
-                          <Select
-                            className="mt-2 col-md-12 col-offset-4"
-                            placeholder="Select Hypervisor..."
-                            options={hypervisorOptions}
-                            onChange={(selectedOption) =>
-                              setSelectedHypervisorOption(selectedOption.value)
-                            }
-                          />
-                        </Col>
-                      </Row>
+                        </UncontrolledAlert>
+                      </Col>
+                    </Row>
+                    {selectedRowData.length !== 0 ? (
+                      <div>
+                        <Row>
+                          <Col md="4">
+                            <Select
+                              className="mt-2 col-md-12 col-offset-4"
+                              placeholder="Select BMR ISO File..."
+                              options={bmrOptions}
+                              onChange={(selectedOption) =>
+                                setSelectedBmrIsoOption(selectedOption.value)
+                              }
+                            />
+                          </Col>
+                          <Col md="4">
+                            <Select
+                              className="mt-2 col-md-12 col-offset-4"
+                              placeholder="Select Factory Block..."
+                              options={factoryblockOptions}
+                              onChange={(selectedOption) =>
+                                setSelectedFactoryBlockOption(
+                                  selectedOption.value
+                                )
+                              }
+                            />
+                          </Col>
+                          <Col md="4">
+                            <Select
+                              className="mt-2 col-md-12 col-offset-4"
+                              placeholder="Select Hypervisor..."
+                              options={hypervisorOptions}
+                              onChange={(selectedOption) =>
+                                setSelectedHypervisorOption(selectedOption.value)
+                              }
+                            />
+                          </Col>
+                        </Row>
                       &nbsp;
-                      <Row>
-                        <Col md="4">
-                          <Button
-                            color="primary"
-                            style={{ "margin-left": "15px" }}
-                            onClick={handleClick}
-                          >
-                            Start Imaging
+                        <Row>
+                          <Col md="4">
+                            <Button
+                              color="primary"
+                              style={{ "margin-left": "15px" }}
+                              onClick={handleClick}
+                            >
+                              Start Imaging
                           </Button>{" "}
-                        </Col>
-                      </Row>
-                    </div>
-                  ) : null}
-                  <br />
-                  <Table
-                    className="align-items-center"
-                    bordered
-                    hover
-                    responsive
-                    size="sm"
-                    {...getTableProps()}
-                  >
-                    <thead>
-                      {headerGroups.map((headerGroup) => (
-                        <tr
-                          key={headerGroup.id}
-                          {...headerGroup.getHeaderGroupProps()}
-                        >
-                          {headerGroup.headers.map((column) => (
-                            <th key={column.id} {...column.getHeaderProps()}>
-                              <div>
-                                <span {...column.getSortByToggleProps()}>
-                                  {column.render("Header")}
-                                  {/* Add a sort direction indicator */}
-                                  {column.isSorted
-                                    ? column.isSortedDesc
-                                      ? " 🔽"
-                                      : " 🔼"
-                                    : ""}
-                                </span>
-                              </div>
-                              <br />
-                              {/* Render the columns filter UI */}
-                              <div>
-                                {column.canFilter
-                                  ? column.render("Filter")
-                                  : null}
-                              </div>
-                            </th>
-                          ))}
-                        </tr>
-                      ))}
-                      <tr>
-                        <th
-                          colSpan={visibleColumns.length}
-                          style={{
-                            textAlign: "left",
-                          }}
-                        >
-                          <GlobalFilter
-                            preGlobalFilteredRows={preGlobalFilteredRows}
-                            globalFilter={state.globalFilter}
-                            setGlobalFilter={setGlobalFilter}
-                          />
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody {...getTableBodyProps()}>
-                      {page.map((row) => {
-                        prepareRow(row);
-                        return (
-                          <tr key={row.id} id={row.id} {...row.getRowProps()}>
-                            {row.cells.map((cell) => {
-                              return (
-                                <td
-                                  key={cell.id}
-                                  id={cell.id}
-                                  {...cell.getCellProps()}
-                                >
-                                  {cell.render("Cell")}
-                                </td>
-                              );
-                            })}
+                          </Col>
+                        </Row>
+                      </div>
+                    ) : null}
+                    <br />
+                    <Table
+                      className="align-items-center"
+                      bordered
+                      hover
+                      responsive
+                      size="sm"
+                      {...getTableProps()}
+                    >
+                      <thead>
+                        {headerGroups.map((headerGroup) => (
+                          <tr
+                            key={headerGroup.id}
+                            {...headerGroup.getHeaderGroupProps()}
+                          >
+                            {headerGroup.headers.map((column) => (
+                              <th key={column.id} {...column.getHeaderProps()}>
+                                <div>
+                                  <span {...column.getSortByToggleProps()}>
+                                    {column.render("Header")}
+                                    {/* Add a sort direction indicator */}
+                                    {column.isSorted
+                                      ? column.isSortedDesc
+                                        ? " 🔽"
+                                        : " 🔼"
+                                      : ""}
+                                  </span>
+                                </div>
+                                <br />
+                                {/* Render the columns filter UI */}
+                                <div>
+                                  {column.canFilter
+                                    ? column.render("Filter")
+                                    : null}
+                                </div>
+                              </th>
+                            ))}
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                  {/* Placeholder Code START - to show the selected Row ID and the Row Data in an Array */}
-                  <p>Selected Rows: {Object.keys(selectedRowIds).length}</p>
-                  <pre>
-                    <code>
-                      {JSON.stringify(
-                        {
-                          selectedRowIds: selectedRowIds,
-                          "selectedFlatRows[].original": selectedFlatRows.map(
-                            (d) => d.original
-                          ),
-                        },
-                        null,
-                        2
-                      )}
-                    </code>
-                  </pre>
-                  {/* Placeholder Code END - to show the selected Row ID and the Row Data in an Array */}
-                  <CardFooter className="py-4">
-                    <nav aria-label="...">
-                      <Pagination
-                        className="pagination justify-content-end mb-0"
-                        listClassName="justify-content-end mb-0"
-                      >
-                        <Button color="info">
-                          Page {pageIndex + 1} of {pageOptions.length}
-                          <span className="sr-only">unread messages</span>
-                        </Button>
-                        <Button
-                          className="btn-icon btn-2"
-                          color="primary"
-                          type="button"
-                          onClick={() => gotoPage(0)}
-                          disabled={!canPreviousPage}
+                        ))}
+                        <tr>
+                          <th
+                            colSpan={visibleColumns.length}
+                            style={{
+                              textAlign: "left",
+                            }}
+                          >
+                            <GlobalFilter
+                              preGlobalFilteredRows={preGlobalFilteredRows}
+                              globalFilter={state.globalFilter}
+                              setGlobalFilter={setGlobalFilter}
+                            />
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody {...getTableBodyProps()}>
+                        {page.map((row) => {
+                          prepareRow(row);
+                          return (
+                            <tr key={row.id} id={row.id} {...row.getRowProps()}>
+                              {row.cells.map((cell) => {
+                                return (
+                                  <td
+                                    key={cell.id}
+                                    id={cell.id}
+                                    {...cell.getCellProps()}
+                                  >
+                                    {cell.render("Cell")}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                    {/* Placeholder Code START - to show the selected Row ID and the Row Data in an Array */}
+                    <p>Selected Rows: {Object.keys(selectedRowIds).length}</p>
+                    <pre>
+                      <code>
+                        {JSON.stringify(
+                          {
+                            selectedRowIds: selectedRowIds,
+                            "selectedFlatRows[].original": selectedFlatRows.map(
+                              (d) => d.original
+                            ),
+                          },
+                          null,
+                          2
+                        )}
+                      </code>
+                    </pre>
+                    {/* Placeholder Code END - to show the selected Row ID and the Row Data in an Array */}
+                    <CardFooter className="py-4">
+                      <nav aria-label="...">
+                        <Pagination
+                          className="pagination justify-content-end mb-0"
+                          listClassName="justify-content-end mb-0"
                         >
-                          <span className="btn-inner--icon">
-                            <i className="fas fa-angle-double-left"></i>
-                          </span>
-                        </Button>{" "}
-                        {/* Previous Page */}
-                        <Button
-                          className="btn-icon btn-2"
-                          color="primary"
-                          type="button"
-                          onClick={() => previousPage()}
-                          disabled={!canPreviousPage}
-                        >
-                          <span className="btn-inner--icon">
-                            <i className="fas fa-angle-left"></i>
-                          </span>
-                        </Button>{" "}
-                        {/* Next Page */}
-                        <Button
-                          className="btn-icon btn-2"
-                          color="primary"
-                          type="button"
-                          onClick={() => nextPage()}
-                          disabled={!canNextPage}
-                        >
-                          <span className="btn-inner--icon">
-                            <i className="fas fa-angle-right"></i>
-                          </span>
-                        </Button>{" "}
-                        <Button
-                          className="btn-icon btn-2"
-                          color="primary"
-                          type="button"
-                          onClick={() => gotoPage(pageCount - 1)}
-                          disabled={!canNextPage}
-                        >
-                          <span className="btn-inner--icon">
-                            <i className="fas fa-angle-double-right"></i>
-                          </span>
-                        </Button>{" "}
-                        <Form.Control
-                          as="select"
-                          custom
-                          value={pageSize}
-                          onChange={(e) => {
-                            setPageSize(Number(e.target.value));
-                          }}
-                          onBlur={(e) => {
-                            setPageSize(Number(e.target.value));
-                          }}
-                        >
-                          {[10, 20, 30, 40, 50].map((pageSize) => (
-                            <option key={pageSize} value={pageSize}>
-                              Show {pageSize}
-                            </option>
-                          ))}
-                        </Form.Control>
-                      </Pagination>
-                    </nav>
-                  </CardFooter>
-                </React.Fragment>
-              )}
+                          <Button color="info">
+                            Page {pageIndex + 1} of {pageOptions.length}
+                            <span className="sr-only">unread messages</span>
+                          </Button>
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => gotoPage(0)}
+                            disabled={!canPreviousPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-double-left"></i>
+                            </span>
+                          </Button>{" "}
+                          {/* Previous Page */}
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => previousPage()}
+                            disabled={!canPreviousPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-left"></i>
+                            </span>
+                          </Button>{" "}
+                          {/* Next Page */}
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => nextPage()}
+                            disabled={!canNextPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-right"></i>
+                            </span>
+                          </Button>{" "}
+                          <Button
+                            className="btn-icon btn-2"
+                            color="primary"
+                            type="button"
+                            onClick={() => gotoPage(pageCount - 1)}
+                            disabled={!canNextPage}
+                          >
+                            <span className="btn-inner--icon">
+                              <i className="fas fa-angle-double-right"></i>
+                            </span>
+                          </Button>{" "}
+                          <Form.Control
+                            as="select"
+                            custom
+                            value={pageSize}
+                            onChange={(e) => {
+                              setPageSize(Number(e.target.value));
+                            }}
+                            onBlur={(e) => {
+                              setPageSize(Number(e.target.value));
+                            }}
+                          >
+                            {[10, 20, 30, 40, 50].map((pageSize) => (
+                              <option key={pageSize} value={pageSize}>
+                                Show {pageSize}
+                              </option>
+                            ))}
+                          </Form.Control>
+                        </Pagination>
+                      </nav>
+                    </CardFooter>
+                  </React.Fragment>
+                )}
             </Card>
           </div>
         </Row>
