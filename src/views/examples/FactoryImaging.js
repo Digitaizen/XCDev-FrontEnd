@@ -28,13 +28,9 @@ import {
 import FadeIn from "react-fade-in";
 import Lottie from "react-lottie";
 import * as dotLoading from "../../components/Loading/dotLoading.json";
-// import { UserInfoContext } from "../../context/UserInfoContext";
 import matchSorter from "match-sorter";
-// import AsyncSelect from "react-select/async";
 import Select from "react-select";
 import axios from "axios";
-// import PropTypes from "prop-types";
-
 // reactstrap components
 import {
   UncontrolledAlert,
@@ -49,15 +45,61 @@ import {
   Pagination,
   Input,
 } from "reactstrap";
-
 import Form from "react-bootstrap/Form";
-
+import Modal from 'react-bootstrap/Modal';
 // core components
 import Header from "../../components/Headers/Header.js";
-// const apiServer = "http://100.80.149.19:8080"; // for production build
-const apiServer = process.env.REACT_APP_API_SERVER;
-// const apiServer = ""; // for local dev work
 
+const apiServer = process.env.REACT_APP_API_SERVER;
+
+function MydModalWithGrid(props) {
+
+  function handleConfirm() {
+    props.handleClick()
+    props.onHide()
+  }
+  return (
+    <Modal {...props} aria-labelledby="contained-modal-title-vcenter" backdrop="static" keyboard={false} centered size="lg">
+      <Modal.Header closeButton>
+        <Modal.Title id="contained-modal-title-vcenter">
+          CONFIRMATION
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body className="show-grid">
+        <Container>
+          <Row>
+            <Col md={12}>
+              Are you sure you want to perform factory image process on the following servers?
+              <br />
+              {props.selectedRowData.map((item) => (
+                <li key={item.serviceTag}>{item.ip}</li>
+              ))}
+            </Col>
+            {/* <Col xs={6} md={4}>
+              .col-xs-6 .col-md-4
+            </Col> */}
+          </Row>
+          {/* 
+          <Row>
+            <Col xs={6} md={4}>
+              .col-xs-6 .col-md-4
+            </Col>
+            <Col xs={6} md={4}>
+              .col-xs-6 .col-md-4
+            </Col>
+            <Col xs={6} md={4}>
+              .col-xs-6 .col-md-4
+            </Col>
+          </Row> */}
+        </Container>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button onClick={handleConfirm}>Confirm</Button>
+        <Button onClick={props.onHide}>Close</Button>
+      </Modal.Footer>
+    </Modal>
+  );
+}
 // Define a default UI for filtering
 function GlobalFilter({
   preGlobalFilteredRows,
@@ -235,19 +277,11 @@ const IndeterminateCheckbox = React.forwardRef(
 function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   const [bmrOptions, setBmrOptions] = useState([]);
   const [factoryblockOptions, setFactoryblockOptions] = useState([]);
+  const [hypervisorOptions, setHypervisorOptions] = useState([]);
   const [selectedBmrIsoOption, setSelectedBmrIsoOption] = useState("");
-  const [hypervisorOptions, setHypervisorOptions] = useState("");
-  const [selectedFactoryBlockOption, setSelectedFactoryBlockOption] = useState(
-    ""
-  );
+  const [selectedFactoryBlockOption, setSelectedFactoryBlockOption] = useState("");
   const [selectedHypervisorOption, setSelectedHypervisorOption] = useState("");
-
-  // const hypervisorOptions = [
-  //   { value: "AHV", label: "AHV" },
-  //   { value: "ESXi_65", label: "ESXi_65" },
-  //   { value: "ESXi_67", label: "ESXi_67" },
-  //   { value: "ESXi_70", label: "ESXi_70" },
-  // ];
+  const [modalShow, setModalShow] = useState(false);
 
   // API request for getting Factory Block Folder List
   useEffect(() => {
@@ -289,18 +323,16 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       });
   }, []);
 
-  // API request for getting BMR ISO File List
+  // API request for getting Hypervisor List
   useEffect(() => {
     let config = {
       method: "get",
-      // url: "http://localhost:8080/getIsoFiles",
       url: "http://100.80.149.97:8080/getHypervisors",
       headers: {},
     };
 
     axios(config)
       .then(function (response) {
-        // console.log(JSON.stringify(response.data.results));
         setHypervisorOptions(response.data.results);
       })
       .catch(function (error) {
@@ -416,6 +448,14 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
 
   const selectedRowData = selectedFlatRows.map((d) => d.original);
 
+  useEffect(() => {
+    if (selectedRowData.length === 0) {
+      setSelectedBmrIsoOption("")
+    }
+  }, [selectedRowData.length])
+
+
+
   // eslint-disable-next-line no-console
   // console.log(selectedRowData.map(d => d.ip));
 
@@ -435,23 +475,23 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       selectedRowData,
     });
 
-    async function makePostRequest() {
-      let params = {
-        selectedBmrIsoOption: selectedBmrIsoOption,
-        selectedFactoryBlockOption: selectedFactoryBlockOption,
-        selectedHypervisorOption: selectedHypervisorOption,
-        selectedRowData: selectedRowData,
-      };
+    // async function makePostRequest() {
+    //   let params = {
+    //     selectedBmrIsoOption: selectedBmrIsoOption,
+    //     selectedFactoryBlockOption: selectedFactoryBlockOption,
+    //     selectedHypervisorOption: selectedHypervisorOption,
+    //     selectedRowData: selectedRowData,
+    //   };
 
-      let res = await axios.post(
-        "http://100.80.149.97:8080/bmrFactoryImaging",
-        params
-      );
+    //   let res = await axios.post(
+    //     "http://100.80.149.97:8080/bmrFactoryImaging",
+    //     params
+    //   );
 
-      console.log(res.data);
-    }
+    //   console.log(res.data);
+    // }
 
-    makePostRequest();
+    // makePostRequest();
   };
 
   return (
@@ -537,7 +577,9 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                             <Button
                               color="primary"
                               style={{ "margin-left": "15px" }}
-                              onClick={handleClick}
+                              // onClick={handleClick}
+                              onClick={() => setModalShow(true)}
+                              disabled={selectedBmrIsoOption === "" || selectedFactoryBlockOption === "" || selectedHypervisorOption === "" ? true : false}
                             >
                               Start Imaging
                           </Button>{" "}
@@ -545,6 +587,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                         </Row>
                       </div>
                     ) : null}
+                    <MydModalWithGrid show={modalShow} onHide={() => setModalShow(false)} handleClick={handleClick} selectedRowData={selectedRowData} />
                     <br />
                     <Table
                       className="align-items-center"
@@ -621,7 +664,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                       </tbody>
                     </Table>
                     {/* Placeholder Code START - to show the selected Row ID and the Row Data in an Array */}
-                    <p>Selected Rows: {Object.keys(selectedRowIds).length}</p>
+                    {/* <p>Selected Rows: {Object.keys(selectedRowIds).length}</p>
                     <pre>
                       <code>
                         {JSON.stringify(
@@ -635,7 +678,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
                           2
                         )}
                       </code>
-                    </pre>
+                    </pre> */}
                     {/* Placeholder Code END - to show the selected Row ID and the Row Data in an Array */}
                     <CardFooter className="py-4">
                       <nav aria-label="...">
