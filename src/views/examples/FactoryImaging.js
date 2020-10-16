@@ -475,23 +475,23 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       selectedRowData,
     });
 
-    // async function makePostRequest() {
-    //   let params = {
-    //     selectedBmrIsoOption: selectedBmrIsoOption,
-    //     selectedFactoryBlockOption: selectedFactoryBlockOption,
-    //     selectedHypervisorOption: selectedHypervisorOption,
-    //     selectedRowData: selectedRowData,
-    //   };
+    async function makePostRequest() {
+      let params = {
+        selectedBmrIsoOption: selectedBmrIsoOption,
+        selectedFactoryBlockOption: selectedFactoryBlockOption,
+        selectedHypervisorOption: selectedHypervisorOption,
+        selectedRowData: selectedRowData,
+      };
 
-    //   let res = await axios.post(
-    //     "http://100.80.149.97:8080/bmrFactoryImaging",
-    //     params
-    //   );
+      let res = await axios.post(
+        "http://100.80.149.97:8080/bmrFactoryImaging",
+        params
+      );
 
-    //   console.log(res.data);
-    // }
+      console.log(res.data);
+    }
 
-    // makePostRequest();
+    makePostRequest();
   };
 
   return (
