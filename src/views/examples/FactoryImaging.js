@@ -273,7 +273,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     let config = {
       method: "get",
       // url: "http://localhost:8080/getIsoFiles",
-      url: "http://100.80.149.97:8080/getFactoryBlock",
+      // url: "http://100.80.149.97:8080/getFactoryBlock",
+      url: `${apiServer}/getFactoryBlock`,
       headers: {},
     };
 
@@ -293,7 +294,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     let config = {
       method: "get",
       // url: "http://localhost:8080/getIsoFiles",
-      url: "http://100.80.149.97:8080/getBmrIso",
+      // url: "http://100.80.149.97:8080/getBmrIso",
+      url: `${apiServer}/getBmrIso`,
       headers: {},
     };
 
@@ -312,7 +314,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   useEffect(() => {
     let config = {
       method: "get",
-      url: "http://100.80.149.97:8080/getHypervisors",
+      // url: "http://100.80.149.97:8080/getHypervisors",
+      url: `${apiServer}/getHypervisors`,
       headers: {},
     };
 
@@ -469,7 +472,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       };
 
       let res = await axios.post(
-        "http://100.80.149.97:8080/bmrFactoryImaging",
+        // "http://100.80.149.97:8080/bmrFactoryImaging",
+        `${apiServer}/bmrFactoryImaging`,
         params
       );
 
