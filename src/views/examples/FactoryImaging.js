@@ -472,8 +472,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       };
 
       let res = await axios.post(
-        // "http://100.80.149.97:8080/bmrFactoryImaging",
-        `${apiServer}/bmrFactoryImaging`,
+        "http://100.80.149.97:8080/bmrFactoryImaging",
+        // `${apiServer}/bmrFactoryImaging`,
         params
       );
 
