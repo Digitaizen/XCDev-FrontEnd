@@ -100,7 +100,7 @@ var routes = [
   },
   {
     path: "/SearchInventory",
-    name: "Search Inventory (PREVIEW)",
+    name: "Component Search",
     icon: "fas fa-search text-blue",
     component: SearchInventory,
     layout: "/admin",
