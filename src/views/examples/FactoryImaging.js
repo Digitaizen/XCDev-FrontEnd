@@ -44,6 +44,7 @@ import {
   CardFooter,
   Pagination,
   Input,
+  Label,
 } from "reactstrap";
 import Form from "react-bootstrap/Form";
 import Modal from 'react-bootstrap/Modal';
@@ -147,6 +148,80 @@ function ResizeTextArea(id) {
   document.getElementById(id).style.height = taHeight + "px";
 }
 
+// Fetch server data from db and add it to state
+function fetchServers(tagArr) {
+  return new Promise((resolve, reject) => {
+    console.log(`'fetchServers' from db function called.`); //debugging
+
+    // Fetch these Service Tags to a db query
+    // Specify request options
+    const requestOptions = {
+      method: "POST",
+      body: JSON.stringify({ ServiceTagArr: tagArr }),
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    };
+    fetch(`${apiServer}/getServersByTag`, requestOptions)
+      .then((res) => res.json())
+      .then((data) => {
+        resolve(data);
+      })
+      .catch((e) => {
+        console.log(`Catch in fetchServers on fetch: ${e.statusText}`);
+        reject([]);
+      });
+  });
+}
+
+// function startBmrStatusUpdates() {  
+// }
+
+// Self-updating component for BMR Status field of the table
+const BmrStatusUpdate = ({row}) => {
+  let initialValue = row.original.bmrStatus;
+  let nodeServiceTag = row.original.serviceTag;
+  const [value, setValue] = useState(initialValue);  
+
+  // First check the initial value upon table load
+  if (initialValue === "BMR complete") {
+    console.log(`BMR finished on ${nodeServiceTag}. No further checks necessary.`);
+  } else {
+    // Call database in a loop to read current bmrStatus value
+    console.log(`Starting BMR update for ${nodeServiceTag}`); //debugging
+    let checkInterval = setInterval(() => {
+      fetchServers([nodeServiceTag])
+      .then((data) => {
+        console.log(`DB check for BMR Status on ${nodeServiceTag}: "${data[0].bmrStatus}"`); //debugging
+        setValue(data[0].bmrStatus);
+        // If BMR has finished then stop the loop
+        if (data[0].bmrStatus === "BMR complete") {
+          console.log(`Stopping BMR update for ${nodeServiceTag}`); //debugging
+          clearInterval(checkInterval);
+        } 
+      })
+      .catch((error) => {
+        console.log(`CATCH on fetchServers call in BMR cell update: ${error.statusText}`);
+      })
+    }, 10000);
+  }  
+
+  return (
+    <div>
+      <Input 
+        type="text"
+        value={value}
+        readonly
+        style={{
+          border: "none",
+          background: "none"
+        }}
+      />
+    </div>
+  );
+}
+
 // Make comments section editable field
 const EditableComments = ({
   value: initialValue,
@@ -235,7 +310,7 @@ const IP_Hyperlink = (props) => {
   let iDRAC_link = "http://" + iDRAC_IP;
   return (
     <div>
-      <a target="_blank" href={iDRAC_link}>
+      <a target="_blank" href={iDRAC_link} rel="noopener noreferrer">
         {iDRAC_IP}
       </a>
     </div>
@@ -273,8 +348,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     let config = {
       method: "get",
       // url: "http://localhost:8080/getIsoFiles",
-      // url: "http://100.80.149.97:8080/getFactoryBlock",
-      url: `${apiServer}/getFactoryBlock`,
+      url: "http://100.80.149.97:8080/getFactoryBlock",
+      // url: `${apiServer}/getFactoryBlock`,
       headers: {},
     };
 
@@ -294,8 +369,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     let config = {
       method: "get",
       // url: "http://localhost:8080/getIsoFiles",
-      // url: "http://100.80.149.97:8080/getBmrIso",
-      url: `${apiServer}/getBmrIso`,
+      url: "http://100.80.149.97:8080/getBmrIso",
+      // url: `${apiServer}/getBmrIso`,
       headers: {},
     };
 
@@ -314,8 +389,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
   useEffect(() => {
     let config = {
       method: "get",
-      // url: "http://100.80.149.97:8080/getHypervisors",
-      url: `${apiServer}/getHypervisors`,
+      url: "http://100.80.149.97:8080/getHypervisors",
+      // url: `${apiServer}/getHypervisors`,
       headers: {},
     };
 
@@ -472,8 +547,8 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
       };
 
       let res = await axios.post(
-        // "http://100.80.149.97:8080/bmrFactoryImaging",
-        `${apiServer}/bmrFactoryImaging`,
+        "http://100.80.149.97:8080/bmrFactoryImaging",
+        // `${apiServer}/bmrFactoryImaging`,
         params
       );
 
@@ -481,6 +556,7 @@ function Tables({ columns, data, updateMyData, loading, skipPageResetRef }) {
     }
 
     makePostRequest();
+    // startBmrStatusUpdates();
   };
 
   return (
@@ -798,19 +874,32 @@ function FactoryImaging() {
         Header: "Model",
         accessor: "model",
       },
+      // {
+      //   Header: "Location",
+      //   accessor: "location",
+      // },
+      // {
+      //   Header: "Status",
+      //   accessor: "status",
+      // },
+      // {
+      //   Header: "Comments",
+      //   accessor: "comments",
+      //   Cell: EditableComments,
+      //   disableFilters: true,
+      // },
       {
-        Header: "Location",
-        accessor: "location",
+        Header: "BMR Status",
+        accessor: "bmrStatus",
+        Cell: BmrStatusUpdate
       },
       {
-        Header: "Status",
-        accessor: "status",
+        Header: "BMR Started",
+        accessor: "bmrStarted",
       },
       {
-        Header: "Comments",
-        accessor: "comments",
-        Cell: EditableComments,
-        disableFilters: true,
+        Header: "BMR Finished",
+        accessor: "bmrFinished"
       },
     ],
     []
