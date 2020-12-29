@@ -723,7 +723,7 @@ function getDropdownData(jsonData, allData) {
 
     // Add server object's data to the main array
     allServerObj.push(serverObj);
-    console.log(allServerObj)
+    // console.log(allServerObj);
   });
 
   // Convert sets to arrays, then sort the items
@@ -984,7 +984,7 @@ function matchAll(serverObj, searchVals) {
               matchCounter++;
             break;
           case "MemorySizes":
-            if (serverObj.MemoryInfo.PartNums.some((s) => kv[1].includes(s)))
+            if (serverObj.MemoryInfo.Sizes.some((s) => kv[1].includes(s)))
               matchCounter++;
             break;
           case "MemorySpeeds":
@@ -1342,7 +1342,7 @@ function SearchCard() {
                         <FormGroup>
                           <Select
                             className="mt-1 col-md-15 col-offset-8"
-                            placeholder="Total Mem (GB)"
+                            placeholder="Total Mem (GiB)"
                             options={dropdownDataFromAPI.SystemInfo.MemTotals}
                             isMulti
                             isSearchable
