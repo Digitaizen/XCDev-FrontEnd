@@ -187,19 +187,21 @@ const BmrStatusUpdate = ({row}) => {
   // First check the initial value upon table load
   if (initialValue === "BMR complete") {
     console.log(`BMR finished on ${nodeServiceTag}. No further checks necessary.`);
+  } else if (initialValue === "") {
+    console.log(`No BMR-in-process on ${nodeServiceTag}. No further checks necessary.`);
   } else {
     // Call database in a loop to read current bmrStatus value
     console.log(`Starting BMR update for ${nodeServiceTag}`); //debugging
     let checkInterval = setInterval(() => {
       fetchServers([nodeServiceTag])
       .then((data) => {
-        console.log(`DB check for BMR Status on ${nodeServiceTag}: "${data[0].bmrStatus}"`); //debugging
-        setValue(data[0].bmrStatus);
+        console.log(`DB check for BMR Status on ${nodeServiceTag}: "${data[0].bmrStatus}"`); //debugging        
         // If BMR has finished then stop the loop
         if (data[0].bmrStatus === "BMR complete") {
           console.log(`Stopping BMR update for ${nodeServiceTag}`); //debugging
           clearInterval(checkInterval);
         } 
+        setValue(data[0].bmrStatus);
       })
       .catch((error) => {
         console.log(`CATCH on fetchServers call in BMR cell update: ${error.statusText}`);
